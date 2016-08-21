@@ -131,7 +131,7 @@ for (i in 1:40)
     
     model_polynomial = svm(Target ~ .,
                            data = data.training.pca,
-                           kernel = "polynomial",
+                           kernel = "radial",
                            scale = FALSE)
     
     dataset.testing.pca.predict = as.data.frame(scale(data.cv.testing[,1:i]))
