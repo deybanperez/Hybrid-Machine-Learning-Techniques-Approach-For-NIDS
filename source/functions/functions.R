@@ -169,3 +169,65 @@ CheckFeaturesLevels = function(dataframe)
   
   return(returnValue)
 }
+
+#Calculating sum of labels
+SumLabels = function(dataframe, columnLabel)
+{
+  targets = sort(unique(dataframe[, columnLabel]))
+  returnValue = vector(mode = "numeric", length = length(targets))
+  
+  for (i in 1:length(targets))
+    returnValue[i] = sum(dataframe[,columnLabel] == targets[i])
+  
+  return(returnValue)
+}
+
+#Probabilities vector
+ProbVector = function(dataframe, vectorOcurrences)
+{
+  vectorProbabilities = vector(mode = "numeric", length = length(vectorOcurrences))
+  returnValue = vector(mode = "numeric", length = length(nrow(dataframe)))
+  labels = sort(unique(dataframe[, ncol(dataframe)]))
+  
+  #Inversely proportional probabilities
+  for (i in 1:length(vectorProbabilities))
+    vectorProbabilities = 1 - (vectorOcurrences/nrow(dataframe))
+  
+  
+  for (i in 1:length(labels))
+    returnValue[dataframe[, ncol(dataframe)] == labels[i]] = vectorProbabilities[i]
+  
+  return(returnValue)
+}
+
+#Indexes for training sample
+IndexesTrainingSample = function(dataframe, vectorProbabilities = NULL, proportion, seed = NULL)
+{
+  if(!is.null(seed))
+    set.seed(seed)
+  
+  if(!is.null(vectorProbabilities))
+    returnValue = sample(nrow(dataframe), floor(nrow(dataframe) * proportion),
+                         prob = vectorProbabilities, replace = FALSE)
+  else
+    returnValue = sample(nrow(dataframe), floor(nrow(dataframe) * proportion), replace = FALSE)
+  
+  return(returnValue)
+}
+
+#Scale set
+ScaleSet = function(set)
+{
+  auxLabels = set[, ncol(set)]
+  set = scale(set[, 1: (ncol(set) -1)])
+  
+  for (i in 1:ncol(set))
+  {
+    if(sum(is.nan(set[,i])) > 0)
+      set[,i] = 0
+  }
+  
+  set = data.frame(set, Label = auxLabels)
+  
+  return(set)
+}
