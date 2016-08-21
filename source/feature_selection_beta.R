@@ -1,6 +1,7 @@
 #Setting work directory
 rm(list = ls())
-setwd("/home/dperez/Documents/Repos/Tesis/source")
+#setwd("/home/dperez/Documents/Repos/Tesis/source")
+setwd("/home/dperez/Tesis/source")
 
 #Loading functions
 source("functions.R")
