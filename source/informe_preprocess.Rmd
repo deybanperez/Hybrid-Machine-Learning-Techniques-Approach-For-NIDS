@@ -1,0 +1,257 @@
+---
+title: Detección de Anomalías en Redes de Computadoras Utilizando Técnicas de Aprendizaje (Pre-Procesamiento)
+  Automático
+author: "Deyban Andŕes Pérez Abreu"
+date: "August 11, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Configuración del ambiente de trabajo
+Empezaremos por establecer el ambiente de trabajo
+
+```{r}
+rm(list = ls())
+setwd("/home/dperez/Documents/Repos/Tesis/source")
+```
+
+##Funciones
+En el archivo **functions_preprocess.R** se encuentran una serie de funciones que se utilizarán a lo largo del documento. Dentro del documento se pueden encontrar comentarios sobre la funcionalidad de las mismas.
+
+```{r}
+source("functions_preprocess.R")
+```
+
+# Análisis sobre el conjunto de datos NSL-KDD
+A continuación se cargarán los conjuntos de datos de prueba y de entrenamiento.
+
+```{r}
+dataset.training = read.csv(file = "../dataset/KDDTrain+.txt", sep = ",", header = FALSE)
+dataset.testing = read.csv(file = "../dataset/KDDTest+.txt", sep = ",", header = FALSE)
+```
+
+En la varibale **dataset.training** se tiene cargado el conjutno de entrenamiento y en la variable **dataset.testing** el conjunto de prueba. Veamos las dimensiones de los conjuntos de datos.
+
+```{r}
+dim(dataset.training)
+dim(dataset.testing)
+```
+El **conjunto de entrenamiento** tiene **125973** filas y **43** columnas. Por otra parte, el **conjunto de prueba** tiene **22544** filas y **43** columnas. Hay que recordar que de las 43 columnas, la **columna 42** corresponde a la etiqueta del ataque y la **columna 43** corresponde a la cantidad de clasificadores que acertaron a la hora de clasificar dicho registro cuándo se creó el conjunto de datos **NSL-KDD**. Se probaron 21 clasificadores, por los que los números en esa columna están en el rango [0,21].
+
+Ahora veamos si el conjunto de datos tiene valores faltantes, para eso haremos uso de la función **complete.cases**.
+
+```{r}
+sum(complete.cases(dataset.training)) == nrow(dataset.training)
+sum(complete.cases(dataset.testing)) == nrow(dataset.testing)
+```
+Podemos ver cómo la cantidad de casos completos es igual a la cantidad de filas de ambos conjutnos de datos. Esto nos quiere decir que no existen valores faltantes.
+
+Ahora veamos los tipos de ataques por conjunto de datos. Se empezará con el conjunto de entrenamiento.
+
+```{r}
+attacks.training = unique(dataset.training$V42)
+attacks.training = sort(as.character(attacks.training))
+length(attacks.training)
+attacks.training
+```
+Se puede apreciar que el conjunto de entrenamiento consta de 23 etiquetas donde una corresponde a la etiqueta del tráfico **normal** y las otras 22 corresponden a ataques.
+
+Ahora veamos los ataques en el conjunto de prueba.
+```{r}
+attacks.testing = unique(dataset.testing$V42)
+attacks.testing = sort(as.character(attacks.testing))
+length(attacks.testing)
+attacks.testing
+```
+Se puede apreciar cómo hay 38 etiquetas en el conjunto de prueba, donde una corresponde a la etiqueta del tráfico **normal** y las otras 37 corresponden a ataques.
+
+En este punto podemos observar que hay mayor cantidad de ataques en el conjunto de prueba que en el conjunto de entrenamiento, esto es debido a que el conjunto de entrenamiento busca medir la habilidad del modelo de ML para generalizar ante ataques no vistos en el conjunto de entrenamiento.
+
+Veamos cuáles son los ataques presentes en el conjunto de prueba que no están en el conjunto de entrenamiento y viceversa.
+
+Empezaremos por ver cuántos ataques hay en total entre ambos conjuntos de datos
+
+```{r}
+total.attacks = sort(unique(c(attacks.training, attacks.testing)))
+length(total.attacks)
+total.attacks
+```
+Entre ambos conjuntos de datos hay un total de 40 etiquetas, recordemos que una corresponde a la etiqueta del tráfico normal, por lo tanto, hay 39 tipos de ataques. Esto quiere decir que al conjunto de entrenamiento le faltan 17 ataques, y al conjunto de prueba le hacen falta 2 tipos de ataques, veamos cuáles son.
+
+Empezaremos por ver cuáles son los ataques comunes entre ambos conjuntos de datos.
+
+```{r}
+index.attacks = which(attacks.testing %in% attacks.training)
+length(attacks.testing[index.attacks])
+attacks.testing[index.attacks]
+```
+Existen 21 las etiquetas comunes entre ambos conjuntos de datos, donde uno corresponde a la etiqueta de tráfico normal y las otras 20 a ataques. Los mismos fueron listados.
+
+Ahora veamos cuáles ataques están presentes en el conjunto de entrenamiento y no en el conjunto de prueba.
+```{r}
+length(attacks.testing[-index.attacks])
+attacks.testing[-index.attacks]
+```
+Son 17 los ataques nuevos en el conjunto de prueba con respecto al conjunto de entrenamiento. Los mismos fueron listados.
+
+Ahora veamos cuáles son los ataques que están en el conjunto de datos de entrenamiento que no están presentes en el cojunto de prueba.
+```{r}
+index.attacks.training = which(attacks.training %in% attacks.testing)
+length(attacks.training[-index.attacks.training])
+attacks.training[-index.attacks.training]
+```
+Son sólo dos los ataques en el conjunto de entrenamiento que no están presentes en el conjunto de prueba. Estos corresponden a **spy** y **warezclient**.
+
+En este documento se clasificarán las anomalías en cuatro grupos **DoS**, **R2L**, **U2R** y **Probing**, es decir, habrá 5 tipos de etiquetas donde cuatro corresponden a los tipos de ataques mencionado previamente y la quinta etiqueta corresponde a la etiqueta **normal**. Para facilitar el trabajo debemos asociar los ataques a las respectivas clases mencionadas con anterioridad. Para esto se hará uso de la función **ClassLabelAttack** que recibe cómo parámetro un dataframe y retorna una columna con la clase de cada tipo de ataque para cada registro.
+
+```{r}
+dataset.training$V44 = ClassLabelAttack(dataset.training)
+dataset.testing$V44 = ClassLabelAttack(dataset.testing)
+```
+
+De esta manera ahora tanto el conjunto de entrenameinto como el de prueba tienen la clase de ataque a la que pertenecen. Ahora separaremos los ataques de cada conjunto de entrenamiento con respecto a la clase a la que pertenecen. Adicionalmente agregaremos una nueva columna que diga si un registro es un **ataque** o es **normal**. De esta manera tendremos una clase más general con la que se puede trabajar.
+
+```{r}
+dataset.training$V45 = NormalAttackLabel(dataset.training) 
+dataset.testing$V45 = NormalAttackLabel(dataset.testing)
+```
+Ahora dividiremos el conjunto de datos en dataframes individuales para las clases: **DoS**, **R2L**, **U2R** y **Probing** y **normal**
+
+```{r}
+training.split = split(dataset.training, dataset.training$V44)
+testing.split = split(dataset.testing, dataset.testing$V44)
+summary(training.split)
+summary(testing.split)
+```
+En **training.split** y en **testing.split** se tiene un subconjunto por etiquetas de clase de ataques. Dichos subconjuntos serán extraídos en variables independiente.
+
+Se empezará con el conjunto de entrenamiento.
+```{r}
+training.DOS = training.split$DoS
+training.normal = training.split$normal
+training.Probing = training.split$Probing
+training.R2L = training.split$R2L
+training.U2R = training.split$U2R
+```
+
+Una vez almacenados los dataframes de manera individual se puede ver cuántos ejemplos hay de cada tipo de etiqueta.
+```{r}
+nrow(training.DOS)
+nrow(training.normal)
+nrow(training.Probing)
+nrow(training.R2L)
+nrow(training.U2R)
+```
+Se observa que la clase **normal** es la que tiene mayor cantidad de registros, seguido por el ataque DoS. Esto nos da una idea de cuáles son los tipos de ataques más comunes y los menos comunes.
+
+Acá se tiene un gráfico que permite visualizar mejor la distribición.
+```{r, fig.align = "center"}
+barplot(table(dataset.training$V44), main = "Frecuencia De Las Clases En El Conjunto
+        De Entrenamiento")
+```
+Ahora repetiremos los pasos anteriores para el conjunto de prueba.
+
+```{r}
+testing.DOS = testing.split$DoS
+testing.normal = testing.split$normal
+testing.Probing = testing.split$Probing
+testing.R2L = testing.split$R2L
+testing.U2R = testing.split$U2R
+```
+Primero asignamos los dataframes de manera individual a variables independientes. Y ahora veremos la cantidad de registros por etiqueta.
+
+```{r}
+nrow(testing.DOS)
+nrow(testing.normal)
+nrow(testing.Probing)
+nrow(testing.R2L)
+nrow(testing.U2R)
+```
+En esta oportunidad se observa como las clase **normal** es la clase con mayor cantidad de registros, sin embargo, ahora las clases **Probing** y **R2L** poseen una cantidad similar de registros.
+
+A continuación un gráfico que ayuda a visualizar mejor la distribución de las clases.
+```{r, fig.align="center"}
+barplot(table(dataset.testing$V44), main = "Frecuencia De Las Clases En El Conjunto
+        De Prueba")
+```
+Empezaremos a colocarle nombre a las columnas
+
+```{r}
+dataset.training = ColumnNames(dataset.training)
+dataset.testing = ColumnNames(dataset.testing)
+```
+A continuación se verificará que los conjuntos de datos de entrenamiento y de prueba contengan características **inútiles**, es decir, que en la columna sólo se tenga un nivel de valores, donde este caso no aporta información alguna.
+
+```{r}
+index.dummy.variables.training = CheckFeaturesLevels(dataset.training)
+index.dummy.variables.testing = CheckFeaturesLevels(dataset.testing)
+names(dataset.training)[index.dummy.variables.training]
+names(dataset.testing)[index.dummy.variables.testing]
+```
+Tanto en el conjunto de entrenamiento como en el de prueba la característica **Num_outbound_cmds** sólo posee un valor que es el valor **cero (0)**, de esta manera. Esta característica no aporta información alguna a la hora de clasificar y por lo tanto será eliminada.
+
+```{r}
+dataset.training[,index.dummy.variables.training] = NULL
+dataset.testing[, index.dummy.variables.testing] = NULL
+```
+Las columnas **Protocol_type**, **Service** y **FLag** tienen tipos de datos categóricos, estos serán transformados a numéricos, debido a que los tipos de datos numéricos son aceptados por la mayoría de los algoritmos clasificadores y cómo seplantea usar redes neuronales es necesario que todas las columnas sean de tipo numérico.
+
+# Ajuste de los datos
+En esta sección se hará el ajuste de los datos de los conjuntos de datos para que todos estos sean de tipo numérico.
+
+La columna **Protocol_type** tiene 3 niveles.
+```{r}
+sort(unique(dataset.testing$Protocol_type))
+sort(unique(dataset.training$Protocol_type))
+```
+Estos serán transformados a los valores 1,2,3 respectivamente.
+```{r}
+dataset.training = ProtocolTransformation(dataset.training)
+dataset.testing = ProtocolTransformation(dataset.testing)
+```
+Ahora veamos los niveles de la columna **Service**.
+```{r}
+sort(unique(dataset.testing$Service))
+sort(unique(dataset.training$Service))
+length(sort(unique(c(as.character(unique(dataset.testing$Service)),
+                     as.character(unique(dataset.training$Service))))))
+```
+Se observa que en el conjunto de prueba hay mayor cantidad de servicios, un total de 70, mientras que en el conjutno de entrenamiento hay 64. También pudimos observar cómo en la suma de los servicios de ambos conjuntos hay un total de 70 servicios, es decir, el conjunto de prueba constituye el universo de servicios.
+
+Los campos serán enumerados en el rango [1,70] en orden alfabético, tal cuál cómo se muestra a continuación.
+```{r}
+sort(unique(c(as.character(unique(dataset.testing$Service)),
+              as.character(unique(dataset.training$Service)))))
+```
+Se utilizará la función **ServiceTransformation** para enumerar cada uno de los servicios listados previamente.
+```{r}
+dataset.training = ServiceTransformation(dataset.training)
+dataset.testing = ServiceTransformation(dataset.testing)
+```
+Sólo resta una característica categórica que es la columna **Flag**. Veamos los niveles de esta característica.
+```{r}
+sort(unique(dataset.testing$Flag))
+sort(unique(dataset.training$Flag))
+length(sort(unique(c(as.character(unique(dataset.testing$Flag)),
+                  as.character(unique(dataset.training$Flag))))))
+```
+Se observa que ambos conjuntos de entrenamiento poseen 11 **Flags**, y que combinadas también son 11. Dicho esto las etiquetas serán enumeradas por orden alfabético, tal cual cómo se muestra a continuación.
+```{r}
+sort(unique(c(as.character(unique(dataset.testing$Flag)),
+              as.character(unique(dataset.training$Flag)))))
+```
+Se utilizará la función **FlagTransformation** para dicho propósito.
+```{r}
+dataset.training = FlagTransformation(dataset.training)
+dataset.testing = FlagTransformation(dataset.testing)
+```
+De esta manera ya ambos conjuntos de datos tienen las características predictoras en forma numérica y tienen las nuevas etiquetas que serán usadas para entrenar a los modelos clasificadores. Ahora se pueden guardar ambos modelos.
+```{r}
+write.csv(dataset.training,
+          file = "../dataset/NSLKDD_Training_New.csv", row.names = FALSE)
+write.csv(dataset.testing,
+          file = "../dataset/NSLKDD_Testing_New.csv", row.names = FALSE)
+```
