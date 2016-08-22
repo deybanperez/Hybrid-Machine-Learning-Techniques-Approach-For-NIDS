@@ -1,6 +1,7 @@
 #Setting work directory
 rm(list = ls())
-setwd("/home/dperez/Documents/Repos/Tesis/source")
+#setwd("/home/dperez/Documents/Repos/Tesis/source")
+setwd("/home/dperez/Tesis/source")
 
 #Loading packages
 require("e1071")
@@ -33,30 +34,40 @@ vector.ocurrences = SumLabels(dataset, ncol(dataset))
 
 #Create probability vector
 vector.probabilities = ProbVector(dataset, vector.ocurrences)
+results.svm = vector(mode = "numeric", length = 25)
 
-#Making stratified sample
-indexes.training = IndexesTrainingSample(dataset, vector.probabilities, 0.8, 22)
-trainingset = dataset[indexes.training, ]
-testingset = dataset[-indexes.training, ]
+for (k in 1:length(results.svm))
+{
 
-################################################
-#           Training the models                #
-################################################
-#Scaling testingset
-testingset = ScaleSet(testingset)
-
-#Scaling trainingset
-trainingset = ScaleSet(trainingset)
-
-#SVM Radial Model
-svm.radial.defaults = svm(Label ~ .,
-                          data = trainingset,
-                          kernel = "radial",
-                          scale = FALSE)
-
-svm.radial.defaults.predictions = predict(svm.radial.defaults,
-                                          testingset[, 1:(ncol(testingset)-1)], type = "class")
-
-svm.radial.defaults.accuracy = mean(testingset[, ncol(testingset)] == svm.radial.defaults.predictions)
-svm.radial.defaults.accuracy
+  #Making stratified sample
+  indexes.training = IndexesTrainingSample(dataset, vector.probabilities, 0.8, k)
+  trainingset = dataset[indexes.training, ]
+  testingset = dataset[-indexes.training, ]
+  
+  ################################################
+  #           Training the models                #
+  ################################################
+  #Scaling testingset
+  testingset = ScaleSet(testingset)
+  
+  #Scaling trainingset
+  trainingset = ScaleSet(trainingset)
+  
+  #SVM Radial Model
+  svm.radial.defaults = svm(Label ~ .,
+                            data = trainingset,
+                            kernel = "radial",
+                            scale = FALSE)
+  
+  svm.radial.defaults.predictions = predict(svm.radial.defaults,
+                                            testingset[, 1:(ncol(testingset)-1)], type = "class")
+  
+  svm.radial.defaults.accuracy = mean(testingset[, ncol(testingset)] == svm.radial.defaults.predictions)
+  results.svm[k] = svm.radial.defaults.accuracy
+}
+results.svm
+plot(1:length(results.svm), results.svm)
+mean(results.svm)
+#Calculate percentage of accuracy per classes
+#Create K-means model
 save(svm.radial.defaults, file = "normal_model/svm_radial_defaults.rda")
