@@ -69,7 +69,7 @@ for (k in 1:length(results.svm))
   #Storing result
   results.svm[k] = svm.radial.defaults.accuracy
   
-  if(best.accuracy < svm.radial.defaults.predictions)
+  if(best.accuracy < (svm.radial.defaults.accuracy*100))
   {
     best.model = svm.radial.defaults
     best.testingset = testingset
