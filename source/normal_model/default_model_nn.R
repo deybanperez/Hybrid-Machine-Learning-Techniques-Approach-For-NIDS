@@ -1,11 +1,12 @@
   #Setting work directory
   rm(list = ls())
-  setwd("/home/dperez/Documents/Repos/Tesis/source")
-  #setwd("/home/dperez/Tesis/source")
+  #setwd("/home/dperez/Documents/Repos/Tesis/source")
+  setwd("/home/dperez/Tesis/source")
   
   #Loading packages
   require("e1071")
   library("nnet")
+  library("neuralnet")
   
   #Loading functions
   source("functions/functions.R")
@@ -76,7 +77,7 @@
       
       NN = neuralnet(formula,
                 data = trainingset,
-                hidden = c(20, 20),
+                hidden = c(10, 10),
                 linear.output = FALSE)
   
   #Making predictions
