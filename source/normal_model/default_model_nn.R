@@ -28,20 +28,20 @@
   dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
   
   #splitting the dataset into training and testing
-  #Making a strarified sampling
+  #Making a stratified sampling
   ################################################
   #Start calculating the number of each class
   vector.ocurrences = SumLabels(dataset, ncol(dataset))
   
   #Create probability vector
   vector.probabilities = ProbVector(dataset, vector.ocurrences)
-  ##results.svm = vector(mode = "numeric", length = 10)
+  results.nn = vector(mode = "numeric", length = 10)
   
-  ##for (k in 1:length(results.svm))
-  ##{
+  for (k in 1:length(results.nn))
+  {
     
     #Making stratified sample
-    indexes.training = IndexesTrainingSample(dataset, vector.probabilities, 0.8, 1)
+    indexes.training = IndexesTrainingSample(dataset, vector.probabilities, 0.8, k)
     trainingset = dataset[indexes.training, ]
     testingset = dataset[-indexes.training, ]
     
@@ -50,30 +50,16 @@
     ################################################
     #Scaling testingset
     testingset = ScaleSet(testingset)
-    #testingset = NumerizingLabels(testingset)
     
     #Scaling trainingset
     trainingset = ScaleSet(trainingset)
-    #SumLabels(trainingset, ncol(trainingset))
-    trainingset = BinarizingLabels(trainingset)
-    #SumLabels(trainingset, ncol(trainingset))
 
     #NN Model
-    names = names(trainingset)
-    names = names[1:(length(names)-6)]
-    formula = as.formula(paste("DoS + normal + Probing + R2L + U2R ~",
-                               paste(names, collapse = " + ")))
-    #nn.defaults = nnet(Label ~ .,
-                       #data = trainingset,
-                       #size = 20)
+    nn.defaults = nnet(Label ~ .,
+                       data = trainingset,
+                       size = 20,
+                       maxit = 100)
       
-      
-      
-      NN = neuralnet(formula,
-                data = trainingset,
-                hidden = c(10),
-                linear.output = FALSE)
-  
   #Making predictions
   nn.defaults.predictions = predict(nn.defaults,
                                             testingset[, 1:(ncol(testingset)-1)], type = "class")
@@ -82,20 +68,20 @@
   #Calculating accuracy
   nn.defaults.accuracy = mean(testingset[, ncol(testingset)] == nn.defaults.predictions)
   #Storing result
-  #results.svm[k] = svm.radial.defaults.accuracy
-#}
+  results.nn[k] = nn.defaults.accuracy
+}
 #Showing all results
-#results.svm
+results.nn
 #Calculating the mean of the results
-#mean(results.svm)
+mean(results.nn)
 #Calculating the accuracy of the last model created
 nn.defaults.accuracy
 #Calculating the confusion matrix with the last model created
-confusion.matrix.svm = table(Real = testingset[,ncol(testingset)],
-                             Prediction = svm.radial.defaults.predictions)
+confusion.matrix.nn = table(Real = testingset[,ncol(testingset)],
+                             Prediction = nn.defaults.predictions)
 #Showing confusion matrix
-confusion.matrix.svm
+confusion.matrix.nn
 #Showing accuracy per label
-AccuracyPerLabel(confusion.matrix.svm, testingset)
+AccuracyPerLabel(confusion.matrix.nn, testingset)
 #Saving last model
 save(svm.radial.defaults, file = "normal_model/svm_radial_defaults.rda")

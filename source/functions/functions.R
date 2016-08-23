@@ -243,19 +243,3 @@ AccuracyPerLabel = function(confusionMatrix, set)
   
   return(100*returnValue)
 }
-
-#Numerizing labels
-BinarizingLabels = function(set)
-{
-  labels = set[, ncol(set)]
-  unique.labels = sort(unique(labels))
-  
-  for (i in 1:length(unique.labels))
-  {
-    auxiliar = labels == unique.labels[i]
-    set[,ncol(set)+1] = auxiliar
-    names(set)[ncol(set)] = as.character(unique.labels[i])
-  }
-  
-  return(set)
-}
