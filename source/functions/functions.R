@@ -215,7 +215,7 @@ IndexesTrainingSample = function(dataframe, vectorProbabilities = NULL, proporti
   return(returnValue)
 }
 
-#Scale set
+#Scale set for set
 ScaleSet = function(set)
 {
   auxLabels = set[, ncol(set)]
@@ -228,6 +228,36 @@ ScaleSet = function(set)
   }
   
   set = data.frame(set, Label = auxLabels)
+  
+  return(set)
+}
+
+#Accuracy for each type of label
+AccuracyPerLabel = function(confusionMatrix, set)
+{
+  labels = sort(unique(set[, ncol(set)]))
+  returnValue = vector(mode = "numeric", length = length(labels))
+  
+  for (i in 1:length(returnValue))
+    returnValue[i] = confusionMatrix[i,i] / sum(set[,ncol(set)] == labels[i])
+  
+  return(100*returnValue)
+}
+
+#Numerizing labels
+NumerizingLabels = function(set)
+{
+  labels = set[, ncol(set)]
+  unique.labels = sort(unique(labels))
+  set[,ncol(set)] = NULL
+  
+  for (i in 1:length(unique.labels))
+  {
+    auxiliar = labels == unique.labels[i]
+    auxiliar[auxiliar == "TRUE"] = 1
+    auxiliar = as.numeric(auxiliar)
+    set[,ncol(set)+1] = auxiliar
+  }
   
   return(set)
 }
