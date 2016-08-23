@@ -1,7 +1,7 @@
   #Setting work directory
   rm(list = ls())
-  #setwd("/home/dperez/Documents/Repos/Tesis/source")
-  setwd("/home/dperez/Tesis/source")
+  setwd("/home/dperez/Documents/Repos/Tesis/source")
+  #setwd("/home/dperez/Tesis/source")
   
   #Loading packages
   require("e1071")
@@ -55,29 +55,23 @@
     #Scaling trainingset
     trainingset = ScaleSet(trainingset)
     #SumLabels(trainingset, ncol(trainingset))
-    labels.trainingset = trainingset[,ncol(trainingset)]
-    trainingset = NumerizingLabels(trainingset)
+    trainingset = BinarizingLabels(trainingset)
     #SumLabels(trainingset, ncol(trainingset))
-    
-    
-    
-    
-    
-    
+
     #NN Model
     names = names(trainingset)
-    names = names[1:(length(names)-5)]
-    formula = as.formula(paste("V41 + V42 + V43 + V44 + V45 ~",
+    names = names[1:(length(names)-6)]
+    formula = as.formula(paste("DoS + normal + Probing + R2L + U2R ~",
                                paste(names, collapse = " + ")))
-    nn.defaults = nnet(Label ~ .,
-                       data = trainingset,
-                       size = 20)
+    #nn.defaults = nnet(Label ~ .,
+                       #data = trainingset,
+                       #size = 20)
       
       
       
       NN = neuralnet(formula,
                 data = trainingset,
-                hidden = c(10, 10),
+                hidden = c(10),
                 linear.output = FALSE)
   
   #Making predictions
