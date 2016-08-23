@@ -243,3 +243,97 @@ AccuracyPerLabel = function(confusionMatrix, set)
   
   return(100*returnValue)
 }
+
+#Attack vs normal Confusion matrix
+AttackNormalConfusionMatrix = function(set, predictions)
+{
+  predictions = as.character(predictions)
+  predictions[predictions != "normal"] = "Attack"
+  predictions = as.factor(predictions)
+  labels = as.character(set[,ncol(set)])
+  labels[labels != "normal"] = "Attack"
+  labels = as.factor(labels)
+  return(table(Real = labels,
+        Prediction = predictions))
+}
+
+# (1 - Accuracy)
+ErrorRate = function(accuracy)
+{
+  return(1-accuracy)
+}
+
+# (TP / (TP + FN))
+Sensitivity = function(confusionMatrix)
+{
+  return(confusionMatrix[1,1] / (confusionMatrix[1,1] + confusionMatrix[2,1]))
+}
+# (TN / (FP + TN))
+Especificity = function(confusionMatrix)
+{
+  return(confusionMatrix[2,2] / (confusionMatrix[1,2] + confusionMatrix[2,2]))
+}
+
+# (TP / (TP + FP))
+Precision = function(confusionMatrix)
+{
+  return(confusionMatrix[1,1] / (confusionMatrix[1,1] + confusionMatrix[1,2]))
+}
+
+#Extract Probabilities in Prediction
+ExtractProbabilities = function(matrix)
+{
+  returnValue = vector(mode = "numeric", length = nrow(matrix))
+  
+  for (i in 1:length(returnValue))
+  {
+    if(which.max(matrix[i,]) == 2)
+      returnValue[i] = max(matrix[i,])
+    else
+      returnValue[i] = 1 - matrix[i,2]
+  }
+  return(returnValue)
+}
+
+#Generate ROC
+generate_ROC = function(scores, real, target)
+{
+  scores = as.numeric(scores)
+  newOrder = order(scores, decreasing = TRUE)
+  scores = scores[newOrder]
+  real = real[newOrder]
+  returnTP = vector(mode = "numeric")
+  returnFP = vector(mode = "numeric")
+  scorePrev = Inf
+  FP = 0
+  TP = 0
+  i = 1
+  P = length(real[real == target])
+  N = length(real) - P
+  index = 1
+  
+  while (i <= length(scores))
+  {
+    if(scores[i] != scorePrev)
+    {
+      returnTP[index] = TP/P
+      returnFP[index] = FP/N
+      scorePrev = scores[i]
+      index = index +1
+    }
+    
+    if(real[i] == target)
+      TP = TP + 1
+    else
+      FP = FP  +1
+    
+    i = i+1
+  }
+  
+  returnTP[length(returnTP)+1] = TP/P
+  returnFP[length(returnFP)+1] = FP/N
+  
+  plot(returnFP, returnTP, pch = ".", main = "ROC Curve",
+       xlab = "FP-Rate", ylab = "TP-Rate", col = "black")
+  abline(0,1, col = "blue")
+}
