@@ -11,10 +11,16 @@ library("nnet")
 source("functions/functions.R")
 
 #Loading best things
+results.svm = readRDS("normal_model/SVM/svm_results.rds")
 best.model = readRDS("normal_model/SVM/svm_best_model.rds")
 best.testingset = readRDS("normal_model/SVM/svm_best_testing_set.rds")
 best.predictions = readRDS("normal_model/SVM/svm_best_predictions.rds")
 best.accuracy = readRDS("normal_model/SVM/svm_best_accuracy.rds")
+
+#Showing all results
+results.svm
+#Calculating the mean of the results
+mean(results.svm)
 
 #Calculating the confusion matrix with the last model created
 confusion.matrix.svm = table(Real = best.testingset[,ncol(best.testingset)],

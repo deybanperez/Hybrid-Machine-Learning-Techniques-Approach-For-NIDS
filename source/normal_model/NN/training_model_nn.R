@@ -37,28 +37,28 @@ vector.probabilities = ProbVector(dataset, vector.ocurrences)
 results.nn = vector(mode = "numeric", length = 10)
 best.accuracy = 0
   
-  for (k in 1:length(results.nn))
-  {
+for (k in 1:length(results.nn))
+{
     
-    #Making stratified sample
-    indexes.training = IndexesTrainingSample(dataset, vector.probabilities, 0.8, k)
-    trainingset = dataset[indexes.training, ]
-    testingset = dataset[-indexes.training, ]
-    
-    ################################################
-    #           Training the models                #
-    ################################################
-    #Scaling testingset
-    testingset = ScaleSet(testingset)
-    
-    #Scaling trainingset
-    trainingset = ScaleSet(trainingset)
+  #Making stratified sample
+  indexes.training = IndexesTrainingSample(dataset, vector.probabilities, 0.8, k)
+  trainingset = dataset[indexes.training, ]
+  testingset = dataset[-indexes.training, ]
+  
+  ################################################
+  #           Training the models                #
+  ################################################
+  #Scaling testingset
+  testingset = ScaleSet(testingset)
+  
+  #Scaling trainingset
+  trainingset = ScaleSet(trainingset)
 
-    #NN Model
-    nn.defaults = nnet(Label ~ .,
-                       data = trainingset,
-                       size = 20,
-                       maxit = 100)
+  #NN Model
+  nn.defaults = nnet(Label ~ .,
+                     data = trainingset,
+                     size = 20,
+                     maxit = 100)
       
   #Making predictions
   nn.defaults.predictions = predict(nn.defaults,
@@ -78,12 +78,8 @@ best.accuracy = 0
     best.accuracy = nn.defaults.accuracy
   }
 }
-#Showing all results
-results.nn
-#Calculating the mean of the results
-mean(results.nn)
-
 #Saving models
+saveRDS(results.nn, file = "normal_model/NN/nn_results.rds")
 saveRDS(best.model, file = "normal_model/NN/nn_best_model.rds")
 saveRDS(best.testingset, file = "normal_model/NN/nn_best_testing_set.rds")
 saveRDS(best.predictions, file = "normal_model/NN/nn_best_predictions.rds")
