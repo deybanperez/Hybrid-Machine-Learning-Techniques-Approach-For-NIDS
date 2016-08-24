@@ -71,7 +71,7 @@
   #Storing result
   results.nn[k] = nn.defaults.accuracy
   
-  if(best.accuracy < (nn.defaults.accuracy*100))
+  if(best.accuracy < nn.defaults.accuracy)
   {
     best.model = nn.defaults
     best.testingset = testingset
