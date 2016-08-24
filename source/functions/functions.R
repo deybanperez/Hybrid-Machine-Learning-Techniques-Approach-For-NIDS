@@ -182,6 +182,17 @@ SumLabels = function(dataframe, columnLabel)
   return(returnValue)
 }
 
+SumLabelsVector = function(vector)
+{
+  targets = sort(unique(vector))
+  returnValue = vector(mode = "numeric", length = length(targets))
+  
+  for (i in 1:length(targets))
+    returnValue[i] = sum(vector == targets[i])
+  
+  return(returnValue)
+}
+
 #Probabilities vector
 ProbVector = function(dataframe, vectorOcurrences)
 {
@@ -337,3 +348,22 @@ generate_ROC = function(scores, real, target)
        xlab = "FP-Rate", ylab = "TP-Rate", col = "black")
   abline(0,1, col = "blue")
 }
+
+#Order predictions in Kmeans
+OrderKmeans = function(model)
+{
+  prediction = as.numeric(model$cluster)
+  
+  if(length(unique(prediction)) == 2)
+    label.classes = c("normal", "attack")
+  else
+    label.classes = c("normal", "DoS", "Probing", "R2L", "U2R")
+  
+  ordered.labels = order(SumLabelsVector(prediction), decreasing = TRUE)
+  
+  for (i in 1:length(ordered.labels))
+    prediction[prediction == ordered.labels[i]] = label.classes[i]
+  
+  return(as.character(prediction))
+}
+
