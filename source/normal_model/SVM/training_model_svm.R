@@ -69,7 +69,7 @@ for (k in 1:length(results.svm))
   #Storing result
   results.svm[k] = svm.radial.defaults.accuracy
   
-  if(best.accuracy < (svm.radial.defaults.accuracy*100))
+  if(best.accuracy < svm.radial.defaults.accuracy)
   {
     best.model = svm.radial.defaults
     best.testingset = testingset
@@ -81,38 +81,9 @@ for (k in 1:length(results.svm))
 results.svm
 #Calculating the mean of the results
 mean(results.svm)
-#Calculating the accuracy for the ebst model created
-best.accuracy
-#Calculating the confusion matrix with the last model created
-confusion.matrix.svm = table(Real = best.testingset[,ncol(best.testingset)],
-                             Prediction = best.predictions)
-#Showing confusion matrix
-confusion.matrix.svm
-#Showing accuracy per label
-AccuracyPerLabel(confusion.matrix.svm, best.testingset)
-#Confusion matrix Attack vs Normal
-attack.normal.confusion.matrix = AttackNormalConfusionMatrix(best.testingset,
-                                                            best.predictions)
 
-best.accuracy * 100
-ErrorRate(best.accuracy) * 100
-Sensitivity(attack.normal.confusion.matrix) * 100
-Especificity(attack.normal.confusion.matrix) * 100
-Precision(attack.normal.confusion.matrix) * 100
-
-#ROC Curve
-probabilities = predict(best.model,
-                        best.testingset[, 1:(ncol(best.testingset)-1)],
-                        probability = TRUE)
-
-#Generating Curve ROC
-prob.vector = ExtractProbabilities(attr(probabilities, "probabilities"))
-prob.vector.ordered = order(prob.vector, decreasing = TRUE)
-prob.vector = prob.vector[prob.vector.ordered]
-labels.roc = as.character(best.testingset[,ncol(best.testingset)])
-labels.roc[labels.roc != "normal"] = "Attack"
-labels.roc = labels.roc[prob.vector.ordered]
-generate_ROC(prob.vector, labels.roc, "Attack")
-
-#Saving last model
-save(svm.radial.defaults, file = "normal_model/svm_radial_defaults.rda")
+#Saving models
+saveRDS(best.model, file = "normal_model/SVM/svm_best_model.rds")
+saveRDS(best.testingset, file = "normal_model/SVM/svm_best_testing_set.rds")
+saveRDS(best.predictions, file = "normal_model/SVM/svm_best_predictions.rds")
+saveRDS(best.accuracy, file = "normal_model/SVM/svm_best_accuracy.rds")
