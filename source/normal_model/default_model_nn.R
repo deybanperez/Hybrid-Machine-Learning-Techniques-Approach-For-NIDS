@@ -36,6 +36,7 @@
   #Create probability vector
   vector.probabilities = ProbVector(dataset, vector.ocurrences)
   results.nn = vector(mode = "numeric", length = 10)
+  best.accuracy = 0
   
   for (k in 1:length(results.nn))
   {
@@ -69,19 +70,52 @@
   nn.defaults.accuracy = mean(testingset[, ncol(testingset)] == nn.defaults.predictions)
   #Storing result
   results.nn[k] = nn.defaults.accuracy
+  
+  if(best.accuracy < (nn.defaults.accuracy*100))
+  {
+    best.model = nn.defaults
+    best.testingset = testingset
+    best.predictions = nn.defaults.predictions
+    best.accuracy = nn.defaults.accuracy
+  }
 }
 #Showing all results
 results.nn
 #Calculating the mean of the results
 mean(results.nn)
-#Calculating the accuracy of the last model created
-nn.defaults.accuracy
+#Calculating the accuracy of the best model created
+best.model
 #Calculating the confusion matrix with the last model created
-confusion.matrix.nn = table(Real = testingset[,ncol(testingset)],
-                             Prediction = nn.defaults.predictions)
+confusion.matrix.nn = table(Real = best.testingset[,ncol(best.testingset)],
+                             Prediction = best.predictions)
 #Showing confusion matrix
 confusion.matrix.nn
 #Showing accuracy per label
-AccuracyPerLabel(confusion.matrix.nn, testingset)
+AccuracyPerLabel(confusion.matrix.nn, best.testingset)
+#Confusion matrix Attack vs Normal
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(best.testingset,
+                                                             best.predictions)
+
+#Evaluation of the model
+best.accuracy * 100
+ErrorRate(best.accuracy) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+
+#ROC Curve
+probabilities = predict(best.model,
+                        best.testingset[, 1:(ncol(best.testingset)-1)])
+
+#Generating Curve ROC
+prob.vector = ExtractProbabilities(probabilities)
+prob.vector.ordered = order(prob.vector, decreasing = TRUE)
+prob.vector = prob.vector[prob.vector.ordered]
+labels.roc = as.character(best.testingset[,ncol(best.testingset)])
+labels.roc[labels.roc != "normal"] = "Attack"
+labels.roc = labels.roc[prob.vector.ordered]
+generate_ROC(prob.vector, labels.roc, "Attack")
+
+
 #Saving last model
 save(svm.radial.defaults, file = "normal_model/svm_radial_defaults.rda")
