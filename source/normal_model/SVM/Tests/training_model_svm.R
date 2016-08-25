@@ -79,8 +79,8 @@ for (k in 1:length(results.svm))
 }
 
 #Saving models
-saveRDS(results.svm, file = "normal_model/SVM/svm_results.rds")
-saveRDS(best.model, file = "normal_model/SVM/svm_best_model.rds")
-saveRDS(best.testingset, file = "normal_model/SVM/svm_best_testing_set.rds")
-saveRDS(best.predictions, file = "normal_model/SVM/svm_best_predictions.rds")
-saveRDS(best.accuracy, file = "normal_model/SVM/svm_best_accuracy.rds")
+saveRDS(results.svm, file = "normal_model/SVM/Tests/svm_results.rds")
+saveRDS(best.model, file = "normal_model/SVM/Tests/svm_best_model.rds")
+saveRDS(best.testingset, file = "normal_model/SVM/Tests/svm_best_testing_set.rds")
+saveRDS(best.predictions, file = "normal_model/SVM/Tests/svm_best_predictions.rds")
+saveRDS(best.accuracy, file = "normal_model/SVM/Tests/svm_best_accuracy.rds")

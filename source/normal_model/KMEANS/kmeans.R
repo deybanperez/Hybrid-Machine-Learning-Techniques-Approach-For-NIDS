@@ -1,7 +1,9 @@
 #Setting work directory
 rm(list = ls())
-setwd("/home/dperez/Documents/Repos/Tesis/source")
-#setwd("/home/dperez/Tesis/source")
+setwd("/home/dperez/Documents/Repos/Tesis/source") #Virtual Machine
+#setwd("/home/dperez/Tesis/source") #Server
+#setwd("C:/Users/deyban.perez/Documents/Repos/source") #Windows
+
 
 #Loading functions
 source("functions/functions.R")
@@ -48,12 +50,12 @@ for (k in 1:30)
   groups = kmeans(dataset[,ncol(dataset)-2], k, iter.max = 100, algorithm = "MacQueen")
   IIC.MacQueen[k] = groups$tot.withinss
 }
-plot(IIC.Hartigan, col = "blue", type = "b")
-points(IIC.Lloyd, col = "red", type = "b")
-points(IIC.Forgy, col = "green", type = "b")
-points(IIC.MacQueen, col = "magenta", type = "b")
+plot(IIC.Hartigan, col = "blue", type = "b", pch = 19)
+points(IIC.Lloyd, col = "red", type = "b", pch = 19)
+points(IIC.Forgy, col = "green", type = "b", pch = 19)
+points(IIC.MacQueen, col = "magenta", type = "b", pch= 19)
 legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
-       col = c("blue","red", "green", "magenta"), lty = 1, lwd = 1)
+       col = c("blue","red", "green", "magenta"), pch = 19)
 
 #Testing the models
 #Five class model
@@ -134,11 +136,7 @@ best.accuracy.two*100
 ErrorRate(best.accuracy.two)*100
 #Showing accuracy per label
 AccuracyPerLabel(confusion.matrix.two, dataset.two)
-#Confusion matrix Attack vs Normal
-attack.normal.confusion.matrix.two = AttackNormalConfusionMatrix(dataset.two,
-                                                                  best.prediction.two)
-attack.normal.confusion.matrix.two
 #Binary measures
-Sensitivity(attack.normal.confusion.matrix.two) * 100
-Especificity(attack.normal.confusion.matrix.two) * 100
-Precision(attack.normal.confusion.matrix.two) * 100
+Sensitivity(confusion.matrix.two) * 100
+Especificity(confusion.matrix.two) * 100
+Precision(confusion.matrix.two) * 100

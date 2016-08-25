@@ -79,8 +79,8 @@ for (k in 1:length(results.nn))
   }
 }
 #Saving models
-saveRDS(results.nn, file = "normal_model/NN/nn_results.rds")
-saveRDS(best.model, file = "normal_model/NN/nn_best_model.rds")
-saveRDS(best.testingset, file = "normal_model/NN/nn_best_testing_set.rds")
-saveRDS(best.predictions, file = "normal_model/NN/nn_best_predictions.rds")
-saveRDS(best.accuracy, file = "normal_model/NN/nn_best_accuracy.rds")
+saveRDS(results.nn, file = "normal_model/NN/Tests/nn_results.rds")
+saveRDS(best.model, file = "normal_model/NN/Tests/nn_best_model.rds")
+saveRDS(best.testingset, file = "normal_model/NN/Tests/nn_best_testing_set.rds")
+saveRDS(best.predictions, file = "normal_model/NN/Tests/nn_best_predictions.rds")
+saveRDS(best.accuracy, file = "normal_model/NN/Tests/nn_best_accuracy.rds")

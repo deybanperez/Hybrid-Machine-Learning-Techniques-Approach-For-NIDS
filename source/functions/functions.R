@@ -367,3 +367,21 @@ OrderKmeans = function(model)
   return(as.character(prediction))
 }
 
+#Find Center K-means
+FindCentersKmeans = function(set, clusters, iterations,iter.max)
+{
+  for (i in 1:iterations)
+  {
+    set.seed(i)
+    kmeans.model = kmeans(set[,1:(ncol(set)-1)], centers = clusters,
+                          iter.max = iter.max)
+    
+    if(i == 1)
+      matrix.centers = kmeans.model$centers
+    else
+      matrix.centers = matrix.centers + kmeans.model$centers
+  }
+  
+  return(matrix.centers)
+}
+
