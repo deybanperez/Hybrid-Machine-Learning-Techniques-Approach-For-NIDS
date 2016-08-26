@@ -307,23 +307,24 @@ ExtractProbabilities = function(matrix)
 }
 
 #Generate ROC
-generate_ROC = function(scores, real, target)
+generate_ROC = function(scores, real, pred)
 {
   scores = as.numeric(scores)
   newOrder = order(scores, decreasing = TRUE)
   scores = scores[newOrder]
   real = real[newOrder]
+  pred = pred[newOrder]
   returnTP = vector(mode = "numeric")
   returnFP = vector(mode = "numeric")
   scorePrev = Inf
   FP = 0
   TP = 0
   i = 1
-  P = length(real[real == target])
+  P = sum(real == pred)
   N = length(real) - P
   index = 1
   
-  while (i <= length(scores))
+  for(i in 1:length(scores))
   {
     if(scores[i] != scorePrev)
     {
@@ -333,19 +334,17 @@ generate_ROC = function(scores, real, target)
       index = index +1
     }
     
-    if(real[i] == target)
+    if(real[i] == pred[i])
       TP = TP + 1
     else
       FP = FP  +1
-    
-    i = i+1
   }
   
   returnTP[length(returnTP)+1] = TP/P
   returnFP[length(returnFP)+1] = FP/N
   
-  plot(returnFP, returnTP, pch = ".", main = "ROC Curve",
-       xlab = "FP-Rate", ylab = "TP-Rate", col = "black")
+  plot(returnFP, returnTP, type = "l", main = "ROC Curve",
+       xlab = "FP-Rate", ylab = "TP-Rate")
   abline(0,1, col = "blue")
 }
 
@@ -355,7 +354,7 @@ OrderKmeans = function(model)
   prediction = as.numeric(model$cluster)
   
   if(length(unique(prediction)) == 2)
-    label.classes = c("normal", "attack")
+    label.classes = c("normal", "Attack")
   else
     label.classes = c("normal", "DoS", "Probing", "R2L", "U2R")
   
@@ -404,4 +403,17 @@ CVSet = function(set, k, seed)
   }
   
   return(cv.return)
+}
+
+
+#Data for ROC Curve
+DataROC = function(set, probabilities, predictions)
+{
+  set[,ncol(set)] = as.character(set[,ncol(set)])
+  set[set[,ncol(set)] != "normal", ncol(set)] = "attack"
+  set$Prediction = predictions
+  set$Prediction[set$Prediction != "normal"] = "attack"
+  set$Prob = ExtractProbabilities(probabilities)
+  set = set[order(set$Prob, set$Label, decreasing = TRUE), ]
+  return(set[,(ncol(set)-2):ncol(set)])
 }
