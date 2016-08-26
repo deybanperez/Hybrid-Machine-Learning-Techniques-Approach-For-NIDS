@@ -385,3 +385,23 @@ FindCentersKmeans = function(set, clusters, iterations,iter.max)
   return(matrix.centers)
 }
 
+#Cross Validation set
+CVSet = function(set, k, seed)
+{
+  cv.data = set
+  
+  for (i in 1:k)
+  {
+    set.seed(22)
+    index.cv = sample(nrow(cv.data), nrow(cv.data) %/% k, replace = FALSE)
+    
+    if(i == 1)
+      cv.return = list(cv.data[index.cv,])
+    else
+      cv.return[[length(cv.return)+1]] = cv.data[index.cv,]
+    
+    cv.data = cv.data[-index.cv,]
+  }
+  
+  return(cv.return)
+}

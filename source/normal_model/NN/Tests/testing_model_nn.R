@@ -12,28 +12,28 @@ library("nnet")
 source("functions/functions.R")
 
 #Loading best objects
-results.nn = readRDS("normal_model/NN/Tests/nn_results.rds")
-best.model = readRDS("normal_model/NN/Tests/nn_best_model.rds")
-best.testingset = readRDS("normal_model/Tests/NN/nn_best_testing_set.rds")
-best.predictions = readRDS("normal_model/Tests/NN/nn_best_predictions.rds")
-best.accuracy = readRDS("normal_model/Tests/NN/nn_best_accuracy.rds")
+list.results = readRDS("normal_model/NN/Tests/list_results.rds")
 
 #Showing all results
-results.nn
+list.results$results
 #Calculating the mean of the results
-mean(results.nn) * 100
+mean(list.results$results) * 100
 #Calculating the confusion matrix with the last model created
-confusion.matrix.nn = table(Real = best.testingset[,ncol(best.testingset)],
-                            Prediction = best.predictions)
+confusion.matrix = table(Real = list.results$best_testing_set[,ncol(list.results$best_testing_set)],
+                         Prediction = list.results$Best_Predictions)
 #Showing confusion matrix
-confusion.matrix.nn
-best.accuracy * 100
-ErrorRate(best.accuracy) * 100
+confusion.matrix
+
+#Calculating Accuraccy
+accuracy = mean(list.results$best_testing_set[,ncol(list.results$best_testing_set)],
+                list.results$best_predictions)
+
+ErrorRate(accuracy) * 100
 #Showing accuracy per label
-AccuracyPerLabel(confusion.matrix.nn, best.testingset)
+AccuracyPerLabel(confusion.matrix, list.results$best_testing_set)
 #Confusion matrix Attack vs Normal
-attack.normal.confusion.matrix = AttackNormalConfusionMatrix(best.testingset,
-                                                             best.predictions)
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(list.results$best_testing_set,
+                                                             list.results$best_predictions)
 attack.normal.confusion.matrix
 #Binary measures
 Sensitivity(attack.normal.confusion.matrix) * 100
@@ -41,27 +41,27 @@ Especificity(attack.normal.confusion.matrix) * 100
 Precision(attack.normal.confusion.matrix) * 100
 
 #ROC Curve
-probabilities = predict(best.model,
-                        best.testingset[, 1:(ncol(best.testingset)-1)])
+probabilities = predict(list.results$best_model,
+                        list.results$best_testing_set[, 1:(ncol(list.results$best_testing_set)-1)])
 
 #Generating Curve ROC
 prob.vector = ExtractProbabilities(probabilities)
 prob.vector.ordered = order(prob.vector, decreasing = TRUE)
 prob.vector = prob.vector[prob.vector.ordered]
-labels.roc = as.character(best.testingset[,ncol(best.testingset)])
+labels.roc = as.character(list.results$best_testing_set[,ncol(list.results$best_testing_set)])
 labels.roc[labels.roc != "normal"] = "Attack"
 labels.roc = labels.roc[prob.vector.ordered]
 generate_ROC(prob.vector, labels.roc, "Attack")
 
 #Adding the second level with K-Means
-kmeans.set = best.testingset[best.predictions == "normal",]
+kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
 dim(kmeans.set)
 kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
 kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
 SumLabels(kmeans.set, ncol(kmeans.set))
 #Finding best centers
 matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
-                                  iterations = 100, iter.max = 100)
+                                   iterations = 100, iter.max = 100)
 
 #Training the absolute model
 matrix.centers = matrix.centers/100
@@ -70,15 +70,15 @@ kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.cent
 
 
 #Ordering prediction
-prediction = OrderKmeans(kmeans.model)
+predictions = OrderKmeans(kmeans.model)
 
 #Creating confusion matrix
 confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
-                                      Prediction = prediction)
+                                      Prediction = predictions)
 #Printing confusiopn matrix
 confusion.matrix.kmeans.model
 #Calculating accuracy
-accuracy.kmeans.model = mean(prediction == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
 #Printing accuracy
 accuracy.kmeans.model*100
 #Printing error rate
