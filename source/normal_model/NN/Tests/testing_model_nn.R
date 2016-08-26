@@ -20,14 +20,15 @@ list.results$results
 mean(list.results$results) * 100
 #Calculating the confusion matrix with the last model created
 confusion.matrix = table(Real = list.results$best_testing_set[,ncol(list.results$best_testing_set)],
-                         Prediction = list.results$Best_Predictions)
+                         Prediction = list.results$best_predictions)
 #Showing confusion matrix
 confusion.matrix
 
 #Calculating Accuraccy
-accuracy = mean(list.results$best_testing_set[,ncol(list.results$best_testing_set)],
-                list.results$best_predictions)
+accuracy = mean(list.results$best_testing_set[,ncol(list.results$best_testing_set)] == 
+                  list.results$best_predictions)
 
+accuracy * 100
 ErrorRate(accuracy) * 100
 #Showing accuracy per label
 AccuracyPerLabel(confusion.matrix, list.results$best_testing_set)
@@ -44,14 +45,11 @@ Precision(attack.normal.confusion.matrix) * 100
 probabilities = predict(list.results$best_model,
                         list.results$best_testing_set[, 1:(ncol(list.results$best_testing_set)-1)])
 
-#Generating Curve ROC
-prob.vector = ExtractProbabilities(probabilities)
-prob.vector.ordered = order(prob.vector, decreasing = TRUE)
-prob.vector = prob.vector[prob.vector.ordered]
-labels.roc = as.character(list.results$best_testing_set[,ncol(list.results$best_testing_set)])
-labels.roc[labels.roc != "normal"] = "Attack"
-labels.roc = labels.roc[prob.vector.ordered]
-generate_ROC(prob.vector, labels.roc, "Attack")
+#Generating curve ROC
+roc.data = DataROC(list.results$best_testing_set, probabilities,
+                   list.results$best_predictions)
+generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
+             pred = roc.data$Prediction)
 
 #Adding the second level with K-Means
 kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
