@@ -1,7 +1,7 @@
 rm(list = ls())
-#setwd("/home/dperez/Documents/Repos/Tesis/source")
-#setwd("/home/dperez/Tesis/source")
-setwd("C:/Users/deyban.perez/Documents/Repos/source") #Windows
+#setwd("/home/dperez/Documents/Repos/Tesis/source") #Virtual Machine
+#setwd("/home/dperez/Tesis/source") #Ubuntu server
+#setwd("C:/Users/deyban.perez/Documents/Repos/source") #Windows
 #Loading packages
 library("e1071")
 library("nnet")
@@ -20,10 +20,7 @@ dataset.training$Label_Normal_or_Attack = NULL
 
 #Assigning classes to the data
 for (i in 1 : (ncol(dataset.training) -1) )
-{
   dataset.training[,i] = as.numeric(dataset.training[,i])
-  dataset.testing[,i] = as.numeric(dataset.testing[,i])
-}
 
 dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dataset.training)])
 
@@ -34,7 +31,8 @@ dataset.training = ScaleSet(dataset.training)
 start.time = Sys.time()
 
 #Training model
-nn.model = nnet(Label ~ .,
+set.seed(22)
+model = nnet(Label ~ .,
                    data = dataset.training,
                    size = 20,
                    maxit = 100)
