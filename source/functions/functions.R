@@ -310,7 +310,7 @@ ExtractProbabilities = function(matrix)
 generate_ROC = function(scores, real, pred)
 {
   scores = as.numeric(scores)
-  newOrder = order(scores, decreasing = TRUE)
+  newOrder = order(scores, real, decreasing = TRUE)
   scores = scores[newOrder]
   real = real[newOrder]
   pred = pred[newOrder]
@@ -319,7 +319,6 @@ generate_ROC = function(scores, real, pred)
   scorePrev = Inf
   FP = 0
   TP = 0
-  i = 1
   P = sum(real == pred)
   N = length(real) - P
   index = 1
@@ -337,14 +336,14 @@ generate_ROC = function(scores, real, pred)
     if(real[i] == pred[i])
       TP = TP + 1
     else
-      FP = FP  +1
+      FP = FP +1
   }
   
   returnTP[length(returnTP)+1] = TP/P
   returnFP[length(returnFP)+1] = FP/N
   
   plot(returnFP, returnTP, type = "l", main = "ROC Curve",
-       xlab = "FP-Rate", ylab = "TP-Rate")
+       xlab = "Accuracy-Rate", ylab = "Error-Rate")
   abline(0,1, col = "blue")
 }
 
@@ -412,8 +411,36 @@ DataROC = function(set, probabilities, predictions)
   set[,ncol(set)] = as.character(set[,ncol(set)])
   set[set[,ncol(set)] != "normal", ncol(set)] = "attack"
   set$Prediction = predictions
+  set$Prediction = as.character(set$Prediction)
   set$Prediction[set$Prediction != "normal"] = "attack"
   set$Prob = ExtractProbabilities(probabilities)
   set = set[order(set$Prob, set$Label, decreasing = TRUE), ]
   return(set[,(ncol(set)-2):ncol(set)])
+}
+
+#Confusion matrix two levels
+
+TwoLevelsCM = function(CM1, CM2)
+{
+  TP = CM1[1,1] + CM2[1,1]
+  FP = CM2[1,2]
+  FN = CM1[2,1] + CM2[2,1]
+  TN = CM2[2,2]
+  
+  matrix(c(TP, FP, FN, TN), nrow = 2, ncol = 2, byrow = TRUE)
+}
+
+#Calculate accuracy from confusion matrix
+Accuracy = function(confusionMatrix)
+{
+  total = 0
+  hits = 0
+  
+  for (i in 1:ncol(confusionMatrix))
+  {
+    total = total + sum(confusionMatrix[i,])
+    hits = hits + confusionMatrix[i,i]
+  }
+  
+  return(hits/total)
 }

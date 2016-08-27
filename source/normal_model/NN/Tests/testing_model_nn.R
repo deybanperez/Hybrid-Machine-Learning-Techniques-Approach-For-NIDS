@@ -87,3 +87,12 @@ AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
 Sensitivity(confusion.matrix.kmeans.model) * 100
 Especificity(confusion.matrix.kmeans.model) * 100
 Precision(confusion.matrix.kmeans.model) * 100
+
+#Total statistics
+confusion.matrix.two.labels = TwoLevelsCM(confusion.matrix, confusion.matrix.kmeans.model)
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
