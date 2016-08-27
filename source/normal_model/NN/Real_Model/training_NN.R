@@ -30,10 +30,19 @@ dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dat
 #Scaling dataset
 dataset.training = ScaleSet(dataset.training)
 
+#Taking time start
+start.time = Sys.time()
+
 #Training model
 nn.model = nnet(Label ~ .,
                    data = dataset.training,
                    size = 20,
                    maxit = 100)
 
-saveRDS(svm.model, file = "normal_model/NN/Real_Model/nn_model.rds")
+#Calculating time of training
+total.time = Sys.time() - start.time
+
+#Storing information
+list.results = list(total.time, model)
+
+saveRDS(list.results, file = "normal_model/NN/Real_Model/list_results.rds")

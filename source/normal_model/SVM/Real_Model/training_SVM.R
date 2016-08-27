@@ -13,18 +13,10 @@ source("functions/functions.R")
 dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
                             sep = ",", header = TRUE)
 
-dataset.testing = read.csv("../dataset/NSLKDD_Testing_New.csv",
-                            sep = ",", header = TRUE)
-
 #removing unecesary labels in training set
 dataset.training$Label_Normal_TypeAttack = NULL
 dataset.training$Label_Num_Classifiers = NULL
 dataset.training$Label_Normal_or_Attack = NULL
-
-#removing unecesary labels in testing set
-dataset.testing$Label_Normal_TypeAttack = NULL
-dataset.testing$Label_Num_Classifiers = NULL
-dataset.testing$Label_Normal_or_Attack = NULL
 
 #Assigning classes to the data
 for (i in 1 : (ncol(dataset.training) -1) )
@@ -34,17 +26,23 @@ for (i in 1 : (ncol(dataset.training) -1) )
 }
 
 dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dataset.training)])
-dataset.testing[,ncol(dataset.testing)] = as.factor(dataset.testing[,ncol(dataset.testing)])
 
-#Scaling datasets
+#Scaling dataset
 dataset.training = ScaleSet(dataset.training)
-dataset.testing = ScaleSet(dataset.testing)
 
+#Taking time start
+start.time = Sys.time()
 
-svm.model = svm(Label~.,
+model = svm(Label~.,
                 data = dataset.training,
                 kernel = "radial",
                 scale = FALSE,
                 probability = TRUE)
 
-saveRDS(svm.model, file = "normal_model/SVM/Real_Model/svm_model.rds")
+#Calculating time of training
+total.time = Sys.time() - start.time
+
+#Storing information
+list.results = list(total.time, model)
+
+saveRDS(list.results, file = "normal_model/SVM/Real_Model/list_results.rds")
