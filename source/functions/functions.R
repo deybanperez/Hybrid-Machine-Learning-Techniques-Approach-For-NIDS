@@ -232,6 +232,10 @@ ScaleSet = function(set)
   auxLabels = set[, ncol(set)]
   set = scale(set[, 1: (ncol(set) -1)])
   
+  apply(set[, 1: (ncol(set) -1)], MARGIN = 2,
+        FUN = function(X) (X - min(X))/diff(range(X)))
+  
+  
   for (i in 1:ncol(set))
   {
     if(sum(is.nan(set[,i])) > 0)

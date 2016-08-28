@@ -4,8 +4,7 @@ setwd("/home/dperez/Documents/Repos/Tesis/source")
 #setwd("/home/dperez/Tesis/source")
 
 #Loading packages
-require("e1071")
-library("nnet")
+library("e1071")
 
 #Loading functions
 source("functions/functions.R")

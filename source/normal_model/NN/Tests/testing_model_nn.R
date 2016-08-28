@@ -53,7 +53,6 @@ generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
 
 #Adding the second level with K-Means
 kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
-dim(kmeans.set)
 kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
 kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
 SumLabels(kmeans.set, ncol(kmeans.set))

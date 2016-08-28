@@ -99,6 +99,9 @@ AccuracyPerLabel(confusion.matrix.five, dataset.five)
 attack.normal.confusion.matrix.five = AttackNormalConfusionMatrix(dataset.five,
                                                              best.prediction.five)
 attack.normal.confusion.matrix.five
+#printing accuracy per label
+AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
+
 #Binary measures
 Sensitivity(attack.normal.confusion.matrix.five) * 100
 Especificity(attack.normal.confusion.matrix.five) * 100

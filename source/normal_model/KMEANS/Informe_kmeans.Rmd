@@ -177,6 +177,11 @@ Imprimimos la matriz de confusión.
 ```{r}
 attack.normal.confusion.matrix.five
 ```
+Y calculamos la tasa de aciertos por etiqueta:
+```{r}
+AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
+```
+En el paso anterior utilizamos el conjutno de datos **dataset.two** debido a que este conjunto de datos es el que posee las etiquetas binarias **Attack** o **normal**.
 
 Ahora podemos calcular las medidas de rendimiento binarias.
 Sensitividad:
