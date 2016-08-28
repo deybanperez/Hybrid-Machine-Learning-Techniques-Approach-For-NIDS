@@ -26,6 +26,8 @@ for (i in (ncol(dataset) -1):ncol(dataset) )
 
 #Splitting set
 dataset.two = dataset[-(ncol(dataset)-1)]
+dataset.two[, ncol(dataset.two)] = as.character(dataset.two[, ncol(dataset.two)])
+dataset.two[dataset.two[,ncol(dataset.two)] == "attack", ncol(dataset.two)] = "Attack"
 dataset.five = dataset[-ncol(dataset)]
 
 #scaling sets
@@ -50,7 +52,8 @@ for (k in 1:30)
   groups = kmeans(dataset[,ncol(dataset)-2], k, iter.max = 100, algorithm = "MacQueen")
   IIC.MacQueen[k] = groups$tot.withinss
 }
-plot(IIC.Hartigan, col = "blue", type = "b", pch = 19)
+plot(IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Jambu Elbow",
+     xlab = "Variance", ylab = "Centers")
 points(IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(IIC.Forgy, col = "green", type = "b", pch = 19)
 points(IIC.MacQueen, col = "magenta", type = "b", pch= 19)
@@ -81,7 +84,7 @@ for (i in 1:length(results.five))
 #Printing results
 results.five
 #Calculating mean of results
-mean(results.five)
+mean(results.five) * 100
 #Creating confusion matrix
 confusion.matrix.five = table(Real = dataset.five$Label,
                               Prediction = best.prediction.five)
@@ -100,11 +103,11 @@ attack.normal.confusion.matrix.five
 Sensitivity(attack.normal.confusion.matrix.five) * 100
 Especificity(attack.normal.confusion.matrix.five) * 100
 Precision(attack.normal.confusion.matrix.five) * 100
-
 #################################################################################
 #Two class model
 results.two = vector(mode = "numeric", length = 10)
 best.accuracy.two = 0
+
 for (i in 1:length(results.two))
 {
   set.seed(i)
@@ -125,7 +128,7 @@ for (i in 1:length(results.two))
 #Printing results
 results.two
 #Calculating mean of results
-mean(results.two)
+mean(results.two) * 100
 #Creating confusion matrix
 confusion.matrix.two = table(Real = dataset.two$Label,
                               Prediction = best.prediction.two)

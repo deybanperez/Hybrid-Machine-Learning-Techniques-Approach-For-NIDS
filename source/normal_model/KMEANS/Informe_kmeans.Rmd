@@ -1,0 +1,284 @@
+---
+title: "Evaluación del Algoritmo K-Medias en el Conjunto de Entrenamiento"
+author: "Deyban Andŕes Pérez Abreu"
+date: "August 27, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Actividades Realizadas
+
+Estableciendo el ambiente de trabajo.
+```{r}
+rm(list = ls())
+setwd("/home/dperez/Documents/Repos/Tesis/source")
+#setwd("/home/dperez/Tesis/source")
+```
+Ahora cargaremos el archivo con las funciones útiles.
+```{r}
+source("../../functions/functions.R")
+```
+Se cargará el conjunto de entrenamiento previamente pre-procesado.
+```{r}
+dataset.training = read.csv("../../../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+```
+Para este paso sólo necesitaremos las etiquetas **Label_Normal_ClassAttack**  y **Label_Normal_or_Attack**, por lo tanto las otras etiquetas serán eliminadas.
+
+```{r}
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+```
+A continuación se les asignará el tipo **numérico** a todas las **columnas predictoras**, y el tipo **factor** a las columnas **etiquetas**.
+
+```{r}
+for (i in 1 : (ncol(dataset) -2) )
+  dataset[,i] = as.numeric(dataset[,i])
+
+for (i in (ncol(dataset) -1):ncol(dataset) )
+  dataset[,i] = as.factor(dataset[,i])
+```
+Se crearán dos conjuntos de datos. Por una parte **dataset.two** tendrá todos los predictores y la columna de etiqueta **Label_Normal_or_Attack**, columna que sólo tienes 2 niveles categóricos **Attack** y **normal**. Por otra parte el conjunto de datos **dataset.five** trendrá todos los predictores y la columna de etiqueta **Label_Normal_ClassAttack**, columna que tiene 5 niveles categóricos **DoS**, **normal**, **Probing**, **R2L** y **U2R**.
+```{r}
+dataset.two = dataset[-(ncol(dataset)-1)]
+dataset.two[, ncol(dataset.two)] = as.character(dataset.two[, ncol(dataset.two)])
+dataset.two[dataset.two[,ncol(dataset.two)] == "attack", ncol(dataset.two)] = "Attack"
+dataset.five = dataset[-ncol(dataset)]
+```
+Hasta el momento tenemos 3 conjuntos de datos. **dataset**, **dataset.two** y **dataset.five**. El algoritmo de K-Medias funciona utilizando medidas de distancia, motivo que hace necesario el escalamiento de las columnas del conjunto de datos a una mismo rango de valores, de lo contrario el rendimiento del algoritmo se verá deteriorado por la desporporción de los rangos de valores entre predictores. La función **ScaleSet** lleva a todas las columnas predictoras a un rango de valores **centrados en el origen** y **desviación estándard 1**.
+Adicionalmente, del conjunto de datos **dataset** se eliminará la columna **Label_Normal_or_Attack** debido a que ya no es necesaria.
+```{r}
+dataset$Label_Normal_or_Attack = NULL
+dataset = ScaleSet(dataset)
+dataset.two = ScaleSet(dataset.two)
+dataset.five = ScaleSet(dataset.five)
+```
+# Codo de Jambu
+Hasta este punto ya tenemos los conjuntos de datos preparados para utilizarlos. El algoritmo K-Medias amerita que se le sea pasado cómo parámetros el número de centroides, que corresponde al número de conjuntos que se esperan identificar del conjunto de datos. En nuestro caso es sencillo saber el número de conjuntos, debido a que tenemos una etiqueta que identifica a cada registro, sin embargo, hay que recordar que K-Medias corresponde a un algoritmo de tipo **no-supervisado**, y esa etiqueta no es utilizada para separar los conjuntos. 
+
+Si bien es cierto que tenemos los conjuntos, existe un dilema sobre el rendimiento del algoritmo con 2 o 5 conjuntos destino. Debido a esta problemática, existe un algoritmos llamado **Codo de Jambu** que funciona para identificar el número de clusters o de conjuntos presentes en un conjunto de datos. El Codo de Jambu mide la cantidad de varianza acumulada en el conjunto de datos con un número de **clusters**. Si se grafica la cantidad de varianza acumulada por número de clusters, se puede observar cómo aparece una articulación en la cuál el número de clusters no hace que la cantidad d evarianza acumulada varíe mucho, y es en este punto donde se hace la selección del número de clusters.
+
+Existen 4 algoritmos para calcular las distancias en K-Medias **Hartigan-Wong**, **Lloyd**, **Forgy** y **Macqueen**. A continuación se aplicarán los cuatro algoritmos para seleccionar el número de clusters y ver cuál algoritmo se ajusta mejor al conjunto de datos.
+```{r, fig.align="center"}
+IIC.Hartigan = vector(mode = "numeric", length = 30)
+IIC.Lloyd = vector(mode = "numeric", length = 30)
+IIC.Forgy = vector(mode = "numeric", length = 30)
+IIC.MacQueen = vector(mode = "numeric", length = 30)
+for (k in 1:30)
+{
+  groups = kmeans(dataset[,ncol(dataset)-2], k, iter.max = 100, algorithm = "Hartigan-Wong")
+  IIC.Hartigan[k] = groups$tot.withinss
+  groups = kmeans(dataset[,ncol(dataset)-2], k, iter.max = 100, algorithm = "Lloyd")
+  IIC.Lloyd[k] = groups$tot.withinss
+  groups = kmeans(dataset[,ncol(dataset)-2], k, iter.max = 100, algorithm = "Forgy")
+  IIC.Forgy[k] = groups$tot.withinss
+  groups = kmeans(dataset[,ncol(dataset)-2], k, iter.max = 100, algorithm = "MacQueen")
+  IIC.MacQueen[k] = groups$tot.withinss
+}
+plot(IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Jambu Elbow",
+     xlab = "Variance", ylab = "Centers")
+points(IIC.Lloyd, col = "red", type = "b", pch = 19)
+points(IIC.Forgy, col = "green", type = "b", pch = 19)
+points(IIC.MacQueen, col = "magenta", type = "b", pch= 19)
+legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
+       col = c("blue","red", "green", "magenta"), pch = 19)
+```
+En el gráfico se pueden observar dos cosas:
+
+1. Con 2 clusters se alcanza la mejor cantidad de varianza acumulada.
+2. Todos los algoritmos se solapan entre si, esto quiere decir que todos tienen el mismo rendimiento sobre el conjunto de datos.
+
+
+## K-Medias con 5 clusters
+
+Ahora vamos a probar si el Codo de Jambu está en lo correcto, haremos pruebas sobre el conjunto de entrenamiento utilizando los conjuntos de datos con 2 y 5 clases. Empezaremos con el conjunto de datos de 5 clases que parece ser el que tiene peor desempeño.
+
+Para ello ejecutaremos el algoritmo **K-Medias** 10 veces y promediaremos la tasa de acierto del algoritmo.
+
+```{r}
+results.five = vector(mode = "numeric", length = 10)
+best.accuracy.five = 0
+for (i in 1:length(results.five))
+{
+  set.seed(i)
+  model.kmeans.five = kmeans(dataset.five[,1:(ncol(dataset.five)-1)],
+                             5, iter.max = 100)
+  
+  prediction.five = OrderKmeans(model.kmeans.five)
+  accuracy.five = mean(prediction.five == dataset.five$Label)
+  
+  results.five[i] = accuracy.five
+  
+  if(best.accuracy.five < accuracy.five)
+  {
+    best.prediction.five = prediction.five
+    best.accuracy.five = accuracy.five
+  }
+}
+```
+En la **variable results.five** se almacenaron los resulatdos de cada iteración, y en las variables **best.prediction.five** y **best.accuracy.five** se almacenaron las mejores predicciones y la mejor tasa de acierto respectivamente. Veamos cuáles fueron los resultados.
+
+Resultados:
+
+```{r}
+results.five
+```
+
+Promedio de acierto:
+
+```{r}
+mean(results.five) * 100
+```
+
+Crearemos una matriz de confusión para ilustrar la efectividad del modelo.
+
+```{r}
+confusion.matrix.five = table(Real = dataset.five$Label,
+                              Prediction = best.prediction.five)
+
+```
+
+Ahora imprimiremos la matriz de confusión:
+
+```{r}
+confusion.matrix.five
+```
+
+La mejor tasa de acierto:
+
+```{r}
+best.accuracy.five*100
+```
+
+La menor tasa de error:
+
+```{r}
+ErrorRate(best.accuracy.five)*100
+```
+
+Ahora calcularemos la eficacia por clase de ataque. La salida corresponde a un vector donde las etiquetas están ordenadas por orden alfabético. Esto es el siguiente orden: **DoS**, **normal**, **Probing**, **R2L**, **U2R**.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.five, dataset.five)
+```
+
+Ahora transformaremos la matriz de cbnfusión en una matriz de confusión de **Ataques** vs **normal**. Esto con la finalidad de poder sacar medidas de rendimiento tales como: **Sensitividad**, **Especificidad**, **Precision**
+
+```{r}
+attack.normal.confusion.matrix.five = AttackNormalConfusionMatrix(dataset.five,
+                                                             best.prediction.five)
+```
+Imprimimos la matriz de confusión.
+
+```{r}
+attack.normal.confusion.matrix.five
+```
+
+Ahora podemos calcular las medidas de rendimiento binarias.
+Sensitividad:
+```{r}
+Sensitivity(attack.normal.confusion.matrix.five) * 100
+```
+
+Especificidad:
+```{r}
+Especificity(attack.normal.confusion.matrix.five) * 100
+```
+
+Precision:
+```{r}
+Precision(attack.normal.confusion.matrix.five) * 100
+```
+
+##K-Medias con 2 clusters
+De igual manera que se hizo en el apartado anterior, se ejecutará el algoritmo 10 veces ahora con 2 clusters objetivos
+
+```{r}
+results.two = vector(mode = "numeric", length = 10)
+best.accuracy.two = 0
+for (i in 1:length(results.two))
+{
+  set.seed(i)
+  model.kmeans.two = kmeans(dataset.two[,1:(ncol(dataset.two)-1)],
+                             2, iter.max = 100)
+  
+  prediction.two = OrderKmeans(model.kmeans.two)
+  accuracy.two = mean(prediction.two == dataset.two$Label)
+  
+  results.two[i] = accuracy.two
+  
+  if(best.accuracy.two < accuracy.two)
+  {
+    best.prediction.two = prediction.two
+    best.accuracy.two = accuracy.two
+  }
+}
+```
+En la variable **results.two** se tiene la eficacia de cada iteración del algoritmo.
+
+```{r}
+results.two
+```
+
+Ahora se calculará el promedio de los resultados.
+
+```{r}
+mean(results.two) * 100
+```
+Se puede apreciar que el promedio de acierto con 2 clases es mayor que con 5 clases objetivo. No sólo esto, sino que el valor máximo de aciertos se repite varias veces y es mucho mayor que con el modelo de 5 clases. Este hecho nos dice que el algoritmo convergió todas esas veces a unas posiciones donde los centroides pudieron maximizar la cantidad de aciertos y donde cada cluster pudo representar cada conjunto de buena manera.
+
+Ahora crearemos una matriz de confusión que nos ayude a visualizar el rendimiento del algoritmo:
+
+```{r}
+confusion.matrix.two = table(Real = dataset.two$Label,
+                              Prediction = best.prediction.two)
+```
+Imprimimos la matriz de confsuión:
+
+```{r}
+confusion.matrix.two
+```
+
+Ahora imprimiremos la mejor tasa de acierto:
+
+```{r}
+best.accuracy.two*100
+```
+
+Y la menor tasa de error:
+
+```{r}
+ErrorRate(best.accuracy.two)*100
+```
+
+Ahora visualizaremos el acierto por etiqueta, donde el orden corresponde a un vector ordenado alfabeticamente de la siguiente manera: **Attack**, **normal**.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.two, dataset.two)
+```
+En este caso ya la matriz es binaria y se pueden sacar las medidas de **Sensitividad**, **Especificidad** y **Precision**.
+
+Sensitividad:
+```{r}
+Sensitivity(confusion.matrix.two) * 100
+```
+
+Especificidad:
+```{r}
+Especificity(confusion.matrix.two) * 100
+```
+
+Precision:
+```{r}
+Precision(confusion.matrix.two) * 100
+```
+
+#Conclusiones
+
+1.- El algoritmo de Codo de Jambu fue efectivo para la preselección de los centroides.
+
+2.- El rendimiento con 2 centroides es bastante superior en **tasa de acierto** y **Sensitividad**, y ligeramente superior en las medidas de **Especificidad** y **Precision**

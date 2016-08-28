@@ -22,15 +22,15 @@ setwd("/home/dperez/Documents/Repos/Tesis/source")
 En el archivo **functions_preprocess.R** se encuentran una serie de funciones que se utilizarán a lo largo del documento. Dentro del documento se pueden encontrar comentarios sobre la funcionalidad de las mismas.
 
 ```{r}
-source("functions_preprocess.R")
+source("../functions/functions.R")
 ```
 
 # Análisis sobre el conjunto de datos NSL-KDD
 A continuación se cargarán los conjuntos de datos de prueba y de entrenamiento.
 
 ```{r}
-dataset.training = read.csv(file = "../dataset/KDDTrain+.txt", sep = ",", header = FALSE)
-dataset.testing = read.csv(file = "../dataset/KDDTest+.txt", sep = ",", header = FALSE)
+dataset.training = read.csv(file = "../../dataset/KDDTrain+.txt", sep = ",", header = FALSE)
+dataset.testing = read.csv(file = "../../dataset/KDDTest+.txt", sep = ",", header = FALSE)
 ```
 
 En la varibale **dataset.training** se tiene cargado el conjutno de entrenamiento y en la variable **dataset.testing** el conjunto de prueba. Veamos las dimensiones de los conjuntos de datos.
@@ -251,7 +251,7 @@ dataset.testing = FlagTransformation(dataset.testing)
 De esta manera ya ambos conjuntos de datos tienen las características predictoras en forma numérica y tienen las nuevas etiquetas que serán usadas para entrenar a los modelos clasificadores. Ahora se pueden guardar ambos modelos.
 ```{r}
 write.csv(dataset.training,
-          file = "../dataset/NSLKDD_Training_New.csv", row.names = FALSE)
+          file = "../../dataset/NSLKDD_Training_New.csv", row.names = FALSE)
 write.csv(dataset.testing,
-          file = "../dataset/NSLKDD_Testing_New.csv", row.names = FALSE)
+          file = "../../dataset/NSLKDD_Testing_New.csv", row.names = FALSE)
 ```
