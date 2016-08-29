@@ -5,7 +5,6 @@ setwd("/home/dperez/Documents/Repos/Tesis/source")
 
 #Loading packages
 library("e1071")
-library("nnet")
 
 #Loading functions
 source("functions/functions.R")
