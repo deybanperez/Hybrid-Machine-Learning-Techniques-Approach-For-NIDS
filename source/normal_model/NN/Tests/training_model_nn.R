@@ -67,6 +67,7 @@ for (i in 1:10)
     list.results$best_model = model
     list.results$best_testing_set = testingset
     list.results$best_predictions = predictions
+    best.accuracy = accuracy
   }
 }
 

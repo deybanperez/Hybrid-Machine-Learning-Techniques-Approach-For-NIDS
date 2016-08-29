@@ -106,6 +106,7 @@ for (i in 1:10)
     list.results$best_model = model
     list.results$best_testing_set = testingset
     list.results$best_predictions = predictions
+    best.accuracy = accuracy
   }
 }
 ```
@@ -134,3 +135,20 @@ Ahora visualizaremos los diferentes resultados obtenidos y calcularemos la media
 list.results$results
 mean(list.results$results) * 100
 ```
+La media de aciertos es de **99.19%**. Una tasa de aciertos bastante alta que demuestra que las máquinas de soporte vectorial pueden tener un buen desempeño en la tarea de detección de intrusos en redes de computadoras. A continuación se creará una matriz de confusión para ilustrar de manera gráfica el desempeño del modelo.
+
+```{r}
+confusion.matrix = table(Real = list.results$best_testing_set[,ncol(list.results$best_testing_set)],
+                         Prediction = list.results$best_predictions)
+confusion.matrix
+```
+Se puede notar un rendimiento excelente en la clasificación de cada una de las clases salvo en **U2R** donde no fue capaz de acertar de manera correcta en ningún caso. Ahora calculemos la tasa de aciertos para el mejor modelo.
+
+```{r}
+accuracy = mean(list.results$best_testing_set[,ncol(list.results$best_testing_set)] == 
+                  list.results$best_predictions)
+
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+

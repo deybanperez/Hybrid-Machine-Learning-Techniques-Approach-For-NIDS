@@ -108,6 +108,7 @@ for (i in 1:10)
     list.results$best_model = model
     list.results$best_testing_set = testingset
     list.results$best_predictions = predictions
+    best.accuracy = accuracy
   }
 }
 ```
@@ -137,9 +138,7 @@ Ahora visualizaremos los diferentes resultados obtenidos y calcularemos la media
 list.results$results
 mean(list.results$results) * 100
 ```
-La media de aciertos es de **99.52%**. Una tasa de aciertos bastante alta que da a pensar que las redes neuronales pueden tener un buen desempeño en la tarea de deteción de intrusos en redes de computadoras.
-
-A continuación crearemos una matriz de confusión para observar de manera gráfica el desempeño del modelo.
+La media de aciertos es de **99.52%**. Una tasa de aciertos bastante alta que demuestra que las redes neuronales pueden tener un buen desempeño en la tarea de detección de intrusos en redes de computadoras. A continuación crearemos una matriz de confusión para observar de manera gráfica el desempeño del modelo.
 
 ```{r}
 confusion.matrix = table(Real = list.results$best_testing_set[,ncol(list.results$best_testing_set)],
