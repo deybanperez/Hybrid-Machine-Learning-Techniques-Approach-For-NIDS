@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 #Resumen
-Este documento recopila las actividades realizadas para la prueba de rendimiento de **Redes Neuronales** de 1 capa intermedia con 20 neuronas en la tarea de la detección de anomalías en redes de computadoras. La selección del número de capas y de neuronas no está normado en ningún lugar, sin embargo,  según **Andrew Ng** en sus cursos de ML en la **Universidad de Stanford** se menciona que una arquitectura de red neuronal con 1 capa oculta funcionará de buena manera para la mayoría de los problemas. Para pequelas cantidades de entradas se utiliza el doble de neuronas en la capa intermedia, y para modelos con gran cantidad de entradas se utiliza la mitad de neuronas intermedias. Si se desea utilizar una segunda capa, entonces se recomienda que esta tenga la misma cantidad de neuronal que la capa oculta 1. 
+Este documento recopila las actividades realizadas para las pruebas de rendimiento de **Redes Neuronales** de 1 capa intermedia con 20 neuronas en la tarea de la detección de anomalías en redes de computadoras. La selección del número de capas y de neuronas no está normado en ningún lugar, sin embargo,  según **Andrew Ng** en sus cursos de ML en la **Universidad de Stanford** se menciona que una arquitectura de red neuronal con 1 capa oculta funcionará de buena manera para la mayoría de los problemas. Para pequelas cantidades de entradas se utiliza el doble de neuronas en la capa intermedia, y para modelos con gran cantidad de entradas se utiliza la mitad de neuronas intermedias. Si se desea utilizar una segunda capa, entonces se recomienda que esta tenga la misma cantidad de neuronal que la capa oculta 1. 
 
 Como consideraciones, es importante resaltar que si se utilizan muchas neuronas se tendrá un prblema de **sobre-ajuste** de los datos. Por otra parte si no se utilizan la cantidad suficiente de neuronas, entonces se tendrá un problema de **sub-ajuste**. Darse cuenta de esto es un problema empírico de ensayo, error y análisis de resultados por parte del especialista de ML.
 
@@ -30,14 +30,14 @@ En este caso el paquete ya se encuentra instalado y nos limitaremos a cargarlo.
 library("nnet")
 ```
 
-A continuación cargaremos el conjunto de entrenamiento, que es el conjunto de dato que vamos a utilizar para evaluar el desempeño de las redes neuronales. Es necesario aclarar que el conjunto de prueba no se utiliza en el proceso de entrenamiento del modelo, este es exclusivamente para evaluar el desempeño del modelo una vez que este haya sido examinado y sus características se hayan seleccionado de forma definitiva. Cómo en este punto se está en una fase de evaluación utilizaremos el conjunto de entrenamiento para entrenar y probar el desempeño.
+A continuación cargaremos el conjunto de entrenamiento, que es el conjunto de datos que vamos a utilizar para evaluar el desempeño de las redes neuronales. Es necesario aclarar que el conjunto de prueba no se utiliza en el proceso de entrenamiento del modelo, este es exclusivamente para evaluar el desempeño del modelo una vez que este haya sido examinado y sus características se hayan seleccionado de forma definitiva. Cómo en este punto se está en una fase de evaluación utilizaremos el conjunto de entrenamiento para entrenar y probar el desempeño.
 
 ```{r}
 dataset.training = read.csv("../../../../dataset/NSLKDD_Training_New.csv",
                             sep = ",", header = TRUE)
 ```
 
-Una vez cargado el conjunto de datos, eliminaremos las etiquetas que no se utilizarán. Para este modelo se utilizarán 5 clases objetivos para poder acotar el tipo de animalía dentro de una de las clases **DoS**, **normal**, **Probing**, **R2L**, **U2R**. De esta manera al especialista se le hará más sencillo determinar la falla de seguridad. Dicho esto, sólo utilizaremos la columna de etqiuetas **Label_Normal_ClassAttack**.
+Una vez cargado el conjunto de datos, eliminaremos las etiquetas que no se utilizarán. Para este modelo se utilizarán 5 clases objetivos para poder acotar el tipo de anomalía dentro de una de las clases **DoS**, **normal**, **Probing**, **R2L**, **U2R**. De esta manera al especialista se le hará más sencillo determinar la falla de seguridad. Dicho esto, sólo utilizaremos la columna de etiquetas **Label_Normal_ClassAttack**.
 
 ```{r}
 dataset = dataset.training
@@ -45,7 +45,7 @@ dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 dataset$Label_Normal_or_Attack = NULL
 ```
-Es necesario que todos los predictores del conjunto de datos sean de tipo **numérico** para poder entrenar a la red neuronal, por este motivo transformaremos todos los predictores a tipo **numérico**, y la columna objetivo la transformaremos a tipo **factor**.
+Es necesario que todos los predictores del conjunto de datos sean de tipo **numérico** para poder entrenar a la red neuronal, por este motivo transformaremos todos los predictores a tipo **numérico**, y la columna objetivo la transformaremos a tipo **factor**. A la columna objetivo ser de tipo factor, el algoritmo realiza clasificación, en caso contrario realizaría regresión.
 
 ```{r}
 for (i in 1 : (ncol(dataset) -1) )
@@ -53,7 +53,7 @@ for (i in 1 : (ncol(dataset) -1) )
 
 dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
 ```
-Para reducir el tiempo de entrenamiento y mejorar la precisión del algoritmo, e suna buena práctica escalar el conjunto de valores de los distintos predictores dentro de un mismo rango de valores. Por este motivo,  los valores serán escalados para que todos estén centrados en el origen y posean desviación estándard 1.
+Para reducir el tiempo de entrenamiento y mejorar la precisión del algoritmo, es una buena práctica escalar el conjunto de valores de los distintos predictores dentro de un mismo rango de valores. Por este motivo,  los valores serán escalados para que todos estén centrados en el origen y posean desviación estándard 1.
 
 ```{r}
 dataset = ScaleSet(dataset)
@@ -66,9 +66,7 @@ La estrategia adoptada para la prueba del modelo será la utilización de **vali
 cv.sets = CVSet(dataset, k = 10, seed = 22)
 length(cv.sets)
 ```
-Podemos ver que la longitud de la lista es de 10, debido a que en cada posición se encuentra un dataframe que sorresponde a un sobconjutno del conjunto de datos original. Todos los registros entre los diferentes dataframes son diferentes, debido a que el muestreo se hizo sin reemplazo.
-
-A continuación se inicializarán algunas variables.
+Podemos ver que la longitud de la lista es de 10, debido a que en cada posición se encuentra un dataframe que corresponde a un subconjutno del conjunto de datos original. Todos los registros entre los diferentes dataframes son diferentes, debido a que el muestreo se hizo sin reemplazo. A continuación se inicializarán algunas variables.
 
 ```{r}
 results = vector(mode = "numeric", length = 10)
@@ -77,9 +75,7 @@ names(list.results) = c("results", "best_model", "best_testing_set", "best_predi
 best.accuracy = 0
 ```
 
-El proceso de entrenamiento y de prueba mediante validación cruzada de 10 conjuntos es largo, debido a esto se almacenaŕan en una lista los **resultados** de la tasa de acierto de cada iteración, el **mejor modelo**, el **conjunto de datos de prueba** que originó la predicción y el **mejor conjunto de predicciones**. De esta amnera la lista puede ser guardada y exportada como un objeto que posteriormente se puede cargar sin necesidad de esperar a que el el proceso de entrenamiento y de prueba se realice de nuevo.
-
-A continuación se presenta el fragmento de código que realiza el proceso mencionado previamente.
+El proceso de entrenamiento y de prueba mediante validación cruzada de 10 conjuntos es largo, debido a esto se almacenaŕan en una lista los **resultados** de la tasa de acierto de cada iteración, el **mejor modelo**, el **conjunto de datos de prueba** que originó la predicción y el **mejor conjunto de predicciones**. De esta manera la lista puede ser guardada y exportada como un objeto que posteriormente se puede cargar sin necesidad de esperar a que el proceso de entrenamiento y de prueba se realice de nuevo. A continuación se presenta el fragmento de código que realiza el proceso mencionado previamente.
 
 ```{r, eval=FALSE}
 for (i in 1:10)
@@ -115,7 +111,7 @@ for (i in 1:10)
   }
 }
 ```
-Una vez que se termina el proceso, se almacenan en la lista los resultados parciales y se exporta el modelo.
+Una vez que se termina el proceso de entrenamiento, se almacenan en la lista los resultados parciales y se exporta el modelo.
 
 ```{r, eval=FALSE}
 list.results$results = results
@@ -130,12 +126,12 @@ library("nnet")
 source("../../../functions/functions.R")
 ```
 
-Ahora cargaremos la lista guardada en la sección anterior
+Ahora cargaremos la lista guardada en la sección anterior.
 
 ```{r}
 list.results = readRDS("list_results.rds")
 ```
-Ahora visualizaremos los diferentes resultados obtenidosy calcularemos la media de la tasa de aciertos.
+Ahora visualizaremos los diferentes resultados obtenidos y calcularemos la media de la tasa de aciertos.
 
 ```{r}
 list.results$results

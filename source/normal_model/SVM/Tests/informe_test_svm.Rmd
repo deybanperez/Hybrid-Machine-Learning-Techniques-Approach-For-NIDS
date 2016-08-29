@@ -1,0 +1,136 @@
+---
+title: "Pruebas de Máquinas de Soporte Vectorial en el Conjunto de Entrenamiento"
+author: "Deyban Andrés Pérez Abreu"
+date: "August 28, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Resumen
+Este documento recopila las actividades realizadas para las pruebas de rendimiento de **Máquinas de Soporte Vectorial** con el kernel **radial**. Se eligió este kernel debido a que en la revisión bibliográfica se ilustró que este modelo se entrena de manera más rápida y posee un mejor desempeño que los otros kernel. En este documento se utilizarán los parámetros **gamma** y **cost** por defecto. 
+
+# Actividades realizadas
+Se empezará por limpiar el ambiente de trabajo y cargar el archivo de funciones a utilizar
+```{r}
+rm(list = ls())
+source("../../../functions/functions.R")
+```
+El paquete utilizado para las redes neuronales se llama **e1071**, si este paquete no se encuentra instalado debe hacer uso del comando:
+
+```{r, eval=FALSE}
+install.packages("e1071")
+```
+En este caso el paquete ya se encuentra instalado y nos limitaremos a cargarlo.
+
+```{r}
+library("e1071")
+```
+A continuación cargaremos el conjunto de entrenamiento, que es el conjunto de datos que vamos a utilizar para evaluar el desempeño de máquina de soporte vectorial. Es necesario aclarar que el conjunto de prueba no se utiliza en el proceso de entrenamiento del modelo, este es exclusivamente para evaluar el desempeño del modelo una vez que este haya sido examinado y sus características se hayan seleccionado de forma definitiva. Cómo en este punto se está en una fase de evaluación utilizaremos el conjunto de entrenamiento para entrenar y probar el desempeño.
+
+```{r}
+dataset.training = read.csv("../../../../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+```
+Una vez cargado el conjunto de datos, eliminaremos las etiquetas que no se utilizarán. Para este modelo se utilizarán 5 clases objetivos para poder acotar el tipo de anomalía dentro de una de las clases **DoS**, **normal**, **Probing**, **R2L**, **U2R**. De esta manera al especialista se le hará más sencillo determinar la falla de seguridad. Dicho esto, sólo utilizaremos la columna de etiquetas **Label_Normal_ClassAttack**.
+
+```{r}
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+Es necesario que todos los predictores del conjunto de datos sean de tipo **numérico** para poder entrenar a la máquina de soporte vectorial, por este motivo transformaremos todos los predictores a tipo **numérico**, y la columna objetivo la transformaremos a tipo **factor**. A la columna objetivo ser de tipo factor, el algoritmo realiza clasificación, en caso contrario realizaría regresión.
+
+```{r}
+for (i in 1 : (ncol(dataset) -1) )
+  dataset[,i] = as.numeric(dataset[,i])
+
+dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
+```
+Para reducir el tiempo de entrenamiento y mejorar la precisión del algoritmo, es una buena práctica escalar el conjunto de valores de los distintos predictores dentro de un mismo rango de valores. Por este motivo,  los valores serán escalados para que todos estén centrados en el origen y posean desviación estándard 1.
+
+```{r}
+dataset = ScaleSet(dataset)
+```
+
+## Entrenando el modelo
+La estrategia adoptada para la prueba del modelo será la utilización de **validación cruzada de 10 conjuntos**. La función **CVSet** toma un conjunto de datos y establece 10 divisiones iguales del conjunto de datos y las devuelve en una lista de dataframes.
+
+```{r}
+cv.sets = CVSet(dataset, k = 10, seed = 22)
+length(cv.sets)
+```
+Podemos ver que la longitud de la lista es de 10, debido a que en cada posición se encuentra un dataframe que corresponde a un subconjutno del conjunto de datos original. Todos los registros entre los diferentes dataframes son diferentes, debido a que el muestreo se hizo sin reemplazo. A continuación se inicializarán algunas variables.
+
+```{r}
+results = vector(mode = "numeric", length = 10)
+list.results = list(0, 0, 0, 0)
+names(list.results) = c("results", "best_model", "best_testing_set", "best_predictions")
+best.accuracy = 0
+```
+
+El proceso de entrenamiento y de prueba mediante validación cruzada de 10 conjuntos es largo, debido a esto se almacenaŕan en una lista los **resultados** de la tasa de acierto de cada iteración, el **mejor modelo**, el **conjunto de datos de prueba** que originó la predicción y el **mejor conjunto de predicciones**. De esta manera la lista puede ser guardada y exportada como un objeto que posteriormente se puede cargar sin necesidad de esperar a que el proceso de entrenamiento y de prueba se realice de nuevo. A continuación se presenta el fragmento de código que realiza el proceso mencionado previamente.
+
+```{r, eval=FALSE}
+for (i in 1:10)
+{
+  #Extrayendo el conjunto de datos
+  testingset = as.data.frame(cv.sets[[i]])
+  trainingset = cv.sets
+  trainingset[[i]] = NULL
+  trainingset = do.call(rbind, trainingset)
+  
+  #Entrenamiento de la SVM
+  model = svm(Label ~ .,
+              data = trainingset,
+              kernel = "radial",
+              scale = FALSE,
+              probability = TRUE)
+  
+  #Realizando las predicciones
+  predictions = predict(model, testingset[, 1:(ncol(testingset)-1)], type = "class")
+  
+  
+  #Calculando la tasa de aciertos
+  accuracy = mean(testingset[, ncol(testingset)] == predictions)
+  
+  #Almacenando el resultado
+  results[i] = accuracy
+  
+  #Almacenando el mejor resultado
+  if(best.accuracy < accuracy)
+  {
+    list.results$best_model = model
+    list.results$best_testing_set = testingset
+    list.results$best_predictions = predictions
+  }
+}
+```
+Una vez que se termina el proceso de entrenamiento, se almacenan en la lista los resultados parciales y se exporta el modelo.
+
+```{r, eval=FALSE}
+list.results$results = results
+saveRDS(list.results, "normal_model/SVM/Tests/list_results.rds")
+```
+
+## Evaluando el modelo
+Empezaremos por limpiar el ambiente de trabajo, cargar las funciones y el paquete a utilizar.
+```{r}
+rm(list = ls())
+library("nnet")
+source("../../../functions/functions.R")
+```
+
+Ahora cargaremos la lista guardada en la sección anterior.
+```{r}
+list.results = readRDS("list_results.rds")
+```
+Ahora visualizaremos los diferentes resultados obtenidos y calcularemos la media de la tasa de aciertos.
+
+```{r}
+list.results$results
+mean(list.results$results) * 100
+```

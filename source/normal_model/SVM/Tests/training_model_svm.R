@@ -4,7 +4,7 @@ setwd("/home/dperez/Documents/Repos/Tesis/source")
 #setwd("/home/dperez/Tesis/source")
 
 #Loading packages
-require("e1071")
+library("e1071")
 library("nnet")
 
 #Loading functions
@@ -47,7 +47,7 @@ for (i in 1:10)
   trainingset[[i]] = NULL
   trainingset = do.call(rbind, trainingset)
   
-  #NN Model
+  #SVM Model
   model = svm(Label ~ .,
               data = trainingset,
               kernel = "radial",
