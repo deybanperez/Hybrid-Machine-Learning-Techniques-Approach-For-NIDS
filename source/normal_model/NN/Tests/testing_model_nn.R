@@ -5,7 +5,6 @@ setwd("/home/dperez/Documents/Repos/Tesis/source")
 #setwd("C:/Users/deyban.perez/Documents/Repos/source") #Windows
 
 #Loading packages
-library("e1071")
 library("nnet")
 
 #Loading functions
@@ -88,7 +87,10 @@ Especificity(confusion.matrix.kmeans.model) * 100
 Precision(confusion.matrix.kmeans.model) * 100
 
 #Total statistics
-confusion.matrix.two.labels = TwoLevelsCM(confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix,
+                                          confusion.matrix.kmeans.model)
+
+confusion.matrix.two.labels
 accuracy.total = Accuracy(confusion.matrix.two.labels)
 accuracy.total * 100
 ErrorRate(accuracy.total) * 100

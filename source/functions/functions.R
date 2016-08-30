@@ -277,18 +277,18 @@ ErrorRate = function(accuracy)
 # (TP / (TP + FN))
 Sensitivity = function(confusionMatrix)
 {
-  return(confusionMatrix[1,1] / (confusionMatrix[1,1] + confusionMatrix[2,1]))
+  return(confusionMatrix[1,1] / (confusionMatrix[1,1] + confusionMatrix[1,2]))
 }
 # (TN / (FP + TN))
 Especificity = function(confusionMatrix)
 {
-  return(confusionMatrix[2,2] / (confusionMatrix[1,2] + confusionMatrix[2,2]))
+  return(confusionMatrix[2,2] / (confusionMatrix[2,1] + confusionMatrix[2,2]))
 }
 
 # (TP / (TP + FP))
 Precision = function(confusionMatrix)
 {
-  return(confusionMatrix[1,1] / (confusionMatrix[1,1] + confusionMatrix[1,2]))
+  return(confusionMatrix[1,1] / (confusionMatrix[1,1] + confusionMatrix[2,1]))
 }
 
 #Extract Probabilities in Prediction
@@ -343,7 +343,7 @@ generate_ROC = function(scores, real, pred)
   returnFP[length(returnFP)+1] = FP/N
   
   plot(returnFP, returnTP, type = "l", main = "ROC Curve",
-       xlab = "Accuracy-Rate", ylab = "Error-Rate")
+       ylab = "Accuracy-Rate", xlab = "Error-Rate")
   abline(0,1, col = "blue")
 }
 
@@ -423,11 +423,11 @@ DataROC = function(set, probabilities, predictions)
 TwoLevelsCM = function(CM1, CM2)
 {
   TP = CM1[1,1] + CM2[1,1]
-  FP = CM2[1,2]
-  FN = CM1[2,1] + CM2[2,1]
+  FN = CM2[1,2]
+  FP = CM1[2,1] + CM2[2,1]
   TN = CM2[2,2]
   
-  matrix(c(TP, FP, FN, TN), nrow = 2, ncol = 2, byrow = TRUE)
+  matrix(c(TP, FN, FP, TN), nrow = 2, ncol = 2, byrow = TRUE)
 }
 
 #Calculate accuracy from confusion matrix

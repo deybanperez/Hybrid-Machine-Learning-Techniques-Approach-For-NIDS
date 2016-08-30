@@ -48,8 +48,8 @@ confusion.matrix
 
 #Accuracy
 accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
-accuracy
-ErrorRate(accuracy)
+accuracy * 100
+ErrorRate(accuracy) * 100
 
 #Printing Accuracy per label
 AccuracyPerLabel(confusion.matrix, testing.set)
@@ -113,7 +113,8 @@ ErrorRate(accuracy.kmeans.model)*100
 AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
 
 #Total statistics
-confusion.matrix.two.labels = TwoLevelsCM(confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
 accuracy.total = Accuracy(confusion.matrix.two.labels)
 accuracy.total * 100
 ErrorRate(accuracy.total) * 100

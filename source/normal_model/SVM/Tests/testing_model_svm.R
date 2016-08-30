@@ -6,7 +6,6 @@ setwd("/home/dperez/Documents/Repos/Tesis/source")
 
 #Loading packages
 library("e1071")
-library("nnet")
 
 #Loading functions
 source("functions/functions.R")
@@ -54,7 +53,6 @@ generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
 
 #Adding the second level with K-Means
 kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
-dim(kmeans.set)
 kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
 kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
 SumLabels(kmeans.set, ncol(kmeans.set))
@@ -90,7 +88,10 @@ Especificity(confusion.matrix.kmeans.model) * 100
 Precision(confusion.matrix.kmeans.model) * 100
 
 #Total statistics
-confusion.matrix.two.labels = TwoLevelsCM(confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix,
+                                          confusion.matrix.kmeans.model)
+
+confusion.matrix.two.labels
 accuracy.total = Accuracy(confusion.matrix.two.labels)
 accuracy.total * 100
 ErrorRate(accuracy.total) * 100

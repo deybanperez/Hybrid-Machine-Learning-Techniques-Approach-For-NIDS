@@ -142,7 +142,7 @@ confusion.matrix = table(Real = list.results$best_testing_set[,ncol(list.results
                          Prediction = list.results$best_predictions)
 confusion.matrix
 ```
-Se puede notar un rendimiento excelente en la clasificación de cada una de las clases salvo en **U2R** donde no fue capaz de acertar de manera correcta en ningún caso. Ahora calculemos la tasa de aciertos para el mejor modelo.
+Se puede ver un rendimiento extremadamente bueno, con muy pocos fallos a la hora de categorizar los distintos registros. Ahora calcularemos la tasa de aciertos para el mejor modelo.
 
 ```{r}
 accuracy = mean(list.results$best_testing_set[,ncol(list.results$best_testing_set)] == 
@@ -151,4 +151,123 @@ accuracy = mean(list.results$best_testing_set[,ncol(list.results$best_testing_se
 accuracy * 100
 ErrorRate(accuracy) * 100
 ```
+La mejor tasa de aciertos fue de **99.37%**  y la tasa de fallos corresponde a su complemento y corresponde al **0.63%**. Ahora veamos la eficacia por etiqueta a la hora de clasificar. La salida corresponde a un vector donde cada posición correspode a **DoS**, **normal**, **Probing**, **R2L**, **U2R**. Esto debido a que las etiquetas se ordenaron alfabeticamente.
 
+```{r}
+AccuracyPerLabel(confusion.matrix, list.results$best_testing_set)
+```
+Se observa que la eficacia con las clases **DoS**, **normal**, **Probing** y **R2L** está por encima del 92.9%, mientras que para **U2R** la tasa de aciertos es de sólo 33.3%. Este comportamiento se debe a que para **U2R** la cantidad de ejemplos para el entrenamiento son menores y por eso el algoritmo no es capaz de generalizar de la mejor manera, en otras palabras, se espera que con mayor cantidad de información las predicciones para esta clase mejore.
+
+Para poder calcular medidas binarias tales como **Sensitividad**, **Especificidad**, **Precisión** y la graficación de la curva ROC es necesario llevar la matriz de 5 clases a 2 clases, es decir, **Attack** vs **normal**.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(list.results$best_testing_set,
+                                                             list.results$best_predictions)
+attack.normal.confusion.matrix
+```
+De esta manera se puede observar que existen 51 errores en la clasificación, de los cuales 25 pertenecen a falsos negativos y 26 a falsos positivos. Es importante resaltar que el modelo está realizado para que el objetivo sea la detección de ataques. Ahora que tenemos la matriz de confusión binaria podemos calcular las medidas mencionadas con anterioridad.
+
+```{r}
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+En las tres medidas se obtuvo un excelente desempeño, todas por encima del 99.3% en promedio. Esto habla bien del modelo y de la capacidad que tiene para clasificar en este escenario. Ahora graficaremos una **Curva ROC** que mide la tasa de acierto contra la tasa de fallos. Se eligió este enfoque para ver bajo cuáles tasas de probabilidad el modelo es más certero. Este gráfico mide la proporción de aciertos sobre la proporción de fallos. La función identidad corresponde a la línea de azar que indica que todo lo que pase sobre esa línea tiene rendimeinto igual al azar. Para crear la curva roc se necesita de un vector de probabilidades, el vector de probabilidades será extraído del proceso de predicción del modelo, posteriormente se crearán tres vectores **probabilidad**, **real**, **predicción**. Que serán utilizados para generación de la curva ROC.
+
+```{r, fig.align="center"}
+probabilities = attr(predict(list.results$best_model,
+                             list.results$best_testing_set[, 1:(ncol(list.results$best_testing_set)-1)],
+                             probability = TRUE), "probabilities")
+
+roc.data = DataROC(list.results$best_testing_set, probabilities,
+                   list.results$best_predictions)
+generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
+             pred = roc.data$Prediction)
+```
+En la curva se puede observar cómo el modelo comete muchos errores con altas tasas de probabilidad, es decir, el modelo asegura que un registro pertenece a una clase con una probabilidad bastante alta y comete muchos errores. La mejor medida de acierto se alcanza con valores de probabilidad intermedios.
+
+### Añadiendo el segundo nivel de clasificación de K-Medias
+En la curva se aprecia cómo la mayoría de los acierto son producidos con una alta probabilidad. Conforme la probabilidad de la predicción disminuye el modelo comete pocos errores hasta que se vuelve a acertar bastante y al final las predicciones con baja probabilidad son categorizadas como fallos en la clasificación.
+
+### Añadiendo el segundo nivel de clasificación de K-Medias
+El modelo anterior presentó 25 **falsos negativos**, esto quiere decir que se clasificaron 25 registros cómo **normal** que en verdad pertenecían a la etiqueta **Attack**. Se tomarán todas aquellas predicciones realizadas por el modelo de máquina de soporte vectorial con la etiqueta **normal** y se utilizará **k-medias** para tratar de separar esos 25 falsos negativos de los registros normales. Se utilizará k-medias con 2 clusters debido a que se verificó en el **informe de kmedias** que la varianza acumulada llegaba a su mejor representación en el codo de jambu con 2 clusters en vez de con 5.
+
+```{r}
+kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+Podemos observar cómo despues de tomar las etiquetas clasificadas cómo normales, se extrayeron los 25 falsos negativos y las 4417 etiquetas restantes corresponden a las verdaderas etiquetas normales.
+
+En el **informe de k-medias** se mencionó que utilizando 2 centroides se alcanzaban en varias iteraciones el mismo resultado, esto es debido a que el algoritmo convergió todas esas veces a una solución óptima. K-Medias es un algoritmo donde la inicialización de los centroides se realiza de manera aleatoria por defecto. Debido a esto, se pueden obtener diferentes resultados en distintas ejecuciones del algoritmo. Por lo tanto, se precalcularán los centroides ejecutando el algoritmo 100 veces y promediando la posición de los centroides finales. De esta manera es bastante probable que los centroides queden alineados en una posición cercana a la óptima y se pueda maximizar el acierto al correr el algoritmo.
+
+```{r}
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+
+#Training the absolute model
+matrix.centers = matrix.centers/100
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+```
+Una vez que el modelo fue entrenado, entonces veamos sus predicciones.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+
+confusion.matrix.kmeans.model
+```
+Podemos ver que 0 de los 25 ataques fueron detectados, volvió a tener 25 falsos begativos e incrementó en una unidad la cantidad de falsos positivos. A simple vista no parece que aplicar K-medias sirviera de mucho, sin embargo, se espera que este rendimiento mejore conforme haya mayor cantidad de ataques. Ahora calcularemos las tasas de acierto y de error.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)*100
+```
+La tasa de aciertos es de 99.41% y la tasa de error de 0.59%, aparentemente tiene un buen resultado, también hay que considerar que las clases están desbalanceadas en este punto. Ahora veamos la eficacia por etiqueta. Recordemos que la salidad es un vector que corresponde a **Attack** y **normal**.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+Se obtuvo 99.98% de acierto en la etiqueta normal y 0% en ataques, este resultado no es bueno, debido a que que el objetivo es detectar ataques y los 25 ataques fueron clasificados de mala manera. Ahora calcularemos las medidas de rendimiento binarias **Sensitivity**, **Especificity** y **Precision**.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+La **especificidad** es bastante alta, quiere decir que el algoritmo tiene gran desempeño detectando los **verdaderos negativos**, por otra parte la **Sensitividad** y la **Precisión** son nulas, lo que quiere decir que el modelo no presentó un buen desempeño calculando los **verdaderos positivos** fue nula.
+
+#### Estadísticas totales
+A continuación se unificarán las estadísticas de ambos niveles para analizar el desempeño conjunto. Se empezará por mezclarar las dos matrices de confusión de los distintos modelos.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix,
+                                          confusion.matrix.kmeans.model)
+```
+
+A partir de acá se pueden calcular todas las medidas utilizadas anteriormente.
+
+```{r}
+confusion.matrix.two.labels
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+```
+
+Se observa que la mayoría de las medidas se ven invariantes debido a que el proceso de aplicar k-medias fue nulo en este caso. Sin embargo, se espera que ante mayor cantidad de ataques no clasificados por parte del modelo de red neuronal, k-medias posea un buen desempeño.
+
+#Conclusiones
+
+1. El algoritmo de redes máquinas de soporte vectorial tiene un desempeño excelente, con bajas tasas de falsos positivos, falsos negativos y alta tasa de aciertos.
+
+2. El segundo nivel de k-Medias no es del todo bueno, pero parece ser prometedor en escenarios donde el primer nivel de clasificación no sea tan eficaz para clasificar.
+
+3. La combinación de ambos modelos es igual a sólo utilizar máquinas de soporte vectorial.
