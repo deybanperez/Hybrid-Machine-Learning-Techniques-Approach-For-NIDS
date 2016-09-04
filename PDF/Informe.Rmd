@@ -90,11 +90,13 @@ Entre ambos conjuntos se observan 40 etiquetas, donde una corresponde al **tráf
 ```{r}
 total.attacks = sort(unique(c(attacks.training, attacks.testing)))
 length(total.attacks)
+total.attacks
 ```
 
 Se observa que existen 21 etiquetas conmunes entre ambos conjuntos de datos, donde 1 corresponde a la etiqueta de **tráfico normal** y las otras 20 corresponde a *ataques**. Todas las etiquetas fueron listadas. A continuación se listarán aquellos ataques que están presentes en el conjunto de prueba y no en el conjunto de entrenamiento.
 
 ```{r}
+index.attacks = which(attacks.testing %in% attacks.training)
 length(attacks.testing[-index.attacks])
 attacks.testing[-index.attacks]
 ```
@@ -267,7 +269,7 @@ dataset.testing = FlagTransformation(dataset.testing)
 ##Guardando la vista minable
 En este punto la vista minable ya fue creada, las columnas poseen un formato aceptable para los algoritmos que serán utilizados y se agregaron nuevas columnas que facilitarán tareas futuras en la investigación. Debido a que no hay más tareas por hacer, se procede a guardar los conjuntos de datos para cargar los datos preprocesados y no tener que repetir dicho procedimiento luego.
 
-```{r}
+```{r, eval=FALSE}
 write.csv(dataset.training,
           file = "../dataset/NSLKDD_Training_New.csv", row.names = FALSE)
 write.csv(dataset.testing,
