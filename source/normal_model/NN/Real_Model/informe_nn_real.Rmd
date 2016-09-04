@@ -1,0 +1,20 @@
+---
+title: "Informe de Redes Neuronales Sobre el Conjunto de Prueba"
+author: "Deyban Andrés Pérez Abreu"
+date: "September 3, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Resumen
+Este documento recopila las actividades realizadas para las pruebas de rendimiento de **Redes Neuronales** de una capa intermedia con 20 neuronas en la tarea de la detección de anomalías en redes de computadoras. La selección del número de capas y de neuronas no está normado en ningún lugar, sin embargo,  según **Andrew Ng** en sus cursos de ML en la **Universidad de Stanford** se menciona que una arquitectura de red neuronal con 1 capa oculta funcionará de buena manera para la mayoría de los problemas. Para pequelas cantidades de entradas se utiliza el doble de neuronas en la capa intermedia, y para modelos con gran cantidad de entradas se utiliza la mitad de neuronas intermedias. Si se desea utilizar una segunda capa, entonces se recomienda que esta tenga la misma cantidad de neuronal que la capa oculta uno.
+
+Como consideraciones, es importante resaltar que si se utilizan muchas neuronas se tendrá un prblema de **sobre-ajuste** de los datos. Por otra parte si no se utilizan la cantidad suficiente de neuronas, entonces se tendrá un problema de **sub-ajuste**. Darse cuenta de esto es un problema empírico de ensayo, error y análisis de resultados por parte del especialista de ML.
+
+Adicionalmente en esta ocasión se utilizará el conjunto total de datos de entrenamiento para entrenar el modelo y se realizará la evaluación con el verdadero conjunto de prueba. De esta manera podremos ver el desempeño real del modelo de actuar frente a nuevos tipos de ataques.
+
+#Actividades Realizadas
+El documento se estructura en dos grandes fases, *fase de entrenamiento* y *fase de prueba*
