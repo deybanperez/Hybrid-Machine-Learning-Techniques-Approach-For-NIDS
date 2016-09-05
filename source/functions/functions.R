@@ -25,7 +25,7 @@ ClassLabelAttack = function(dataframe)
 NormalAttackLabel = function(dataframe)
 {
   temporal = as.character(dataframe$V44)
-  temporal[temporal != "normal"] = "attack"
+  temporal[temporal != "normal"] = "Attack"
   return(temporal)
 }
 

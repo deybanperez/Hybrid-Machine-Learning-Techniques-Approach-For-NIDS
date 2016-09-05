@@ -27,7 +27,6 @@ for (i in (ncol(dataset) -1):ncol(dataset) )
 #Splitting set
 dataset.two = dataset[-(ncol(dataset)-1)]
 dataset.two[, ncol(dataset.two)] = as.character(dataset.two[, ncol(dataset.two)])
-dataset.two[dataset.two[,ncol(dataset.two)] == "attack", ncol(dataset.two)] = "Attack"
 dataset.five = dataset[-ncol(dataset)]
 
 #scaling sets

@@ -1,5 +1,5 @@
 ---
-title: "Implementación y Análisis de Técnicas Híbridad de Aprendizaje Automático en la Detección Intrusos en Redes de Computadoras"
+title: "Implementación y Análisis de Técnicas Híbridas de Aprendizaje Automático en la Detección Intrusos en Redes de Computadoras"
 author: "Deyban Andrés Pérez Abreu"
 date: "September 4, 2016"
 output: pdf_document
@@ -276,3 +276,181 @@ write.csv(dataset.testing,
           file = "../dataset/NSLKDD_Testing_New.csv", row.names = FALSE)
 ```
 
+# Implementación de modelos híbridos
+La propuesta del **trabajo especial de grado** consta del entrenamiento de dos modelos híbridos de aprendizaje automático. El primer modelo (i) consta de una **red neuronal** en el primer nivel y **K-Medias** en el segundo, por otra parte, el segundo modelo (ii) consta de una **máquina de soporte vectorial** en el primer nivel y **K-Medias** en el segundo nivel.
+
+En esta sección los modelos serán entrenados con los parámetros por defecto. Porteriormente se hará selección de características y parámetros y se analizará el impacto con respecto a los modelos creados en esta sección.
+
+Esta sección será divida en dos grandes secciones, una concerniente al entrenamiento y evaluación de los modelos utilizando el **conjunto de entrnamiento** exclusivamente. En esta fase se hará uso de la **técnica de validación cruzada de 10 conjuntos** para evaluar los modelos. Posteriormente, se hará el entrenamiento haciendo uso total del conjunto de entrenamiento y se hará evaluación de los modelos haciendo uso del conjunto de prueba.
+
+Con la estrategia descrita en el párrafo se podrán observar dos aspectos relevantes:
+
+1. La eficacia de los modelos contra ataques conocidos.
+2. La eficacia de los modelos contra ataques no conocidos.
+3. Diferencias de rendimiento entre ambos modelos.
+
+##Pruebas sobre el conjunto de entrenamiento
+En esta sección se listarán las actividades concernientes al entrenamiento y evaluación de los modelos híbridos haciendo uso exclusivo del conjunto de entrenamiento y de la técnica de **validación cruzada de 10 conjuntos** para la evaluación de los modelos. 
+
+Inicialmente iniciaremos con una evaluación del rendimiento de **K-Medias**, se elegirán los centroides y se evaluará su desempeño en la tarea de detección de intrusos.
+
+###K-Medias
+Se empezará por establecer el ambiente de trabajo eliminando las variables parciañes, cargando el archivo de funciones y la vista minable del conjunto de entranmiento pre-procesado previamente.
+
+```{r}
+rm(list = ls())
+source("../source/functions/functions.R")
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+```
+
+Para esta sección sólo se necesitaran las etiquetas **Label_Normal_ClassAttack** y **Label_Normal_or_Attack**, por lo tanto las otras etiquetas serán eliminadas.
+
+```{r}
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+```
+
+A continuación se le asignará el tipo numérico a todas las **columnas predictoras**, y el tipo factor a las **columnas de etiquetas**.
+
+```{r}
+for (i in 1 : (ncol(dataset) -2) )
+  dataset[,i] = as.numeric(dataset[,i])
+
+for (i in (ncol(dataset) -1):ncol(dataset) )
+  dataset[,i] = as.factor(dataset[,i])
+```
+
+En este punto se crearán dos nuevos conjuntos de datos, **dataset.two** que tendrá cómo etiqueta la columna **Label_Normal_or_Attack**, columna que sólo tiene dos niveles categóricos **Attack** o **normal**. Por otra parte, se creará un segundo conjunto de datos llamado **dataset.five** el cuál contendrá cómo etiqueta la columna **Label_Normal_ClassAttack**, columna que tiene cinco niveles categóricos **DoS**, **normal**, **Probing**, **R2L** y **U2R**.
+
+```{r}
+dataset.two = dataset[-(ncol(dataset)-1)]
+dataset.two[, ncol(dataset.two)] = as.character(dataset.two[, ncol(dataset.two)])
+dataset.five = dataset[-ncol(dataset)]
+```
+
+Hasta este punto de tienen tres conjuntos de datos **dataset**, **dataset.two** y **dataset-five**. El algoritmo **K-Medias** funciona utilizando medidas de distancia, portivo por el cual es necesario el escalamiento de los valores de las columnas predictoras dentro de un mismo rando de valores, de lo contrario el rendimiento del algoritmo se verá deteriorado por la diferencia entre las escalas. La función **ScaleSet** lleva todas las columnas a un rango de valores con *media* cero (0), y *desviación estándard* uno (1). Adicionalmente, del conjunto de datos **dataset** se eliminará la columna **Label_Normal_or_Attack** debido a que ya no es necesaria.
+
+```{r}
+dataset$Label_Normal_or_Attack = NULL
+dataset = ScaleSet(dataset)
+dataset.two = ScaleSet(dataset.two)
+dataset.five = ScaleSet(dataset.five)
+```
+
+#### Codo de Jambu
+Hasta este punto ya se tienen los conjuntos de datos listos para ser utilizados. El algoritmo **K-Medias** amerita que se le pasen cómo argumentos el número de centroides o la posición inicial de los centroides. Estos corresponden al número de conjuntos que se esperan identificar en el conjunto de datos. En el escenario que tenemos actualmente esta tarea es sencilla debido a que el conjunto de datos tiene cada uno de los registros etiquetados, sim embargo, este paso no siempre es sencillo. Adicionalmente es importante recordar que el algoritmo de **K-Medias** es un algoritmo de enfoque **no-supervisado** y no hace uso de estas etiquetas para separar los conjuntos.
+
+Si bien es cierto que tenemos etiquetas que nos dicen de antemano cuáles son los niveles de los conjuntos, existe un dilema con respecto al rendimiento del algoritmo con **dos** o **cinco** clases objetivo. El problema de la selección del número de clusters siempre ha existido y existe un método llamado **Codo de Jambu** que es utilizado para capturar la varianza acumulada con respecto al número de clusters a usados. Al graficar la cantidad de varianza acumulada por el número de clusters, se verá que llega un punto en el que la gráfica tiene un comportamiento que emula la articulación de un codo, y es en ese punto, donde se empieza a formar la articulación donde se indica que el uso de mayor cantidad de clusters no aporta al algoritmo.
+
+Existen 4 tipos de algoritmos para calculas las distancias de K-Medias, estas son **Hartigan-Wong**, **Lloyd**, **Forgy** y **Macqueen**. A continuación se aplicará cada una de estas técnicas varianzo la cantidad de centrpides en el rango [1,30], se graficarán los resultados y se analizarán los mismos.
+
+```{r, fig.align="center"}
+IIC.Hartigan = vector(mode = "numeric", length = 30)
+IIC.Lloyd = vector(mode = "numeric", length = 30)
+IIC.Forgy = vector(mode = "numeric", length = 30)
+IIC.MacQueen = vector(mode = "numeric", length = 30)
+for (k in 1:30)
+{
+  groups = kmeans(dataset[,ncol(dataset)-2], k, iter.max = 100, algorithm = "Hartigan-Wong")
+  IIC.Hartigan[k] = groups$tot.withinss
+  groups = kmeans(dataset[,ncol(dataset)-2], k, iter.max = 100, algorithm = "Lloyd")
+  IIC.Lloyd[k] = groups$tot.withinss
+  groups = kmeans(dataset[,ncol(dataset)-2], k, iter.max = 100, algorithm = "Forgy")
+  IIC.Forgy[k] = groups$tot.withinss
+  groups = kmeans(dataset[,ncol(dataset)-2], k, iter.max = 100, algorithm = "MacQueen")
+  IIC.MacQueen[k] = groups$tot.withinss
+}
+plot(IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
+     xlab = "Varianza Acumulada", ylab = "Número de Clusters")
+points(IIC.Lloyd, col = "red", type = "b", pch = 19)
+points(IIC.Forgy, col = "green", type = "b", pch = 19)
+points(IIC.MacQueen, col = "magenta", type = "b", pch= 19)
+legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
+       col = c("blue","red", "green", "magenta"), pch = 19)
+```
+
+Se puede observar cómo con dos clusters se alcanza el mejor resultado, debido a que cómo se observa en el gŕafico, la transición entre la varianza acumulada con dos y tres clusters hace la analogía del codo que corresponde a la articulación mencionada con anterioridad. Adicionalmente se pued eobservar que todos los algoritmos se solapan entre si, este comportamiento es indicativo de que ambos se comportan de manera similar y es indiferente su uso en este conjunto de datos. Para mayor información consultar el siguiente enlace: [Codo de Jambu](http://rstudio-pubs-static.s3.amazonaws.com/13318_150e1d31dd954caf89af3108df9d8755.html).
+
+En las próximas secciones se probará si estos resultados son ciertos evaluando el rendimiento del algoritmo utilizando 5 clusters y 2 clusters. 
+
+#### K-Medias (5 clusters)
+Empezaremos con 5 clusters, debido a que aparentemente es el que tiene peor rendimeinto. La metodología es la siguiente, se aplicará 10 veces el algoritmo y se promediará la tasa de acierto para evaluar el desempeño.
+
+```{r}
+results.five = vector(mode = "numeric", length = 10)
+best.accuracy.five = 0
+for (i in 1:length(results.five))
+{
+  set.seed(i)
+  model.kmeans.five = kmeans(dataset.five[,1:(ncol(dataset.five)-1)],
+                             5, iter.max = 100)
+  
+  prediction.five = OrderKmeans(model.kmeans.five)
+  accuracy.five = mean(prediction.five == dataset.five$Label)
+  
+  results.five[i] = accuracy.five
+  
+  if(best.accuracy.five < accuracy.five)
+  {
+    best.prediction.five = prediction.five
+    best.accuracy.five = accuracy.five
+  }
+}
+```
+
+La variable **results.five** contiene los resultados de la tasa de aciertos de cada iteración, y las variables **best.prediction.five** y **best.accuracy.five** contienen las mejores predicciones y la mejor tasa de aciertos respectivamente. Veamos los resultados.
+
+```{r}
+results.five * 100
+mean(results.five) * 100
+```
+
+Se observa que el promedio de acierto fue de 71, 87%, este rendimiento no parece estar mal, sin embargo, es necesario esperar a la comparación con el modelo de dos clusters para poder tener una mejor opinión. Mientras tanto crearemos una matriz de confusión para ilustrar el desempeño del modelo de manera gráfica.
+
+```{r}
+confusion.matrix.five = table(Real = dataset.five$Label, Prediction = best.prediction.five)
+confusion.matrix.five
+```
+
+La matriz de confusión se ve bastante desordenada, y no acertó en la predicción de ningún registro para las clases **R2L** y **U2R**. Veamos la mejor tasa se acierto y la peor tasa de aciertos.
+
+```{r}
+best.accuracy.five*100
+best.accuracy.five*100
+```
+
+La mejor tasa de aciertos fue de 78%, no parece ser un mal rendimiento, pero debemos esperar a la comparación con el otro modelo. Como aspecto importante a resaltar, la diferencia entre los resultados se debe a que la inicialización de los centroides en el algoritmo de **K-Medias** se hace de forma aleatoria, y dependiendo de la posición iniciales de los centroides, el algoritmo puede converger a diferentes mínimos locales. Por tal motivo, se colocaron semillas, de tal manera que las pruebas puedan ser recreables. A continuación calcularemos la eficacia por etiqueta, la salida es un vector numérico que representa a las clases ordenadas en orden alfabético de la siguiente forma: **DoS**, **normal**, **Probing**, **R2L** y **U2R**.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.five, dataset.five)
+```
+
+Se aprecia el hecho de que el algoritmo sólo clasifica bien las clases **DoS** y **Normal**. Estas dos clases corresponden a la mayoría de registros del conjunto de datos y por eso es que el promedio de aciertos es elevado, sin embargo, el rendimiento con las otras tres etiquetas **Probing**, **R2L** y **U2R** es pobre.
+
+Lo siguiente será transformar la matriz de confusión de **cinco clases** a **dos clases**. Esto con la finalidad de poder calcular medidas de rendimiento binarias como lo son **sensitividad**, **especificidad** y **precisión**.
+
+```{r}
+attack.normal.confusion.matrix.five = AttackNormalConfusionMatrix(dataset.five,
+                                                             best.prediction.five)
+attack.normal.confusion.matrix.five
+```
+
+Se observa cómo hay una gran cantidad de **falsos negativos** y **falsos positivos**, a pesar de que la mayoría de los registros son clasificados de buena manera. Ahora veamos la eficacia por etiqueta. La salida corresponde a un vector numérico donde la primera posición es **Attack** y la segunda **normal**.
+
+```{r}
+AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
+```
+
+La eficacia a la hora de detectar tráfico normal es bastante elevada, de 94.78%. Para la detección de los ataques es menor, esta corresponde a 80.34%, que es un número elevado, sin embargo, hayq ue recordar que este número está sesgado desde el punto de vista que sólo se clasificaron ataques de tipo **DoS**. A continuación se calcularán las medidas de rendimiento binarias.
+
+```{r}
+Sensitivity(attack.normal.confusion.matrix.five) * 100
+Especificity(attack.normal.confusion.matrix.five) * 100
+Precision(attack.normal.confusion.matrix.five) * 100
+```
+
+Se observa que el modelo es bueno detectando tráfico normal, sin embargo, a la hora de detectar ataques el rendimiento se ve mermado.
+
+#### K-Medias (2 clusters)

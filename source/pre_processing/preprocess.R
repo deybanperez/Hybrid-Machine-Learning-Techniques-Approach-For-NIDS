@@ -3,7 +3,7 @@ rm(list = ls())
 setwd("/home/dperez/Documents/Repos/Tesis/source")
 
 #Loading functions
-source("functions_preprocess.R")
+source("../source/functions/functions.R")
 
 #Loading tarining and testing datasets
 dataset.training = read.csv(file = "../dataset/KDDTrain+.txt", sep = ",", header = FALSE)
