@@ -5,7 +5,7 @@ setwd("/home/dperez/Documents/Repos/Tesis/source")
 #setwd("C:/Users/deyban.perez/Documents/Repos/source") #Windows
 
 #Loading packages
-library("e1071")
+##library("e1071")
 library("nnet")
 
 #Loading functions
@@ -31,14 +31,14 @@ training.time = results[[1]]
 model = results[[2]]
 
 #Initializing the time
-start.time.model = Sys.time()
+start.time.predictions = Sys.time()
 
 #Making predictions
 predictions = predict(model, testing.set[, 1:(ncol(testing.set)-1)], type = "class")
 
 #Capturing the total time
-total.time.model = Sys.time() - start.time.model
-total.time.model
+total.time.predictions = Sys.time() - start.time.predictions
+total.time.predictions
 
 #Confusion Matrix
 confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
@@ -54,7 +54,7 @@ ErrorRate(accuracy) * 100
 #Printing Accuracy per label
 AccuracyPerLabel(confusion.matrix, testing.set)
 
-# COnfusion matrix Attack vs normal
+# Confusion matrix Attack vs normal
 attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predictions)
 attack.normal.confusion.matrix
 
@@ -72,23 +72,24 @@ generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction)
 
 #Adding the second level with k-means
 kmeans.set = testing.set[predictions == "normal", ]
-dim(kmeans.set)
 kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
 kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
 SumLabels(kmeans.set, ncol(kmeans.set))
 
 #Finding k-Means Centers
-
-start.time.kmeans = Sys.time()
+start.time.kmeans.training = Sys.time()
 matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
                                    iterations = 100, iter.max = 100)
 
 #training the final model
 matrix.centers = matrix.centers/100
+total.time.kmeans.training = Sys.time() - start.time.kmeans.training
+
+start.time.kmeans.predictions = Sys.time()
 kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
                       iter.max = 100)
 
-total.time.kmeans = Sys.time() - start.time.kmeans
+total.time.kmeans.predictions = Sys.time() - start.time.kmeans.predictions
 
 #Ordering prediction
 predictions = OrderKmeans(kmeans.model)
@@ -112,6 +113,11 @@ ErrorRate(accuracy.kmeans.model)*100
 #Printing accuracy per labbel
 AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
 
+#Binary mesuares
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+
 #Total statistics
 confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
 confusion.matrix.two.labels
@@ -121,5 +127,5 @@ ErrorRate(accuracy.total) * 100
 Sensitivity(confusion.matrix.two.labels) * 100
 Especificity(confusion.matrix.two.labels) * 100
 Precision(confusion.matrix.two.labels) * 100
-total.time.model + total.time.kmeans
-training.time + total.time.kmeans
+total.time.predictions + total.time.kmeans.predictions
+training.time + total.time.kmeans.training
