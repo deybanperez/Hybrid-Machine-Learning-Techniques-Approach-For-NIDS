@@ -54,7 +54,7 @@ ErrorRate(accuracy) * 100
 #Printing Accuracy per label
 AccuracyPerLabel(confusion.matrix, testing.set)
 
-# COnfusion matrix Attack vs normal
+# Confusion matrix Attack vs normal
 attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predictions)
 attack.normal.confusion.matrix
 

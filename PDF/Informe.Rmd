@@ -9,17 +9,17 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 #Introducción
-El presente documento recopila las actividades realizadas en la elaboración del **Trabajo Especial de Grado** de mi persona (autor del documento). Este tiene cómo tema el **Análisis e Implementación de Técnicas Híbridas de Aprendizaje Automático en la Detección de Intrusos en Redes de Computadoras* haciendo uso del conjunto de datos **NSL-KDD**.
+El presente documento recopila las actividades realizadas en la elaboración del **Trabajo Especial de Grado** de mi persona (autor del documento). Este tiene cómo tema el **Análisis e Implementación de Técnicas Híbridas de Aprendizaje Automático en la Detección de Intrusos en Redes de Computadoras** haciendo uso del conjunto de datos **NSL-KDD**.
 
-Los objetivos que se buscan a lograr con este trabajo es la implementación y análisis de modelos **basados en la firma del ataque**, cómo lo son las **Redes Neuronales** y **Máquinas de Soporte Vectorial** en conjunto con técnicas **basadas en anomalías** cómo lo es **K-Medias**. La idea de esta mezcla de paradigmas es la complementación de estos con la esperanza de mejorar el rendimiento desde un punto de vista de **eficacia** a la hora de detectar anomalías en una red de computadoras, específicamente, con la utilización de técnicas basadas en anomalías se busca detectar aquellos ataques conocidos que fueorn provistos en el conjunto de entrenamiento, y con las técnicas basadas en anomalías se busca capturar aquellas nuevas anomalías que no fueron provistas en la fase de entrenamiento al algoritmo.
+Los objetivos que se buscan lograr con este trabajo es la implementación y análisis de modelos **basados en la firma del ataque**, cómo lo son las **redes neuronales** y **máquinas de soporte vectorial** en conjunto con técnicas **basadas en anomalías** cómo lo es **K-Medias**. La idea de esta mezcla de paradigmas es la complementación de estos con la esperanza de mejorar el rendimiento desde un punto de vista de **eficacia** a la hora de detectar anomalías en una red de computadoras, específicamente, con la utilización de técnicas basadas en anomalías se busca detectar aquellos ataques conocidos que fueron provistos en el conjunto de entrenamiento, y con las técnicas basadas en anomalías se busca capturar aquellas nuevas anomalías que no fueron provistas en la fase de entrenamiento a los modelos.
 
-El conjunto de datos **NSL-KDD** consta de un conjunto de entrenamiento y un conjunto de pruebas excluyentes, es decir, que ningún registros está duplicado entre conjuntos. Adicionalmente, el conjunto de datos de prueba posee ataques que no son proporcionados en el conjunto de entrenamiento, así que la idea es evaluar la capacidad de generalización de los modelos creados simulando un ambiente real de prueba, donde nuevos ataques surgen constantemente.
+El conjunto de datos **NSL-KDD** consta de un conjunto de entrenamiento y un conjunto de prueba excluyentes, es decir, que ningún registro está duplicado entre conjuntos. Adicionalmente, el conjunto de datos de prueba posee ataques que no son proporcionados en el conjunto de entrenamiento, así que la idea es evaluar la capacidad de generalización de los modelos creados simulando un ambiente real de prueba, donde nuevos ataques surgen constantemente.
 
-La tareas a realizar se pueden dividir en tres grandes grupos que se mencionarán a continunación:
+La tareas a realizar se pueden dividir en tres grandes grupos que se mencionarán a continuación:
 
 1. La primera fase corresponde al pre-procesamiento de los datos, esto aplica tanto al conjunto de entrenamiento como al conjunto de prueba. En este paso se busca crear una vista minable que facilite la manipulación de la información y estandarice los tipos de datos a ser utilizados a lo largo de la investigación.
 
-2. La segunda fase corresponde a la demostración de la eficacia de la propuesta planteada con aterioridad, es decir, la prueba de los modelos híbridos a la hora de realizar las tareas de detección. Esta fase se dividirá en dos conjuntos.
+2. La segunda fase corresponde a la demostración de la eficacia de la propuesta planteada con anterioridad, es decir, la prueba de los modelos híbridos a la hora de realizar las tareas de detección. Esta fase se dividirá en dos conjuntos.
   + **Análisis sobre el conjunto de entrenamiento**: acá se realizarán las pruebas extrayendo un subconjunto de los datos para la prueba y el restante para el entrenamiento y se evaluará el rendimiento de cada uno de los modelos.
   + **Análisis sobre el conjunto de prueba**: acá se tomará el conjunto de entrenamiento en su totalidad para realizar las tareas de entrenamiento y se hará la prueba sobre el conjunto total de prueba provisto por el conjunto de datos NSL-KDD.
 
@@ -51,7 +51,7 @@ dim(dataset.training)
 dim(dataset.testing)
 ```
 
-El **conjunto de entrenamiento** tiene 125973 filas y 43 columnas. Por otra parte, el **conjunto de prueba** tiene 22544 filas y 43 columnas. Es importante mencionar que de las 43 columnas, la **columnas 42** corresponde a la etiqueta del ataque y la **columna 43** corresponde a la cantidad de clasificadores que acertaron a la hhora de clasificar dicho registros en el proceso de creación dle conjunto de datos NSL-KDD. En el proceso previamente mencionado se utilizaron 21 clasificadores, por dicho motivo, el rango de número en esta columna está comprendido por [0,21]. A continuación veamos si los conjuntos de datos poseen valores faltantes, para esllo haremos uso de la función **complete.cases**.
+El **conjunto de entrenamiento** tiene 125973 filas y 43 columnas. Por otra parte, el **conjunto de prueba** tiene 22544 filas y 43 columnas. Es importante mencionar que de las 43 columnas, la **columna 42** corresponde a la etiqueta del ataque y la **columna 43** corresponde a la cantidad de clasificadores que acertaron a la hora de clasificar dicho registro en el proceso de creación del conjunto de datos NSL-KDD. En el proceso previamente mencionado se utilizaron 21 clasificadores, por dicho motivo, el rango de valores en esta columna está comprendido entre [0,21]. A continuación veamos si los conjuntos de datos poseen valores faltantes, para ello haremos uso de la función **complete.cases**.
 
 ```{r}
 sum(complete.cases(dataset.training)) == nrow(dataset.training)
@@ -66,7 +66,7 @@ attacks.training = sort(as.character(attacks.training))
 length(attacks.training)
 ```
 
-Se observa que el conjunto de entrenamiento consta de 23 etiquetas, donde 1 corresponde a la etiqueta de **tráfico normal**, y las otras 22 corresponden a **ataques¨. Ahora veamos el conjunto de prueba.
+Se observa que el conjunto de entrenamiento consta de 23 etiquetas, donde 1 corresponde a la etiqueta de **tráfico normal**, y las otras 22 corresponden a **ataques**. Ahora veamos el conjunto de prueba.
 
 ```{r}
 attacks.testing = unique(dataset.testing$V42)
@@ -74,16 +74,14 @@ attacks.testing = sort(as.character(attacks.testing))
 length(attacks.testing)
 ```
 
-Se observan 38 etiquetas en el conjunto de prueba, donde 1 corresponde a la etiqueta de **tráfico normal** y las otras 37 corresponden a **ataques**. En este punto se puede observar cómo hay mayor cantidad de ataques en el conjunto de prueba que en el conjunto de entrenamiento, esto es debido a que el conjunto de prueba busca medir la habilidad del modelo de ML para generalizar ante ataques no vistos en el conjunto de entrenamiento con anterioridad.
-
-A continuacuón se observan cuales son los ataques presentes en el conjunto de prueba que no están presentes en el conjunto de prueba y viceversa. Se empezará con examinar la cantidad total de ataques presentes entre ambos conjuntos.
+Se observan 38 etiquetas en el conjunto de prueba, donde 1 corresponde a la etiqueta de **tráfico normal** y las otras 37 corresponden a **ataques**. En este punto se puede observar cómo hay mayor cantidad de ataques en el conjunto de prueba que en el conjunto de entrenamiento, esto es debido a que el conjunto de prueba busca medir la habilidad del modelo de **aprendizaje automático** para generalizar ante ataques no vistos en el conjunto de entrenamiento con anterioridad. A continuacuón se observan cuales son los ataques presentes en el conjunto de prueba que no están presentes en el conjunto de prueba y viceversa. Se empezará con examinar la cantidad total de ataques presentes entre ambos conjuntos.
 
 ```{r}
 total.attacks = sort(unique(c(attacks.training, attacks.testing)))
 length(total.attacks)
 ```
 
-Entre ambos conjuntos se observan 40 etiquetas, donde una corresponde al **tráfico normal** y las otras 39 corresponden a etiqueras de **ataques**. De lo anterior se puede concluir que hay 17 tipos de ataques presentes en el conjunto de prueba que no están presentes en el conjunto de entrenamiento, y que hay dos tipos de ataques en el conjunto de entrenamiento que no están presentes en el conjunto de prueba. A continuación se listarán aquellas etiquetas comunes entre ambos conjuntos de datos.
+Entre ambos conjuntos se observan 40 etiquetas, donde 1 corresponde al **tráfico normal** y las otras 39 corresponden a etiquetas de **ataques**. De lo anterior se puede concluir que hay 17 tipos de ataques presentes en el conjunto de prueba que no están presentes en el conjunto de entrenamiento, y que hay 2 tipos de ataques en el conjunto de entrenamiento que no están presentes en el conjunto de prueba. A continuación se listarán aquellas etiquetas comunes entre ambos conjuntos de datos.
 
 ```{r}
 total.attacks = sort(unique(c(attacks.training, attacks.testing)))
@@ -91,7 +89,7 @@ length(total.attacks)
 total.attacks
 ```
 
-Se observa que existen 21 etiquetas conmunes entre ambos conjuntos de datos, donde 1 corresponde a la etiqueta de **tráfico normal** y las otras 20 corresponde a *ataques**. Todas las etiquetas fueron listadas. A continuación se listarán aquellos ataques que están presentes en el conjunto de prueba y no en el conjunto de entrenamiento.
+Se observa que existen 21 etiquetas conmunes entre ambos conjuntos de datos, donde 1 corresponde a la etiqueta de **tráfico normal** y las otras 20 corresponde a **ataques**. Todas las etiquetas fueron listadas. A continuación se listarán aquellos **ataques** que están presentes en el conjunto de prueba y no en el conjunto de entrenamiento.
 
 ```{r}
 index.attacks = which(attacks.testing %in% attacks.training)
@@ -107,12 +105,12 @@ length(attacks.training[-index.attacks.training])
 attacks.training[-index.attacks.training]
 ```
 
-Son sólo 2 los ataques en el conjunto de entrenamiento que no están presentes en el conjunto de prueba. Estos corresponden a **spy** y ** warezclient**.
+Son sólo 2 los ataques en el conjunto de entrenamiento que no están presentes en el conjunto de prueba. Estos corresponden a **spy** y **warezclient**.
 
 ## Extracción de características
-En este documento se clasifican las anomalías en cuatro grupos **DoS**, **Probing**, **R2L** y **U2R**, es decir, habrán 5 etiquetas, donde 4 corresponden a los tipos de ataques mencionados previamente y la 5ta etiqueta corresponde a la etiqueta normal.
+En este documento se clasifican las anomalías en 4 grupos **DoS**, **Probing**, **R2L** y **U2R**, es decir, habrán 5 etiquetas, donde 4 corresponden a los tipos de ataques mencionados previamente y la 5ta etiqueta corresponde a la etiqueta normal.
 
-Para facilitar el trabajo se debe asociar cada uno de los ataques a cada una de las clases mencionadad con anterioridad. Para esto se hará uso de la función **ClassLabelAttack** que recibe cómo parámetro un **dataframe** y retorna una columna con la clase de cada tipo de ataque para cada registro. Estos nombres colocados acordes a la investigación hecha por **Bhavsar**.
+Para facilitar el trabajo se debe asociar cada uno de los ataques a cada una de las clases mencionadas con anterioridad. Para esto se hará uso de la función **ClassLabelAttack** que recibe cómo parámetro un **dataframe** y retorna una columna con la clase de cada tipo de ataque para cada registro. Estos nombres colocados acordes a la investigación hecha por **Bhavsar**.
 
 ```{r}
 dataset.training$V44 = ClassLabelAttack(dataset.training)
@@ -135,7 +133,7 @@ summary(training.split)
 summary(testing.split)
 ```
 
-Las variables **training.split** y **testing.split** contienen una lista de sub-conjuntos por eriquetas de las clases de los ataques en ambos conjuntos de datos. A continuación se listarán el número de cada clase en el conjunto de entrenamiento.
+Las variables **training.split** y **testing.split** contienen una lista de sub-conjuntos por etiquetas de las clases de los ataques en ambos conjuntos de datos. A continuación se listará el número de cada clase en el conjunto de entrenamiento.
 
 ```{r}
 nrow(training.split$DoS)
@@ -145,7 +143,7 @@ nrow(training.split$R2L)
 nrow(training.split$U2R)
 ```
 
-Se observa que la clase **normal** es la que más registros posee en el conjunto de datos de entrenamiento, seguido por la clase **DoS**. lo anterior nos da una idea de cuáles son las clases de ataques más comunes y menos comunes. A continuación se presenta un gráfico que ilustra lo anterior y permite visualizar mejor la distribución de las clases.
+Se observa que la clase **normal** es la que más registros posee en el conjunto de datos de entrenamiento, seguido por la clase **DoS**. Lo anterior nos da una idea de cuáles son las clases de ataques más comunes y menos comunes. A continuación se presenta un gráfico que ilustra lo anterior y permite visualizar mejor la distribución de las clases.
 
 ```{r, fig.align="center"}
 barplot(table(dataset.training$V44), main = "Frecuencia de las Clases en el Conjunto
@@ -162,7 +160,7 @@ nrow(testing.split$R2L)
 nrow(testing.split$U2R)
 ```
 
-En esta oportunidad la clase **normal** sigue siendo la clase con mayor cantidad de registros. En contraste con el conjunto de prueba, se observa que en esta ocasión las clases **Probing** y **R2L** están más equilibradas, adicionalmente, la clase **U2R** posee una cantidad mucho mayor de registros que en el conjunto de entrenamiento. A continuación se presenta un gráfico con las  distribuciones de las clases en el conjunto de prueba.
+En esta oportunidad la clase **normal** sigue siendo la clase con mayor cantidad de registros. En contraste con el conjunto de entrenamiento, se observa que en esta ocasión las clases **Probing** y **R2L** están más equilibradas, adicionalmente, la clase **U2R** posee una cantidad mucho mayor de registros que en el conjunto de entrenamiento. A continuación se presenta un gráfico con las  distribuciones de las clases en el conjunto de prueba.
 
 ```{r, fig.align="center"}
 barplot(table(dataset.testing$V44), main = "Frecuencia de las Clases en el Conjunto
@@ -179,7 +177,7 @@ dataset.testing = ColumnNames(dataset.testing)
 ```
 
 ##Eliminación de características no importantes
-En esta sección se examinaran posibles características inútiles, esto es, aquellas características que sólo tienen un nivel de valores, por ejemplo, una característica de tipo **numérico** donde en todos los registros el valor es cero (0), es decir, el rango viene dado por [0]. Para dicho propósito se utilizará la función **CheckFeaturesLevels** de toma cómo entrada un dataframe y retorna la posición (si existe) de la característica que no aporta información.
+En esta sección se examinarán posibles características inútiles, esto es, aquellas características que sólo tienen un nivel de valores, por ejemplo, una característica de tipo **numérico** donde en todos los registros el valor es cero (0), es decir, el rango viene dado por [0]. Para dicho propósito se utilizará la función **CheckFeaturesLevels** que toma como entrada un dataframe y retorna la posición (si existe) de la característica que no aporta información.
 
 ```{r}
 index.dummy.variables.training = CheckFeaturesLevels(dataset.training)
@@ -188,7 +186,7 @@ names(dataset.training)[index.dummy.variables.training]
 names(dataset.testing)[index.dummy.variables.testing]
 ```
 
-Se observa que en ambos conjuntos de datos la columna *Num_outbound_cmds* es inútil, en consecuencia, la misma será eliminada del conjunto de datos.
+Se observa que en ambos conjuntos de datos la columna **Num_outbound_cmds** es inútil, en consecuencia, la misma será eliminada del conjunto de datos.
 
 ```{r}
 dataset.training[,index.dummy.variables.training] = NULL
@@ -196,7 +194,7 @@ dataset.testing[, index.dummy.variables.testing] = NULL
 ```
 
 ##Tranformación de los datos
-Las columnas **Protocol_type**, **Service** y **Flag** tienen tipos de datos categóricos, los mismos serán transformados a numéricos. La transformación tiene su justificación en el hecho de que los algoritmos a utilizar que son **Redes Neuronales**, **Máquinas de Soporte Vectorial** y **K-Medias** funcionan con predictores (características) numéricas. Dicho esto es obligatorio transformar las columnas de tipo categórico a tipo numérico.
+Las columnas **Protocol_type**, **Service** y **Flag** tienen tipos de datos categóricos, los mismos serán transformados a numéricos. La transformación tiene su justificación en el hecho de que los algoritmos a utilizar que son **Redes Neuronales**, **Máquinas de Soporte Vectorial** y **K-Medias** funcionan con variables predictoras (características) numéricas. Dicho esto es obligatorio transformar las columnas de tipo categórico a tipo numérico.
 
 1. **Protocol_type**: esta característica posee 3 niveles, que serán listados alfabeticamente a continuación.
 
@@ -205,7 +203,7 @@ sort(unique(dataset.training$Protocol_type))
 sort(unique(dataset.testing$Protocol_type))
 ```
 
-Los mismos se tranformarán en los valores 1,2,3 respectivamente. La función **ProtocolTranformation** es la encargada de realizar dicho trabajo.
+Los mismos se tranformarán en los valores 1,2,3 respectivamente. La función **ProtocolTransformation** es la encargada de realizar dicho trabajo.
 
 ```{r}
 dataset.training = ProtocolTransformation(dataset.training)
@@ -257,7 +255,7 @@ sort(unique(c(as.character(unique(dataset.testing$Flag)),
               as.character(unique(dataset.training$Flag)))))
 ```
 
-Se utilizará la función FlagTransformation para dicho propósito.
+Se utilizará la función **FlagTransformation** para dicho propósito.
 
 ```{r}
 dataset.training = FlagTransformation(dataset.training)
@@ -265,7 +263,7 @@ dataset.testing = FlagTransformation(dataset.testing)
 ```
 
 ##Guardando la vista minable
-En este punto la vista minable ya fue creada, las columnas poseen un formato aceptable para los algoritmos que serán utilizados y se agregaron nuevas columnas que facilitarán tareas futuras en la investigación. Debido a que no hay más tareas por hacer, se procede a guardar los conjuntos de datos para cargar los datos preprocesados y no tener que repetir dicho procedimiento luego.
+En este punto la vista minable ya fue creada, las columnas poseen un formato adecuado para los algoritmos que serán utilizados y se agregaron nuevas columnas que facilitarán tareas futuras en la investigación. Debido a que no hay más tareas por hacer, se procede a guardar los conjuntos de datos para cargar los datos preprocesados y no tener que repetir dicho procedimiento luego.
 
 ```{r, eval=FALSE}
 write.csv(dataset.training,
@@ -277,11 +275,11 @@ write.csv(dataset.testing,
 # Implementación de modelos híbridos
 La propuesta del **trabajo especial de grado** consta del entrenamiento de dos modelos híbridos de aprendizaje automático. El primer modelo (i) consta de una **red neuronal** en el primer nivel y **K-Medias** en el segundo, por otra parte, el segundo modelo (ii) consta de una **máquina de soporte vectorial** en el primer nivel y **K-Medias** en el segundo nivel.
 
-En esta sección los modelos serán entrenados con los parámetros por defecto. Porteriormente se hará selección de características y parámetros y se analizará el impacto con respecto a los modelos creados en esta sección.
+En esta sección los modelos serán entrenados con los parámetros por defecto. Porteriormente se hará selección de características y parámetros, y se analizará el impacto con respecto a los modelos creados en esta sección.
 
-Esta sección será divida en dos grandes secciones, una concerniente al entrenamiento y evaluación de los modelos utilizando el **conjunto de entrnamiento** exclusivamente. En esta fase se hará uso de la **técnica de validación cruzada de 10 conjuntos** para evaluar los modelos. Posteriormente, se hará el entrenamiento haciendo uso total del conjunto de entrenamiento y se hará evaluación de los modelos haciendo uso del conjunto de prueba.
+Esta sección será divida en dos grandes secciones, una concerniente al entrenamiento y evaluación de los modelos utilizando el **conjunto de entrenamiento** exclusivamente. En esta fase se hará uso de la **técnica de validación cruzada de 10 conjuntos** para evaluar los modelos. Posteriormente, se hará el entrenamiento haciendo uso total del conjunto de entrenamiento y se hará evaluación de los modelos haciendo uso del conjunto de prueba.
 
-Con la estrategia descrita en el párrafo se podrán observar dos aspectos relevantes:
+Con la estrategia descrita en el párrafo anterior se podrán observar tres aspectos relevantes:
 
 1. La eficacia de los modelos contra ataques conocidos.
 2. La eficacia de los modelos contra ataques no conocidos.
@@ -293,7 +291,7 @@ En esta sección se listarán las actividades concernientes al entrenamiento y e
 Inicialmente iniciaremos con una evaluación del rendimiento de **K-Medias**, se elegirán los centroides y se evaluará su desempeño en la tarea de detección de intrusos.
 
 ###K-Medias
-Se empezará por establecer el ambiente de trabajo eliminando las variables parciañes, cargando el archivo de funciones y la vista minable del conjunto de entranmiento pre-procesado previamente.
+Se empezará por establecer el ambiente de trabajo eliminando las variables parciales, cargando el archivo de funciones y la vista minable del conjunto de entranmiento pre-procesado previamente.
 
 ```{r}
 rm(list = ls())
@@ -328,7 +326,7 @@ dataset.two[, ncol(dataset.two)] = as.character(dataset.two[, ncol(dataset.two)]
 dataset.five = dataset[-ncol(dataset)]
 ```
 
-Hasta este punto de tienen tres conjuntos de datos **dataset**, **dataset.two** y **dataset-five**. El algoritmo **K-Medias** funciona utilizando medidas de distancia, portivo por el cual es necesario el escalamiento de los valores de las columnas predictoras dentro de un mismo rando de valores, de lo contrario el rendimiento del algoritmo se verá deteriorado por la diferencia entre las escalas. La función **ScaleSet** lleva todas las columnas a un rango de valores con *media* cero (0), y *desviación estándard* uno (1). Adicionalmente, del conjunto de datos **dataset** se eliminará la columna **Label_Normal_or_Attack** debido a que ya no es necesaria.
+Hasta este punto se tienen tres conjuntos de datos **dataset**, **dataset.two** y **dataset-five**. El algoritmo **K-Medias** funciona utilizando medidas de distancia, motivo por el cual es necesario el escalamiento de los valores de las columnas predictoras dentro de un mismo rango de valores, de lo contrario el rendimiento del algoritmo se verá deteriorado por la diferencia entre las escalas. La función **ScaleSet** lleva todas las columnas a un rango de valores con *media* cero (0), y *desviación estándar* uno (1). Adicionalmente, del conjunto de datos **dataset** se eliminará la columna **Label_Normal_or_Attack** debido a que ya no es necesaria.
 
 ```{r}
 dataset$Label_Normal_or_Attack = NULL
@@ -340,9 +338,9 @@ dataset.five = ScaleSet(dataset.five)
 #### Codo de Jambu
 Hasta este punto ya se tienen los conjuntos de datos listos para ser utilizados. El algoritmo **K-Medias** amerita que se le pasen cómo argumentos el número de centroides o la posición inicial de los centroides. Estos corresponden al número de conjuntos que se esperan identificar en el conjunto de datos. En el escenario que tenemos actualmente esta tarea es sencilla debido a que el conjunto de datos tiene cada uno de los registros etiquetados, sim embargo, este paso no siempre es sencillo. Adicionalmente es importante recordar que el algoritmo de **K-Medias** es un algoritmo de enfoque **no-supervisado** y no hace uso de estas etiquetas para separar los conjuntos.
 
-Si bien es cierto que tenemos etiquetas que nos dicen de antemano cuáles son los niveles de los conjuntos, existe un dilema con respecto al rendimiento del algoritmo con **dos** o **cinco** clases objetivo. El problema de la selección del número de clusters siempre ha existido y existe un método llamado **Codo de Jambu** que es utilizado para capturar la varianza acumulada con respecto al número de clusters a usados. Al graficar la cantidad de varianza acumulada por el número de clusters, se verá que llega un punto en el que la gráfica tiene un comportamiento que emula la articulación de un codo, y es en ese punto, donde se empieza a formar la articulación donde se indica que el uso de mayor cantidad de clusters no aporta al algoritmo.
+Si bien es cierto que tenemos etiquetas que nos dicen de antemano cuáles son los niveles de los conjuntos, existe un dilema con respecto al rendimiento del algoritmo con **dos** o **cinco** clases objetivo. El problema de la selección del número de clusters siempre ha existido y existe un método llamado **Codo de Jambu** que es utilizado para capturar la varianza acumulada con respecto al número de clusters usados. Al graficar la cantidad de varianza acumulada por el número de clusters, se verá que llega un punto en el que la gráfica tiene un comportamiento que emula la articulación de un codo, y es en ese punto, donde se empieza a formar la articulación, es donde se indica que el uso de mayor cantidad de clusters no aporta mayor información al algoritmo.
 
-Existen 4 tipos de algoritmos para calculas las distancias de K-Medias, estas son **Hartigan-Wong**, **Lloyd**, **Forgy** y **Macqueen**. A continuación se aplicará cada una de estas técnicas varianzo la cantidad de centrpides en el rango [1,30], se graficarán los resultados y se analizarán los mismos.
+Existen cuatro tipos de algoritmos para calcular las distancias de K-Medias, estas son **Hartigan-Wong**, **Lloyd**, **Forgy** y **Macqueen**. A continuación se aplicará cada una de estas técnicas variado la cantidad de centroides en el rango [1,30], se graficarán los resultados y se analizarán los mismos.
 
 ```{r, fig.align="center"}
 IIC.Hartigan = vector(mode = "numeric", length = 30)
@@ -370,12 +368,12 @@ legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
        col = c("blue","red", "green", "magenta"), pch = 19)
 ```
 
-Se puede observar cómo con dos clusters se alcanza el mejor resultado, debido a que cómo se observa en el gŕafico, la transición entre la varianza acumulada con dos y tres clusters hace la analogía del codo que corresponde a la articulación mencionada con anterioridad. Adicionalmente se pued eobservar que todos los algoritmos se solapan entre si, este comportamiento es indicativo de que ambos se comportan de manera similar y es indiferente su uso en este conjunto de datos. Para mayor información consultar el siguiente enlace: [Codo de Jambu](http://rstudio-pubs-static.s3.amazonaws.com/13318_150e1d31dd954caf89af3108df9d8755.html).
+Se puede observar como con dos clusters se alcanza el mejor resultado, debido a que cómo se observa en el gŕafico, la transición entre la varianza acumulada con dos y tres clusters hace la analogía del codo que corresponde a la articulación mencionada con anterioridad. Adicionalmente se puede observar que todos los algoritmos se solapan entre si, este comportamiento es indicativo de que todos se comportan de manera similar y es indiferente su uso en este conjunto de datos. Para mayor información consultar el siguiente enlace: [Codo de Jambu](http://rstudio-pubs-static.s3.amazonaws.com/13318_150e1d31dd954caf89af3108df9d8755.html).
 
-En las próximas secciones se probará si estos resultados son ciertos evaluando el rendimiento del algoritmo utilizando 5 clusters y 2 clusters. 
+En las próximas secciones se probará si estos resultados son ciertos evaluando el rendimiento del algoritmo utilizando 5 clusters y 2 clusters respectivamente. 
 
 #### K-Medias (5 clusters)
-Empezaremos con 5 clusters, debido a que aparentemente es el que tiene peor rendimeinto. La metodología es la siguiente, se aplicará 10 veces el algoritmo y se promediará la tasa de acierto para evaluar el desempeño.
+Empezaremos con 5 clusters, debido a que aparentemente es el que tiene peor rendimiento. La metodología es la siguiente, se aplicará 10 veces el algoritmo y se promediará la tasa de acierto para evaluar el desempeño.
 
 ```{r}
 results.five = vector(mode = "numeric", length = 10)
@@ -442,7 +440,7 @@ Se observa cómo hay una gran cantidad de **falsos negativos** y **falsos positi
 AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
 ```
 
-La eficacia a la hora de detectar tráfico normal es bastante elevada, de 94.78%. Para la detección de los ataques es menor, esta corresponde a 80.34%, que es un número elevado, sin embargo, hayq ue recordar que este número está sesgado desde el punto de vista que sólo se clasificaron ataques de tipo **DoS**. A continuación se calcularán las medidas de rendimiento binarias.
+La eficacia a la hora de detectar tráfico normal es bastante elevada, de 94.78%. Para la detección de los ataques es menor, esta corresponde a 80.34%, que es un número elevado, sin embargo, hay que recordar que este número está sesgado desde el punto de vista que sólo se clasificaron ataques de tipo **DoS**. A continuación se calcularán las medidas de rendimiento binarias.
 
 ```{r}
 Sensitivity(attack.normal.confusion.matrix.five) * 100
@@ -496,20 +494,20 @@ confusion.matrix.two = table(Real = dataset.two$Label, Prediction = best.predict
 confusion.matrix.two
 ```
 
-Se aprecia que contiene una alto número de falsos negativos, en realidad es una cantidad similar a la matriz de confusión con cinco clusters. Por otra parte, la cantidad de falsos positivos se vio reducida notablemente. Ahora imprimiremos la tasa de aciertos y la tasa de error del mejor modelo obtenido.
+Se aprecia que contiene una alto número de **falsos negativos**, en realidad es una cantidad similar a la matriz de confusión con cinco clusters. Por otra parte, la cantidad de **falsos positivos** se vio reducida notablemente. Ahora imprimiremos la **tasa de aciertos** y la **tasa de error** del mejor modelo obtenido.
 
 ```{r}
 best.accuracy.two*100
 ErrorRate(best.accuracy.two)*100
 ```
 
-Se obtuvo una tasa de aciertos de 90.51% una tasa bastante alta, mucho mayor que el modelo con cinco clusters. Por consecuente, la tasa de errores será también menor. Ahora veamos la tasa de aciertos por etiquetas. Es importante recordar que la salida corresponde a un vector numérico donde la primera posición corresponde a la etiqueta **Attack** y la segunda a la etiqueta **normal**.
+Se obtuvo una **tasa de aciertos** de 90.51% una tasa bastante alta, mucho mayor que el modelo con cinco clusters. Por consecuente, la **tasa de errores** será también menor. Ahora veamos la **tasa de aciertos** por etiquetas. Es importante recordar que la salida corresponde a un vector numérico donde la primera posición corresponde a la etiqueta **Attack** y la segunda a la etiqueta **normal**.
 
 ```{r}
 AccuracyPerLabel(confusion.matrix.two, dataset.two)
 ```
 
-Se obtuvo una eficacia similar en la detección de ataques que en La evaluación con cinco clusters. La verdadera mejora fino en la eficacia de a la hora de clasificar el tráfico normal, donde se obtuvo un 98.99% de acierto. En esta oportunidad, la matriz de confusión ya es binaria, por consecuente se pueden calcular las medidas de rendimiento correspondientes.
+Se obtuvo una eficacia similar en la detección de ataques que en la evaluación con cinco clusters. La verdadera mejora vino en la eficacia a la hora de clasificar el **tráfico normal**, donde se obtuvo un 98.99% de acierto. En esta oportunidad, la matriz de confusión ya es binaria, por consecuente se pueden calcular las medidas de rendimiento correspondientes.
 
 ```{r}
 Sensitivity(confusion.matrix.two) * 100
@@ -517,18 +515,18 @@ Especificity(confusion.matrix.two) * 100
 Precision(confusion.matrix.two) * 100
 ```
 
-La sensitividad nos dice que el modelo fue muy clasificando el **tráfico normal**, por otra parte clasificando los **ataques** es menos efectivo. La medida se sensitividad con respecto al modelo con cinco clusters se vio incrementado en 4%, por otra parte, la especificidad y la precisión es bastante parecida en ambos modelos.
+La **sensitividad** nos dice que el modelo fue muy bueno clasificando el **tráfico normal**, por otra parte clasificando los **ataques** es menos efectivo. La medida de **sensitividad** con respecto al modelo con cinco clusters se vio incrementada en 4%, por otra parte, la **especificidad** y la **precisión** es bastante parecida en ambos modelos.
 
 #### Conclusión
-En general ambos modelos tienen altos valores de eficacia, sin embargo, el modelo con dos clusters obtuvo mejores resultados con respecto a la **eficacia** y **sensitividad** de manera notable, y algunas mejoras simples en las medidas de especificidad y precisión. Adicionalmente, se observó que la cantidad de falsos positivos fue reducida en el modelo con dos clusters. Finalmente, el algoritmo **Codo de Jambu** es un buen método para la preselección de clusters a la hora de aplicar **K-Medias**.
+En general ambos modelos tienen altos valores de eficacia, sin embargo, el modelo con dos clusters obtuvo mejores resultados con respecto a la **eficacia** y **sensitividad** de manera notoria, y algunas mejoras simples en las medidas de **especificidad** y **precisión**. Adicionalmente, se observó que la cantidad de falsos positivos fue reducida en el modelo con dos clusters. Finalmente, el algoritmo **Codo de Jambu** es un buen método para la preselección de clusters a la hora de aplicar **K-Medias**.
 
 ### Redes Neuronales
 En esta sección se describirán las actividades realizadas para el entrenamiento y evaluación de redes neuronales en el ámbito de detección de intrusos en redes de computadoras. Este sección de subdivide en dos grandes partes **Entrenamiento del modelo** y **Evaluación del modelo**. Esto debido a que los pasos y observaciones serán realizadas de manera individual.
 
-#### Entrenamientod del modelo
-Para el entrenamiento de la red neuronal se propone una arquitectura con cuarenta neuronas en la **capa de entrada**, una **capa intermedia** con veinte neuronas, y cinco neuronas para la **capa de salida**. La razón para la selección de la arquitectura descrita previamente corresponde a que inicialmente se tienen cuarenta **variables predictoras** que corresponden a la capa de entrada; por otra parte, se tienen cinco clases objetivo que corresponden a las cinco neuronas de la **capa de salida**. El número de capas intermedias y el número de neuronas por capas que debe poseer una red neuronal no está ormado en ningún lugar, sólo existen recomendaciones hechas por expertos. **Andrew Ng** profesor de la *Universidad de Stanford*, menciona en uno de sus cursos de aprendizaje automático en **Coursera** que un modelo con una capa intermedia es suficiente para resolver una gran cantidad de problemas, adicionalmente comenta que en caso de querer utilizar una segunda capa intermedia, es **recomendable** que ambas capas posean igual cantidad de neuronas.
+#### Entrenamiento del modelo
+Para el entrenamiento de la red neuronal se propone una arquitectura con cuarenta neuronas en la **capa de entrada**, una **capa intermedia** con veinte neuronas, y cinco neuronas para la **capa de salida**. La razón para la selección de la arquitectura descrita previamente corresponde a que inicialmente se tienen cuarenta **variables predictoras** que corresponden a la capa de entrada; por otra parte, se tienen cinco clases objetivo que corresponden a las cinco neuronas de la **capa de salida**. El número de capas intermedias y el número de neuronas por capas que debe poseer una red neuronal no está normado en ningún lugar, sólo existen recomendaciones hechas por expertos. **Andrew Ng** profesor de la *Universidad de Stanford*, menciona en uno de sus cursos de aprendizaje automático en **Coursera** que un modelo con una capa intermedia es suficiente para resolver una gran cantidad de problemas, adicionalmente comenta que en caso de querer utilizar una segunda capa intermedia, es **recomendable** que ambas capas posean igual cantidad de neuronas.
 
-En este modelo se utilizaron 20 neuronas debido a que al haber una gran cantidad de neuronas de entrada, entonces la cantidad de neuronas intermedias de la mitad de las neuronas de entrada parece suficiente. El paque utilizado para la implementación de redes neuronales se llama **nnet**. Se probó otro paquete llamado **neuralnet**, a diferencia de **nnet**, **neuralnet** permite crear modelos con múltiples capas intermedias, pero es mucho más lento y para las tareas de clasificación hace el proceso más engorroso. Por otra parte, **nnet** a pesar de que sólo permite hacer uso de una capa intermedia, es mucho más rápido para el entrenamiento y el proceso de preparación de los datos para ser pasados cómo parámetros es más directo.
+En este modelo se utilizaron 20 neuronas debido a que al haber una gran cantidad de neuronas de entrada, entonces la mitad de las neuronas de entrada parece suficiente. El paquete utilizado para la implementación de redes neuronales se llama **nnet**. Se probó otro paquete llamado **neuralnet**, a diferencia de **nnet**, **neuralnet** permite crear modelos con múltiples capas intermedias, pero es mucho más lento y para las tareas de clasificación hace el proceso más engorroso. Por otra parte, **nnet** a pesar de que sólo permite hacer uso de una capa intermedia, es mucho más rápido para el entrenamiento y el proceso de preparación de los datos para ser pasados cómo parámetros es más directo.
 
 Se empezará por establecer el ambiente de trabajo eliminando variables parciales, cargando el archivo de funciones y la vista minable del conjunto de entrenamiento.
 
@@ -589,7 +587,7 @@ names(list.results) = c("results", "best_model", "best_testing_set", "best_predi
 best.accuracy = 0
 ```
 
-El proceso de entrenamiento y de validación del modelo es bastante largo y por esto se almacenarán en una lista los **resultados** correspondiendes a la eficacia de cada modelo en cada iteración, el **mejor modelo**, el **conjunto de datos de prueba** que originó la predicción, y el mejor conjunto de **predicciones**. De esta manera la lista puede ser guardada como un objeto y ser esportada a un archivo que posteriormente puede cargarse y no es necesario esperar a la realización de este paso cada vez que se desee analizar los reusltados. El siguiente fragmento de código es el encargado de realizar las tareas mencionadas con anterioridad.
+El proceso de entrenamiento y de validación del modelo es bastante largo y por esto se almacenarán en una lista los **resultados** correspondiendes a la eficacia de cada modelo en cada iteración, el **mejor modelo**, el **conjunto de datos de prueba** que originó la predicción, y el mejor conjunto de **predicciones**. De esta manera la lista puede ser guardada como un objeto y ser exportada a un archivo que posteriormente puede cargarse, y no es necesario esperar a la realización de este paso cada vez que se deseen analizar los resultados. El siguiente fragmento de código es el encargado de realizar las tareas mencionadas con anterioridad.
 
 ```{r, eval=FALSE}
 for (i in 1:10)
@@ -627,7 +625,7 @@ for (i in 1:10)
 }
 ```
 
-Una vez que se culmina el proceso de entrenamiento, se almacena en la lista los resultados parciales de cada iteración y se exporta el modelo.
+Una vez que se culmina el proceso de entrenamiento, se almacenan en la lista los resultados parciales de cada iteración y se exporta el modelo.
 
 ```{r, eval=FALSE}
 list.results$results = results
@@ -637,7 +635,7 @@ saveRDS(list.results, "../source/normal_model/NN/Tests/list_results.rds")
 ####Evaluación del modelo
 En esta sección se hará la evaluación de los resultados obtenidos en la sección anterior, adicionalmente se tomará el mejor modelo y las mejores predicciones obtenidas para agregarle el segundo nivel de clasificación correspondiente al algoritmo **K-Medias**.
 
-Se empezará por establecer el ambiente de trabajo eliminando variables parciales, cargando el paquete **nnet**,cargando el archivos de funciones y la lista con información exportada previamente.
+Se empezará por establecer el ambiente de trabajo eliminando variables parciales, cargando el paquete **nnet**, cargando el archivo de funciones y la lista con información exportada previamente.
 
 ```{r}
 rm(list = ls())
@@ -646,14 +644,14 @@ source("../source/functions/functions.R")
 list.results = readRDS("../source/normal_model/NN/Tests/list_results.rds")
 ```
 
-A continuación se visualizará la eficacia obtenida de la eficacia del proceso de validación cruzada y se calculará la media de los resultados obtenidos.
+A continuación se visualizará la eficacia obtenida de la eficacia del proceso de validación cruzada y se calculará la *media* de los resultados obtenidos.
 
 ```{r}
 list.results$results
 mean(list.results$results) * 100
 ```
 
-La media de aciertos es de 99.52%. Esta tasa de aciertos es bastante grande lo que demuestra que las redes neuronales pueden tener un buen desempeño en la tarea de detección de intrusos en redes de computadoras. A continuación se creará una matriz de confusión del mejor modelo obtenido en el proceso para visaulizar gráficamente el desempeño del algoritmo.
+La *media* de aciertos es de 99.52%. Esta **tasa de aciertos** es bastante alta, lo que demuestra que las redes neuronales pueden tener un buen desempeño en la tarea de detección de intrusos en redes de computadoras. A continuación se creará una matriz de confusión del mejor modelo obtenido en el proceso para visualizar gráficamente el desempeño del algoritmo.
 
 ```{r}
 confusion.matrix = table(Real = list.results$best_testing_set[,ncol(list.results$best_testing_set)],
@@ -671,13 +669,13 @@ accuracy * 100
 ErrorRate(accuracy) * 100
 ```
 
-La mejor tasa de aciertos fue de 99.6%. Una muy buena tasa de aciertos proporcionada por el modelo de red neuronal. Ahora veamos la eficacia del modelo por etiqueta. Recordemos que la salida corresponde a un vector numérico donde el orden es el siguiente: **DoS**, **normal**, **Probing**, **R2L**, **U2R**, es decir, el orden alfabético de las etiquetas.
+La mejor **tasa de aciertos** fue de 99.6%. Una muy buena tasa de aciertos proporcionada por el modelo de red neuronal. Ahora veamos la eficacia del modelo por etiqueta. Recordemos que la salida corresponde a un vector numérico donde el orden es el siguiente: **DoS**, **normal**, **Probing**, **R2L**, **U2R**, es decir, el orden alfabético de las etiquetas.
 
 ```{r}
 AccuracyPerLabel(confusion.matrix, list.results$best_testing_set)
 ```
 
-Para las clases **DoS**, **normal**, **Probing** y **R2L** la tasa de aciertos está por encima del 99.3%, mientras que para la clase **U2R** es de solo el 33.3%. lo último se debe a la poca cantidad de ejemplos para entrenamiento proporcionados que hace que el algoritmo no pueda generalizar de la manera adecuada, sin embargo, se espera la eficacia para esta clase incremente conforme se agreguen mayor cantidad de ejemplos para el entrenamiento.
+Para las clases **DoS**, **normal**, **Probing** y **R2L** la **tasa de aciertos** está por encima del 99.3%, mientras que para la clase **U2R** es de solo el 33.3%. Lo último se debe a la poca cantidad de ejemplos para entrenamiento proporcionados que hace que el algoritmo no pueda generalizar de la manera adecuada, sin embargo, se espera que la eficacia para esta clase incremente conforme se agreguen mayor cantidad de ejemplos para el entrenamiento.
 
 Para poder calcular las medidas de rendimiendo binarias correspondientes a la **sensitividad**, **especificidad**, **precisión** y la graficación de la curva **ROC** es necesario llevar la matriz de confusión de cinco clases a una una matriz binaria, es decir, con clases **Attack** y **normal**.
 
@@ -695,9 +693,9 @@ Especificity(attack.normal.confusion.matrix) * 100
 Precision(attack.normal.confusion.matrix) * 100
 ```
 
-En las tres medidas se obtuvo un excelente desempeño, todas estas tuvieron un porcentaje superior a 99.5%. Esto nos indica que el modelo es bueno clasificando el tráfico de manera correcta, es decir, acierta de forma correcta identificando los ataques y el tráfico normal.
+En las tres medidas se obtuvo un excelente desempeño, todas estas tuvieron un porcentaje superior a 99.5%. Esto nos indica que el modelo es bueno clasificando vualqueir tipo de tráfico de manera correcta, es decir, acierta de forma correcta identificando los **ataques** y el **tráfico normal**.
 
-A continuación se graficará la **curva ROC** que nos dará una perpectiva gráfica con la que el modelo clasifica. En este gráfico se grafica la proporción de aciertos contra la proporción de fallos. La correcta interpretación de este gráfico es la siguiente: medir la certeza con la que algoritmo toma sus decisiones. Esto debido a que las prediccioens fueron ordenadas de manera descendente utilizando la probabilidad de predicción de los registros, en el inicio del *eje x* se tienen las predicciones realizadas con mayor probabilidad, y a medida que nos desplazamos hacia la derecha del mismo eje la probabilidad de las predicciones va decrementando. Dicho esto, para la creación de la curva ROC se necesita un **vector de probabilidades**, un **vector de predicciones** y un **vector real** que corresponde al correcto nombramiento de un registro.
+A continuación se graficará la **curva ROC** que nos dará una perspectiva gráfica con la que el modelo clasifica. En este gráfico se grafica la proporción de aciertos contra la proporción de fallos. La correcta interpretación de este gráfico es la siguiente: medir la certeza con la que algoritmo toma sus decisiones. Esto debido a que las predicciones fueron ordenadas de manera descendente utilizando la probabilidad de predicción de los registros, en el inicio del *eje x* se tienen las predicciones realizadas con mayor probabilidad, y a medida que nos desplazamos hacia la derecha del mismo eje la probabilidad de las predicciones va decrementando. Dicho esto, para la creación de la **curva ROC** se necesita un **vector de probabilidades**, un **vector de predicciones** y un **vector real** que corresponde al correcto nombramiento de un registro.
 
 ```{r, fig.align="center"}
 probabilities = predict(list.results$best_model,
@@ -710,11 +708,11 @@ generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
              pred = roc.data$Prediction)
 ```
 
-En la curva se observa que la mayoría de los aciertos son logrados con una alta probabilidad, conforme la probabilidad va decrementando, el modelo empieza a cometer algunos pocos errores. Al fina la mayoría de los errores son cometidos por aquellas predicciones realizadas con baja probabilidad.
+En la curva se observa que la mayoría de los aciertos son logrados con una alta probabilidad, conforme la probabilidad va decrementando, el modelo empieza a cometer algunos pocos errores. Al final la mayoría de los errores son cometidos por aquellas predicciones realizadas con baja probabilidad.
 
 ####Segundo nivel de clasificación (K-Medias)
 
-A continuación se añadirá el segundo nivel de clasificación que corresponde al uso de **K-Medias** para tomar todos aquellos registros clasificados como **normal** para tratar de corregir los falsos negativos producidos por la red neuronal. El algortimos de K-Medias será implementado con dos clusters debido a que en la sección de **K-Medias** se ilustra que con dos clusters la varianza acumulada es la óptima, adicionalmente se probó que con dos clusters se obtuvieron mejores resultados que con cinco.
+A continuación se añadirá el segundo nivel de clasificación que corresponde al uso de **K-Medias** para tomar todos aquellos registros clasificados como **normal** para tratar de corregir los **falsos negativos** producidos por la red neuronal. El algoritmo de K-Medias será implementado con dos clusters debido a que en la sección de **K-Medias** se ilustra que con dos clusters la varianza acumulada es la más adecuada, adicionalmente se probó que con dos clusters se obtuvieron mejores resultados que con cinco.
 
 ```{r}
 kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
@@ -723,15 +721,15 @@ kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack
 SumLabels(kmeans.set, ncol(kmeans.set))
 ```
 
-Acá se observa cómo fueron extraidas los 12 registros que no fueron correctamente clasificados, y los otros 4417 registros que si fueron correctamente clasificados como **normal**. el objetivo es clasificar la mayor cantidad de esos 12 registros que son ataques cómo ataques.
+Acá se observa cómo fueron extraidos los 12 registros que no fueron correctamente clasificados, y los otros 4417 registros que si fueron correctamente clasificados como **normal**. El objetivo es clasificar la mayor cantidad de esos 12 registros que son ataques cómo ataques.
 
-En la sección de **K-Medias** se mencionó que utilizando dos centroides en varias iteraciones se obtuvo el mismo resultado, también se mencionó que esto fue debido a que el algoritmo convergió todas esas veces al mismo **mínimo local**. K-Medias es un algoritmo en el que la preselección de los centroides de hace de manera aleatoria, y es posible obtener diferentes resultados si se hacen múltiples corridas del algoritmo. Por lo anterior, precalcularemos los centroides ejecutando el algoritmo de K-Medias 100 veces y luego promediaremos la posción de los centroides finales. De esta manera, tendremos mejor posicionados los centroides del mejor mínimo local y podremos obtener mejores resultados.
+En la sección de **K-Medias** se mencionó que utilizando dos centroides en varias iteraciones se obtuvo el mismo resultado, también se mencionó que esto fue debido a que el algoritmo convergió todas esas veces al mismo **mínimo local**. K-Medias es un algoritmo en el que la preselección de los centroides se hace de manera aleatoria, y es posible obtener diferentes resultados si se hacen múltiples corridas del algoritmo. Por lo anterior, precalcularemos los centroides ejecutando el algoritmo de K-Medias 100 veces y luego promediaremos la posición de los centroides finales. De esta manera, tendremos mejor posicionados los centroides del mejor mínimo local y podremos obtener mejores resultados.
 
 ```{r}
 matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
                                    iterations = 100, iter.max = 100)
 
-#Training the absolute model
+#Promediando los centroides
 matrix.centers = matrix.centers/100
 kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
                       iter.max = 100)
@@ -748,7 +746,7 @@ confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
 confusion.matrix.kmeans.model
 ```
 
-Se observa que 0 de los 12 ataques fueron detectados, es decir, volvemos a tener 12 **falsos negativos**. Dichho esto, aparentemente el uso de K-Medias en esta ocación no fue eficaz debido a que el desempeño del modelo quedo intecto, esto da indicios a pensar que esos 12 **falsos negativos** están mezclados dentro de lo que es el tráfico normal y no son notablemente separables. Por otra parte hay un aspecto positivo a destacar que es el hecho de que el uso de K-Medias no deterioró de gran manera el trabajo hecho por el modelo de redes neuronales. Se espera que este comportamiento mejor conforme haya mayor cantidad de falsos negativos luego de pasar el primer nivel de clasificación. A continuación se calculará la tasa de aciertos y de error del modelo.
+Se observa que 0 de los 12 ataques fueron detectados, es decir, volvemos a tener 12 **falsos negativos**. Dicho esto, aparentemente el uso de K-Medias en esta ocación no fue eficaz debido a que el desempeño del modelo quedo intacto, esto da indicios a pensar que esos 12 **falsos negativos** están mezclados dentro de lo que es el tráfico normal y no son notablemente separables. Por otra parte hay un aspecto positivo a destacar que es el hecho de que el uso de K-Medias no deterioró de gran manera el trabajo hecho por el modelo de redes neuronales. Se espera que este comportamiento mejore conforme haya mayor cantidad de falsos negativos luego de pasar el primer nivel de clasificación. A continuación se calculará la tasa de **aciertos** y de **errores** del modelo.
 
 ```{r}
 accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
@@ -762,7 +760,7 @@ Evidentemente la tasa de aciertos es bastante alta debido a que la gran mayoría
 AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
 ```
 
-Se obtuvo 0% de acierto en la predicción de ataques, esto no es bueno debido a que el objetivo es la detección de lso ataques, sin embargo, es bueno que la tasa aciertos en el tráfico normal sea tan alta, ya que esto da indicio de que no se generaron muchos **falsos positivos** ni **falsos negativos**. Ahora veamos las medidas de **sensitividad**, **especificidad** y **precisión**.
+Se obtuvo 0% de acierto en la predicción de ataques, esto no es bueno debido a que el objetivo es la detección de los ataques, sin embargo, es bueno que la tasa aciertos en el tráfico normal sea tan alta, ya que esto da indicio de que no se generaron muchos **falsos positivos** ni **falsos negativos**. Ahora veamos las medidas de **sensitividad**, **especificidad** y **precisión**.
 
 ```{r}
 Sensitivity(confusion.matrix.kmeans.model) * 100
@@ -770,7 +768,7 @@ Especificity(confusion.matrix.kmeans.model) * 100
 Precision(confusion.matrix.kmeans.model) * 100
 ```
 
-La especificidad es bastante alta, esto quiere decir que el algoritmo tiene alta precisión detectando el **tráfico normal**, por otra parte, la sensitividad y precisión son 0, lo que nos dice que el algoritmo no clasifcó bien ningún ataque.
+La **especificidad** es bastante alta, esto quiere decir que el algoritmo tiene alta precisión detectando el **tráfico normal**, por otra parte, la **sensitividad** y **precisión** son 0, lo que nos dice que el algoritmo no clasificó bien ningún ataque.
 
 #### Estadísticas totales
 En esta sección se unificarán las estadísticas de ambos niveles de los modelos utilizados para evaluar el desempeño conjunto. Se empezará por unificar las dos matrices de confusión, para poder calcular las estadísticas utilizadas con anterioridad.
@@ -792,22 +790,22 @@ Especificity(confusion.matrix.two.labels) * 100
 Precision(confusion.matrix.two.labels) * 100
 ```
 
-Las medidas practicamente iguales a las del modelo de **red neuronal**, esto es porque la aplciación de **K-Medias** no proporcionó ningún aspecto positivo ni negativo significante.
+Las medidas practicamente iguales a las del modelo de **red neuronal**, esto es porque la aplicación de **K-Medias** no proporcionó ningún aspecto positivo ni negativo significante.
 
 #### Conclusiones
 
-Individualmente el modelo de red neuronal posee un excelente rendimiento con bajas tasas de falsos positivos y falsos negativos. Al combinarse con K-Medias no se logró ninguna mejora, tampoco esto deterioró el modelo, aspecto que es positivo. La situaciónd el segundo modelo espera que mejore en escenarios donde el primer nivel tenga una mayor cantidad de falsos negativos, donde quizás los elementos queden con divisiones más obvias y detectables por el algoritmo de K-Medias.
+Individualmente el modelo de red neuronal posee un excelente rendimiento con bajas tasas de **falsos positivos** y **falsos negativos**. Al combinarse con **K-Medias** no se logró ninguna mejora, tampoco esto deterioró el modelo, aspecto que es positivo. La situación del segundo modelo espera que mejore en escenarios donde el primer nivel tenga una mayor cantidad de **falsos negativos**, donde quizás los elementos queden con divisiones más obvias y detectables por el algoritmo de **K-Medias**.
 
 ### Máquinas de Soporte Vectorial
 
-En esta sección se describirán las actividades realizadas para el entrenamiento y evaluación de máquinas de soporte vectorial en el ámbito de la deteccción de intrusos en redes de computadoras. Esta sección se subdivide en dos grandes partes, que son **Entrenamiento del modelo** y **Evaluación del modelo**. Esto debido a que los pasos y observaciones a ambos procesos serán realizadas de manera individual.
+En esta sección se describirán las actividades realizadas para el entrenamiento y evaluación de **máquinas de soporte vectorial** en el ámbito de la deteccción de intrusos en redes de computadoras. Esta sección se subdivide en dos grandes partes, que son **Entrenamiento del modelo** y **Evaluación del modelo**. Esto debido a que los pasos y observaciones a ambos procesos serán realizadas de manera individual.
 
 ####Entrenamiento del modelo
 
-Para el entrenamiento de la máquina de soporte vectorial se utilizará el **kernel radial**, esto debido a que Bhavsar y Waghmare expusieron en su publicación *Intrusion Detection System Using Data Mining Technique:
-Support Vector Machine* que el kernel radial es más preciso y veloz a la hora de entrenar y clasificar que los otros kernel **linear**, **polinomial** o **sigmoid**. Los parámetros para el algoritmo de SVM con kernel radial tiene los parámetros **cost** y **gamma** que deben ser elegidos, sin embargo, en esta sección se utilizarán los parámetros por defecto, ya que el objetivo acá es probar el desempeño general del modelo. Más adelante, en la sección de selección de parámetros, se seleccionarán los mejores parámetros para el modelo. Se utilizará el paquete **e1071** debido a que en la documentación en blogs y tutoriales es el más utilizado y el que posee más documentación.
+Para el entrenamiento de la **máquina de soporte vectorial** se utilizará el **kernel radial**, esto debido a que Bhavsar y Waghmare expusieron en su publicación *Intrusion Detection System Using Data Mining Technique:
+Support Vector Machine* que el kernel radial es más preciso y veloz a la hora de entrenar y clasificar que los otros kernels **linear**, **polinomial** o **sigmoid**. Los parámetros para el algoritmo de SVM con kernel radial tiene los parámetros **cost** y **gamma** que deben ser elegidos, sin embargo, en esta sección se utilizarán los parámetros por defecto, ya que el objetivo acá es probar el desempeño general del modelo. Más adelante, en la sección de selección de parámetros, se seleccionarán los mejores parámetros para el modelo. Se utilizará el paquete **e1071** debido a que en la documentación en blogs y tutoriales es el más utilizado y es el que posee más documentación.
 
-Se iniciará la descripción de las actividades realizadas eliminando variables parciales, cargando el archivo de funciones y la vusta minable del conjunto de entrenamiento.
+Se iniciará la descripción de las actividades realizadas eliminando variables parciales, cargando el archivo de funciones y la vista minable del conjunto de entrenamiento.
 
 ```{r}
 rm(list = ls())
@@ -825,7 +823,7 @@ install.packages("e1071")
 library("e1071")
 ```
 
-Una vez que se tiene cargado nuestro ambiente de trabajo preparado, se eliminarán aquellas etiquetas del conjunto de datos que no van a ser utilizadas a los largo del proceso de entrenamiento del modelo. Este nivel del modleo híbrido poseerá cinco clases objetivos que son **DoS**, **normal**, **Probing**, **R2L**, y **U2R**; esto con la finalidad de que la salida para el especialista sea más entendible y pueda identificar las fallas de seguridad acontándolas dentro de estas cuatro clases de ataques. Dicho esto, eliminaremos el resto de las etiquetas.
+Una vez que se tiene nuestro ambiente de trabajo preparado, se eliminarán aquellas etiquetas del conjunto de datos que no van a ser utilizadas a los largo del proceso de entrenamiento del modelo. Este nivel del modelo híbrido poseerá cinco clases objetivos que son **DoS**, **normal**, **Probing**, **R2L**, y **U2R**; esto con la finalidad de que la salida para el especialista sea más entendible y pueda identificar las fallas de seguridad acontándolas dentro de estas cuatro clases de ataques. Dicho esto, eliminaremos el resto de las etiquetas.
 
 ```{r}
 dataset = dataset.training
@@ -834,7 +832,7 @@ dataset$Label_Num_Classifiers = NULL
 dataset$Label_Normal_or_Attack = NULL
 ```
 
-Es necesario que todos los tipos de datos d elas diferentes columnas sean de tipo numérico para poder entrenar a la máquina de soporte vectorial. Por este motivo, las columnas predictoras serán transformadas a tipo **numérico**. Adicionalmente, cómo haremos tareas de clasificación, la columna objetivo la transformaremos a tipo **factor**.
+Es necesario que todos los tipos de datos de las diferentes columnas sean de tipo numérico para poder entrenar a la máquina de soporte vectorial. Por este motivo, las columnas predictoras serán transformadas a tipo **numérico**. Adicionalmente, cómo haremos tareas de clasificación, la columna objetivo la transformaremos a tipo **factor**.
 
 ```{r}
 for (i in 1 : (ncol(dataset) -1) )
@@ -849,14 +847,14 @@ Para reducir el tiempo de entrenamiento y mejorar la precisión de las prediccio
 dataset = ScaleSet(dataset)
 ```
 
-La estateegia utilizada para la evaluación del modelo será la utilización de **validación cruzada de 10 conjuntos**. La función **CVSet** toma un conjunto de datos y establece 10 divisiones de igual longitud del conjunto de datos y las retorna en una lista de **dataframes**.
+La estategia utilizada para la evaluación del modelo será la utilización de **validación cruzada de 10 conjuntos**. La función **CVSet** toma un conjunto de datos y establece 10 divisiones de igual longitud del conjunto de datos y las retorna en una lista de **dataframes**.
 
 ```{r}
 cv.sets = CVSet(dataset, k = 10, seed = 22)
 length(cv.sets)
 ```
 
-Se observa que la longitud de la lista es de diez posiciones, esto debido a que en cada posición se posee un datafrme que corresponde a un subconjunto del conjunto de datos original. Todos los registros entre los dataframes son diferentes debido a que el muestreo se hizo sin reemplazo. PAra seguir con las actividades se procederá a inicializar algunas variables.
+Se observa que la longitud de la lista es de diez posiciones, esto debido a que en cada posición se posee un datafrme que corresponde a un subconjunto del conjunto de datos original. Todos los registros entre los dataframes son diferentes debido a que el muestreo se hizo sin reemplazo. Para seguir con las actividades se procederá a inicializar algunas variables.
 
 ```{r, eval=FALSE}
 results = vector(mode = "numeric", length = 10)
@@ -865,7 +863,7 @@ names(list.results) = c("results", "best_model", "best_testing_set", "best_predi
 best.accuracy = 0
 ```
 
-El proceso de entrenamiento y validación del modelo es bastante largo y por eso se almacenarán en una lista los **resultados** correspondientes a la eficacia del modelo en cada iteación, el **mejor modelo**, el **conjunto de datos de prueba**, que originó la predicción, y el mejor conjunto de **predicciones**. De esta manera, la lista puede ser guardada como un objeto y ser exportada a un archivo que posteriormente puede cargarse y no es necesario esperar a la realización de este paso cada vez qeu se desee analizar los resultados. El siguiente fragmento de código es el encargado de realizar las tareas mencionadas con anterioridad.
+El proceso de entrenamiento y validación del modelo es bastante largo y por eso se almacenarán en una lista los **resultados** correspondientes a la eficacia del modelo en cada iteación, el **mejor modelo**, el **conjunto de datos de prueba**, que originó la predicción, y el mejor conjunto de **predicciones**. De esta manera, la lista puede ser guardada como un objeto y ser exportada a un archivo que posteriormente puede cargarse y no es necesario esperar a la realización de este paso cada vez que se deseen analizar los resultados. El siguiente fragmento de código es el encargado de realizar las tareas mencionadas con anterioridad.
 
 ```{r, eval=FALSE}
 for (i in 1:10)
@@ -905,7 +903,7 @@ for (i in 1:10)
 }
 ```
 
-Una vez que se culmina el proceso de entrenamiento y validación, se almacena en la lista los resultados parciales de cada iteración y se exporta el modelo.
+Una vez que se culmina el proceso de entrenamiento y validación, se almacenan en la lista los resultados parciales de cada iteración y se exporta el modelo.
 
 ```{r, eval=FALSE}
 list.results$results = results
@@ -915,7 +913,7 @@ saveRDS(list.results, "../source/normal_model/SVM/Tests/list_results.rds")
 #### Evaluación del modelo
 En esta sección se hará la evaluación de los resultados obtenidos en la sección anterior, adicionalmente se tomará el mejor modelo y las mejores predicciones para agregar el segundo nivel de clasificación correspondiente al algoritmo **K-Medias**.
 
-Se empezará por establecer el mbiente de trabajo eliminando variables parciales, cargando el paquete **e1071**, cargando el archivo de funciones y la lista con la información exportada previamente.
+Se empezará por establecer el ambiente de trabajo eliminando variables parciales, cargando el paquete **e1071**, cargando el archivo de funciones y la lista con la información exportada previamente.
 
 ```{r}
 rm(list = ls())
@@ -955,9 +953,9 @@ La mejor tasa de aciertos fue de 99.37%. Una tasa de aciertos bastante buena, ah
 AccuracyPerLabel(confusion.matrix, list.results$best_testing_set)
 ```
 
-Para las clases **DoS**, **normal**, **Probing** y **R2L**, el desempeño es bastante bueno, en todos los casos por encima del 92.95%. Por otra parte, para la clase **U2R** es de sólo 33.33%, esto es debido a la poca cantidad de registros presentes en el conjunto de datos para entrenar al modelo con este clase de ataques que hace que el algoritmo no pueda generalizar de buena manera para esta clase de ataques. Se espera que incrementando la cantidad de registros de esta clase de ataques aumente la eficacia para su detección.
+Para las clases **DoS**, **normal**, **Probing** y **R2L**, el desempeño es bastante bueno, en todos los casos por encima del 92.95%. Por otra parte, para la clase **U2R** es de sólo 33.33%, esto es debido a la poca cantidad de registros presentes en el conjunto de datos para entrenar al modelo con esta clase de ataques que hace que el algoritmo no pueda generalizar de buena manera para esta clase de ataques. Se espera que incrementando la cantidad de registros de esta clase de ataques aumente la eficacia para su detección.
 
-Para poder calcular las medidas de rendimiento binarias correspondientes a la **sensitividad**, **especificidad**, **precisión** y la graficación de la curva **ROC** es necesario llevar a la matriz de cinco clases a una matriz binaria, es decir, con clases **Attack y **normal**.
+Para poder calcular las medidas de rendimiento binarias correspondientes a la **sensitividad**, **especificidad**, **precisión** y la graficación de la **curva ROC** es necesario llevar a la matriz de cinco clases a una matriz binaria, es decir, con clases **Attack y **normal**.
 
 ```{r}
 attack.normal.confusion.matrix = AttackNormalConfusionMatrix(list.results$best_testing_set,
@@ -965,7 +963,7 @@ attack.normal.confusion.matrix = AttackNormalConfusionMatrix(list.results$best_t
 attack.normal.confusion.matrix
 ```
 
-De esta manera se observa que sólo existen cincuenta y cinco errores en la clasificación. de los cuales 25 pertenecen a **falsos negativos** y veintiséis a **falsos positivos**. Es importante resaltar que el modelo fue hecho para que la clase objetivo sea la detección de ataques, esta información es importante para la correcta interpretación de la matriz de confusión. Ahora que se tiene la matriz de confusión binaria es posible calcular las medidas de rendimiento mencionadas previamente.
+De esta manera se observa que sólo existen 55 errores en la clasificación, de los cuales 25 pertenecen a **falsos negativos** y 26 a **falsos positivos**. Es importante resaltar que el modelo fue hecho para que la clase objetivo sea la detección de ataques, esta información es importante para la correcta interpretación de la matriz de confusión. Ahora que se tiene la matriz de confusión binaria es posible calcular las medidas de rendimiento mencionadas previamente.
 
 ```{r}
 Sensitivity(attack.normal.confusion.matrix) * 100
@@ -975,7 +973,7 @@ Precision(attack.normal.confusion.matrix) * 100
 
 En la tres medidas se obtuvo un excelente desempeño, todas tuvieron un porcentaje superior a 99.32%. Esto nos indica que el modelo es bueno clasificando el tráfico de manera correcta, es decir, acierta de buena manera identificando **ataques** y **tráfico normal**.
 
-A continuación se graficará la **curva ROC** que nos dará una perspectiva gráfica de la certeza de las clasificaciones del modelo. En este gráfico se ilustra la proporción de aciertos contra la proporción de fallos ordenados por la probabilidad de la toma de la decisión del modelo al clasificar cierto registro; por consiguiente, en el inicio del *eje X* se obtendrán aquellas predicciones que fueron hechas con mayor puntaje de certeza; a medida que nos desplazamos hacia derecha en dicho eje, el puntaje de las certezas va decrementando. Dicho esto, para la creación de la curva ROC se necesita de un **vector de probabilidades**, un **vector de predicciones** y un **vector real** que corresponde al correcto nombramiento del registro.
+A continuación se graficará la **curva ROC** que nos dará una perspectiva gráfica de la certeza de las clasificaciones del modelo. En este gráfico se ilustra la proporción de aciertos contra la proporción de fallos ordenados por la probabilidad de la toma de la decisión del modelo al clasificar cierto registro; por consiguiente, en el inicio del *eje X* se obtendrán aquellas predicciones que fueron hechas con mayor puntaje de certeza; a medida que nos desplazamos hacia la derecha en dicho eje, el puntaje de las certezas va decrementando. Dicho esto, para la creación de la **curva ROC** se necesita de un **vector de probabilidades**, un **vector de predicciones** y un **vector real** que corresponde al correcto nombramiento del registro.
 
 ```{r}
 probabilities = attr(predict(list.results$best_model,
@@ -988,10 +986,10 @@ generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
              pred = roc.data$Prediction)
 ```
 
-En la curva se muestra como el comportamiento es un tanto errático con respecto a la certeza con la que se toman las decisiones, es decir, hay errores que se toman con alta certeza. El mejor rendimiento se alcanza con valores de certeza intermedios que es donde la función se separa más de la línea de identidad.
+En la curva se muestra como el comportamiento es un tanto errático con respecto a la certeza con la que se toman las decisiones, es decir, hay decisiones erroneas que se toman con alta certeza. El mejor rendimiento se alcanza con valores de certeza intermedios que es donde la función se separa más de la línea de identidad.
 
 #### Segundo nivel de clasificación (K-Medias)
-A continuación se añadirá el segundo nivel de clasificación que corresponde al uso de **K-Medias** para tomar todos aquellos registros clasificados como **normal** para tratar de corregir lso falsos negativos producidos por la red neuronal. El algoritmo de K-Medias será implementado con dos clusters debido a que en la *sección de K-Medias* se ilustra que con dos clusters la varianza acu,ulada es óptima, adicionalmente se probó que con dos clusters se obtuvieron mejores resultados que con cinco.
+A continuación se añadirá el segundo nivel de clasificación que corresponde al uso de **K-Medias** para tomar todos aquellos registros clasificados como **normal** para tratar de corregir los falsos negativos producidos por la **máquina de soporte vectorial**. El algoritmo de K-Medias será implementado con dos clusters debido a que en la *sección de K-Medias* se ilustra que con dos clusters la varianza acu,ulada es óptima, adicionalmente se probó que con dos clusters se obtuvieron mejores resultados que con cinco.
 
 ```{r}
 kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
@@ -1001,15 +999,15 @@ SumLabels(kmeans.set, ncol(kmeans.set))
 ```
 
 Acá se observa como fueron extraídos los 25 registros que no fueron correctamente clasificados
-y los 4407 registros qie si fueron correctamente clasificados como **tráfico normal**. El objetivo es clasificar la mayor cantidad de esos registros que son ataques cómo ataques.
+y los 4407 registros que si fueron correctamente clasificados como **tráfico normal**. El objetivo es clasificar la mayor cantidad de esos registros que son ataques cómo ataques.
 
-En la sección de **k-Medias** se mencionó que utilizando dos centroides en varias iteraciones se obtuvo el mismo resultado, también se mencionó que esto fue debido a que el algoritmo convergió todas esas veces al mismo **mínimo local**. k-Medias es un algoritmo en el que la preselección de los centroides se hace de manera aleatoria, por esta razón, es posible obtggener diferentes resultados si se hacen multiples corridas del algoritmo. Por lo anterior, se precalcularán los centroides ejecutando el algoritmo de K-Medias 100 veces y luego se promediará la posición de los centroides finales. De esta manera, se tendrán mejor posicionados los centroides desde el inicio permitiéndonos acercarnos al mínimo local y obtener mejores resultados.
+En la sección de **k-Medias** se mencionó que utilizando dos centroides en varias iteraciones se obtuvo el mismo resultado, también se mencionó que esto fue debido a que el algoritmo convergió todas esas veces al mismo **mínimo local**. k-Medias es un algoritmo en el que la preselección de los centroides se hace de manera aleatoria, por esta razón, es posible obtener diferentes resultados si se hacen multiples corridas del algoritmo. Por lo anterior, se precalcularán los centroides ejecutando el algoritmo de K-Medias 100 veces y luego se promediará la posición de los centroides finales. De esta manera, se tendrán mejor posicionados los centroides desde el inicio permitiéndonos acercarnos al mínimo local y obtener mejores resultados.
 
 ```{r}
 matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
                                    iterations = 100, iter.max = 100)
 
-#Entrenando el modelo final
+#Promediando los centroides
 matrix.centers = matrix.centers/100
 kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
                       iter.max = 100)
@@ -1024,7 +1022,7 @@ confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
 confusion.matrix.kmeans.model
 ```
 
-Se observa que 0 de los 25 ataques fueron detectados, es decir, volvemos a tener 25 **falsos negativos**. Dicho esto, aparentemente el uso de K-Medias en esta ocasión no fue eficaz debido a que el desempeño dle modelo quedó intacto, esto a indicios a pensar que esos 25 **falsos negativos** están mezclados dentro lo que es el tráfico normal y no son notablemente separables. Por otra parte hay un aspecto positivo a destacar que es el hecho de que el uso de K-Medias no deterioró de ran manra el trabajo hecho por el modelo de máquina de soporte vectorial. Se espera que este comportamiento mejore conforme haya mayor cantidad de **falsos negativos** luego de pasar el primer nivel de clasificación. A continuación se calcularán las tasas de acierto y de error del modelo.
+Se observa que 0 de los 25 ataques fueron detectados, es decir, volvemos a tener 25 **falsos negativos**. Dicho esto, aparentemente el uso de K-Medias en esta ocasión no fue eficaz debido a que el desempeño del modelo quedó intacto, esto da indicios a pensar que esos 25 **falsos negativos** están mezclados dentro lo que es el tráfico normal y no son notablemente separables. Por otra parte hay un aspecto positivo a destacar que es el hecho de que el uso de K-Medias no deterioró de gran manera el trabajo hecho por el modelo de máquina de soporte vectorial. Se espera que este comportamiento mejore conforme haya mayor cantidad de **falsos negativos** luego de pasar el primer nivel de clasificación. A continuación se calcularán las tasas de acierto y de error del modelo.
 
 ```{r}
 accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
@@ -1049,7 +1047,7 @@ Precision(confusion.matrix.kmeans.model) * 100
 La especificidad es bastante alta, esto quiere decir que el modelo es excelente clasificando el **tráfico normal**, por otra parte, la sensitividad y la especificidad son cero; en consecuencia, el modelo tiene pobre desempeño clasificando los **ataques**.
 
 #### Estadísticas totales
-A continuación se unificarán las estadísticas de ambos niveles de los modelos utilizados para evaluar el desempeño conjunto. Se empezará por unificar las dos matrices de confusión paras poder calcular las estadísticas utilizadas con anterioridad.
+A continuación se unificarán las estadísticas de ambos niveles de los modelos utilizados para evaluar el desempeño conjunto. Se empezará por unificar las dos matrices de confusión para poder calcular las estadísticas utilizadas con anterioridad.
 
 ```{r}
 confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix,
@@ -1057,7 +1055,7 @@ confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix,
 confusion.matrix.two.labels
 ```
 
-Se observa que la matriz de confusión quedó muy parecida a la matriz de confusión del modelo de máquina de soporte vectorial, salvo que ahora hay unn **falso positivo** más. Ahora calcularemos las medidas de rendimiendo de **tasa de acierto**, **tasa de error**, **sensitividad**, **especificidad** y **precisión**.
+Se observa que la matriz de confusión quedó muy parecida a la matriz de confusión del modelo de máquina de soporte vectorial, salvo que ahora hay un **falso positivo** más. Ahora calcularemos las medidas de rendimiendo de **tasa de acierto**, **tasa de error**, **sensitividad**, **especificidad** y **precisión**.
 
 ```{r}
 accuracy.total = Accuracy(confusion.matrix.two.labels)
@@ -1079,16 +1077,16 @@ Al combinarse el modelo de **SVM** con **K-Medias** no se logró absolutamente n
 
 Los modelos de **red neuronal** y **máquina de soporte vectorial** de manera individual funcionan de gran manera, con bajas tasas de **falsos positivos**, **falsos negativos**, y una gran tasa de acierto. Comparándolos entre ellos, el modelo de **red neuronal** tiene un mejor desempeño individualmente en cada una de las clases de ataques presentes en el conjunto de datos. Adicionalmente, las decisiones que toma con alta certeza suelen ser acertadas, esta característica se puede observar en la **curva ROC**.
 
-La inclusión del segundo nivel de **K-Medias** se comportó en ambos casos de igual manera. Esta no aportó absolutamente nada a la detección de ataques, sin embargo, un aspecto positivo fue que esta no afectó de gran manera el desempeño dle primer nivel. Por lo que se espera que con mayor cantidad de ataques no detectados por el primer nivel **K-Medias** pueda tener un mejor desempeño.
+La inclusión del segundo nivel de **K-Medias** se comportó en ambos casos de igual manera. Esta no aportó absolutamente nada a la detección de ataques, sin embargo, un aspecto positivo fue que esta no afectó de gran manera el desempeño del primer nivel. Por lo que se espera que con mayor cantidad de ataques no detectados por el primer nivel **K-Medias** pueda tener un mejor desempeño.
 
 ##Análisis sobre el conjunto de prueba
 En esta sección se listarán las actividades concernientes al entrenamiento y evaluación del modelo haciendo uso del conjunto de datos para la fase de entrenamiento y haciendo uso del conjunto de prueba para la fase de evaluación. Hasta este punto en el documento se ha probado que ante ataques conocidos los modelos de **SVM** y **NN** tienen un muy buen desempeño a la hora de clasificar ataques y el segundo nivel de **K-Medias** no parece ser útil. En esta oportunidad el conjunto de prueba tendrá ataques no incluidos en el conjunto de entrenamiento, situación que permitirá medir la capacidad de generalización de los modelos de **SVM** y **NN**. Adicionalmente, se espera que si hay mayor cantidad de **falsos negativos** en el primer nivel, entonces **K-Medias** pueda ser de utilidad. Se iniciará haciendo el análisis sobre el uso de las redes neuronales.
 
 ###Redes Neuronales
-En esta sección se describirán las actividades realizadas para el entrenamiento y evaluación de las redes neuronales en el ámbito de la detección de intrusos en redes de computadoras. Esta sección se subdivide en dos grandes partes concernientes al **Entrenamiento del modelo** y **Evaluación del modelo**. Esto debido a que los pasos y observaciones se harán d emanera individual en cada fase.
+En esta sección se describirán las actividades realizadas para el entrenamiento y evaluación de las redes neuronales en el ámbito de la detección de intrusos en redes de computadoras. Esta sección se subdivide en dos grandes partes concernientes al **Entrenamiento del modelo** y **Evaluación del modelo**. Esto debido a que los pasos y observaciones se harán de manera individual en cada fase.
 
 ####Entrenamiento del modelo
-Se aplicará el mismo criterio que se propuso en la sección de *Análisis sobre el conjunto de entrenamiento*; es decir, se usará una aequitectura con 40 neuronas de entrada, una capa intermedia de 20 neuronas y una capa de salida de 5 neuronas. Se usará un modelo de 5 clases donde 4 corresponden a las etiquetas de los atagques y 1 a la etiqueta del tráfico normal. De igual manera, se hará uso del paquete **nnet**. La única diferencia es que ahora se hará uso del conjunto total del conjunto de entrenamiento para el entrenamiento del modleo y se hará la evaluación del modelo haciendo uso del conjunto de datos de prueba, en esta ocasión no se hará uso de **validación cruzada de 10 conjuntos** como técnica de validación.
+Se aplicará el mismo criterio que se propuso en la sección de *análisis sobre el conjunto de entrenamiento*; es decir, se usará una arquitectura con 40 neuronas de entrada, una capa intermedia de 20 neuronas y una capa de salida de 5 neuronas. Se usará un modelo de 5 clases donde 4 corresponden a las etiquetas de los ataques y 1 a la etiqueta del tráfico normal. De igual manera, se hará uso del paquete **nnet**. La única diferencia es que ahora se hará uso del conjunto total del conjunto de entrenamiento para el entrenamiento del modelo y se hará la evaluación del modelo haciendo uso del conjunto de datos de prueba, en esta ocasión no se hará uso de **validación cruzada de 10 conjuntos** como técnica de validación.
 
 Se empezará establecer el ambiente de trabajo eliminando variables parciales, cargando el archivo de funciones y la vista minable del conjunto de entrenamiento.
 
@@ -1098,13 +1096,13 @@ dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv", sep = ",", hea
 source("../source/functions/functions.R")
 ```
 
-EL paquete utilizado para el entrenamiento de las redes neuronales es **nnet**, a continuación el paquete se instalará.
+El paquete utilizado para el entrenamiento de las redes neuronales es **nnet**, a continuación el paquete se cragará.
 
 ```{r, eval=FALSE}
 library("nnet")
 ```
 
-Una vez que tenemos nuestro ambiente de trabajo preparado se eliminarán aquella etiquetas del conjutno de datos que no van a ser utilizadas a lo largo del proceso de entrenamiento del modelo. El primer nivel de detección del modelo híbrido posee cinco calses obtetivo que son **DoS**, **normal**, **Probing**, **R2L** y **U2R**; esto con la finalidad de que la salida para el especialista sea más entendible y pueda identificar la(s) falla(s) de seguridad acotándola dentro de estas cuatro clases de araques. Dicho esto eliminaremos el resto de las etiquetas.
+Una vez que tenemos nuestro ambiente de trabajo preparado se eliminarán aquellas etiquetas del conjutno de datos que no van a ser utilizadas a lo largo del proceso de entrenamiento del modelo. El primer nivel de detección del modelo híbrido posee cinco calses obtetivo que son **DoS**, **normal**, **Probing**, **R2L** y **U2R**; esto con la finalidad de que la salida para el especialista sea más entendible y pueda identificar la(s) falla(s) de seguridad acotándola dentro de estas cuatro clases de araques. Dicho esto eliminaremos el resto de las etiquetas.
 
 ```{r, eval=FALSE}
 dataset = dataset.training
@@ -1128,7 +1126,7 @@ Para acelerar el tiempo de entrenamiento y tener un modelo más preciso es buena
 dataset.training = ScaleSet(dataset.training)
 ```
 
-Ya se tienen el conjunto de datos listo y el ambiente de trabajo preparado, a continuación se iniciará el proceso de entrenamiento. De igual manera que se realizó en la sección *Análisis sobre el conjunto de prueba* el modelo creado será guardado en un objeto debido a que el proceso de entrenamiento es largo y es tedioso tener que esperar a su entrenamiento cada evz que se queira analizar el modelo. Adicionalmente, en esta oportunidad se calculará el tiempo que tarda el modleo entrenándose. Esto, para poder comparar el tiempo contra la **máquina de soporte vectorial** y luego contra el timepo de entrenamiento luego de hacer la selección de características y selección de parámetros.
+Ya se tienen el conjunto de datos listo y el ambiente de trabajo preparado, a continuación se iniciará el proceso de entrenamiento. De igual manera que se realizó en la sección *análisis sobre el conjunto de prueba* el modelo creado será guardado en un objeto debido a que el proceso de entrenamiento es largo y es tedioso tener que esperar a su entrenamiento cada vez que se quiera analizar el modelo. Adicionalmente, en esta oportunidad se calculará el tiempo que tarda el modelo entrenándose. Esto, para poder comparar el tiempo contra la **máquina de soporte vectorial** y luego contra el tiempo de entrenamiento luego de hacer la selección de características y selección de parámetros.
 
 ```{r, eval=FALSE}
 start.time = Sys.time()
@@ -1152,7 +1150,7 @@ saveRDS(list.results, file = "../source/normal_model/NN/Real_Model/list_results.
 ####Evaluación del modelo
 En esta sección se hará la evaluación de los resultados obtenidos en la sección anterior, adicionalmente se tomará el mejor modelo y las mejores predicciones obtenidas para agregarle el segundo nivel de clasificación correspondiente al algoritmo K-Medias.
 
-Se empezará por establecer el ambiente de trabajo eliminando variables parciales, cargando el paquete nnet,cargando el archivos de funciones, la lista con información exportada previamente y el conjunto de datos de prueba.
+Se empezará por establecer el ambiente de trabajo eliminando variables parciales, cargando el paquete **nnet**,cargando el archivo de funciones, la lista con información exportada previamente y el conjunto de datos de prueba.
 
 ```{r}
 rm(list = ls())
@@ -1181,7 +1179,7 @@ testing.set[,ncol(testing.set)] = as.factor(testing.set[,ncol(testing.set)])
 testing.set = ScaleSet(testing.set)
 ```
 
-hasta este punto ya se tienen listos el ambiente de trabajo, conjutno de datos y la lista de resultados de la sección anterior. A continuación se extraerá el modelo y el tiempo de entrenamiento del modelo y se visualizará el tiempo correspondiente al entrenamiento del modelo.
+Hasta este punto ya se tienen listos el ambiente de trabajo, conjunto de datos y la lista de resultados de la sección anterior. A continuación se extraerá el modelo y el tiempo de entrenamiento del modelo y se visualizará el tiempo correspondiente al entrenamiento del modelo.
 
 ```{r}
 training.time = results[[1]]
@@ -1189,7 +1187,7 @@ model = results[[2]]
 training.time
 ```
 
-A partir de este punto se empezará con el análisis del modelo. Todos los pasos que invloucrados con el tiempo de entrenamiento y predicción serán cronometrados y al final serán sumados para tener una prespectiva del tiempo necesario para cada fase. Se iniciará con el cálculo de las predicciones.
+A partir de este punto se empezará con el análisis del modelo. Todos los pasos que involucrados con el tiempo de entrenamiento y predicción serán cronometrados y al final serán sumados para tener una prespectiva del tiempo necesario para cada fase. Se iniciará con el cálculo de las predicciones.
 
 ```{r}
 start.time.predictions = Sys.time()
@@ -1207,7 +1205,7 @@ confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
 confusion.matrix
 ```
 
-Si se compara con la matrzz de confusión del modelo en la sección de *Análisis en el conjunto de entrenamiento* se observa una matriz de confusión mucho más desordenada. Sin embargo, a simple vista se observa que la diagonal acumula la mayoría de los registros, adicionalmente se observa que existen más **falsos negativos** que **falsos positivos**, es decir, hubo más errores en los que se clasificó **tráfico normal** como **ataques** que **ataques** que se clasificaron cómo **tráfico normal**. A continuación veamos la **tasa de aciertos** y la **tasa de errores**.
+Si se compara con la matriz de confusión del modelo en la sección de *análisis sobre el conjunto de entrenamiento* se observa una matriz de confusión mucho más desordenada. Sin embargo, a simple vista se observa que la diagonal acumula la mayoría de los registros, adicionalmente se observa que existen más **falsos negativos** que **falsos positivos**, es decir, hubo más errores en los que se clasificó **tráfico normal** como **ataques** que **ataques** que se clasificaron cómo **tráfico normal**. A continuación veamos la **tasa de aciertos** y la **tasa de errores**.
 
 ```{r}
 accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
@@ -1215,13 +1213,13 @@ accuracy * 100
 ErrorRate(accuracy) * 100
 ```
 
-Ya no se tiene un desempeño tan alto como se tuvo en el análisis con el conjunto de entrenamiento y es entendible, debido a que en el conjunto de prueba hay clases ataques que no estuvieron presentes en conjunto de entrenamiento. Sin embargo, una tasa de aciertos de 76.81% es bastante alta, y se espera que la inclusión de **K-Medias** incremente la tasa de aciertos. Ahora veamos la precisión por etiquetas, recordemos que la salida corresponde a un vector que corresponde al siguiente orden: **DoS**, **normal**, **Probing**, **R2L** y **U2R**.
+Ya no se tiene un desempeño tan alto como se tuvo en el *análisis sobre el conjunto de entrenamiento* y es entendible, debido a que en el conjunto de prueba hay clases ataques que no estuvieron presentes en conjunto de entrenamiento. Sin embargo, una tasa de aciertos de 76.81% es bastante alta, y se espera que la inclusión de **K-Medias** incremente la tasa de aciertos. Ahora veamos la precisión por etiquetas, recordemos que la salida corresponde a un vector que corresponde al siguiente orden: **DoS**, **normal**, **Probing**, **R2L** y **U2R**.
 
 ```{r}
 AccuracyPerLabel(confusion.matrix, testing.set)
 ```
 
-Para las etiquetas de **DoS**, **normal** y **Probing** el rendimiento es bastante bueno, en especial para **DoS** y **normal**. Sin embargo, para **R2L** y **U2R** es bastante pobre. Esto puede deberse a la poca cantidad de regitros usados para el entremamiento en ambos casos, en particular para la clase **U2R**.
+Para las etiquetas de **DoS**, **normal** y **Probing** el rendimiento es bastante bueno, en especial para **DoS** y **normal**. Sin embargo, para **R2L** y **U2R** es bastante pobre. Esto puede deberse a la poca cantidad de registros usados para el entrenamiento en ambos casos, en particular para la clase **U2R**.
 
 A continuación crearemos una matriz de confusión binaria para poder calcular las medidas de rendimiento binarias correspondientes a **sensitividad**, **especificidad**, **precisión** y la graficación de la **curva ROC**.
 
@@ -1230,7 +1228,8 @@ attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predic
 attack.normal.confusion.matrix
 ```
 
-Se nota una baja cantidad de **falsos positivos** y una alta cantidad de **falsos negativos** y una alta tasa de acierto con respecto a la clasificación de los registros en la diagonal. Ahora que hay mayor cantidad de** falsos negativos** el algoritmo de **K-Medias** puede aportar más al tema de la clasificaicón. Ahora veamos las medidas de rendimiento binarias mencionadas con anterioridad.
+Se nota una baja cantidad de **falsos positivos** y una alta cantidad de **falsos negativos** y una alta tasa de aciertos
+con respecto a la clasificación de los registros en la diagonal. Ahora que hay mayor cantidad de **falsos negativos** el algoritmo de **K-Medias** puede aportar más al tema de la clasificaicón. Ahora veamos las medidas de rendimiento binarias mencionadas con anterioridad.
 
 ```{r}
 Sensitivity(attack.normal.confusion.matrix) * 100
@@ -1242,16 +1241,16 @@ La **sensitividad** nos dice que el 65.56% de los **ataques** presentes en el co
 
 En general el modelo tiene un buen desempeño en la detección de **tráfico normal** y la mayoría de las predicciones que hace cómo **ataques** son verdaderas, sin embargo, el gran problema son los **falsos negativos** que se espera que con la utilización de **k-Medias** la tasa de aciertos pueda mejorar. A continuación graficaremos la **curva ROC**.
 
-```{r}
+```{r, fig.align="center"}
 probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)])
 roc.data = DataROC(testing.set, probabilities, predictions)
 generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction)
 ```
 
-En comparación con la sección de *Análisis en el conjunto de entrenamiento*, se observa un desempeño notablemente inferior, en esta ocasión la curva no tiene tanta distancia de separación de la función de identidad y se puede observar cómo ahora comete errores con altos valores de certeza. esta situación es entendible y esperada, debido a que el conjutno de prueba ocntiene nuevas clases de ataques.
+En comparación con la sección de *análisis sobre el conjunto de entrenamiento*, se observa un desempeño notablemente inferior, en esta ocasión la curva no tiene tanta distancia de separación de la función de identidad y se puede observar cómo ahora comete errores con altos valores de certeza. Esta situación es entendible y esperada, debido a que el conjunto de prueba contiene nuevas clases de ataques.
 
 ####Segundo nivel de clasificación (K-Medias)
-A continuación se añadirá el segundo nivel de clasificación que corresponde al uso de K-Medias para tomar todos aquellos registros clasificados como normal para tratar de corregir los falsos negativos producidos por la red neuronal. El algoritmo de K-Medias será implementado con dos clusters debido a que en la sección de K-Medias se ilustra que con dos clusters la varianza acumulada es la óptima, adicionalmente se probó que con dos clusters se obtuvieron mejores resultados que con cinco.
+A continuación se añadirá el segundo nivel de clasificación que corresponde al uso de K-Medias para tomar todos aquellos registros clasificados como normal para tratar de corregir los falsos negativos producidos por la red neuronal. El algoritmo de K-Medias será implementado con dos clusters debido a que en la sección de K-Medias se ilustra que con dos clusters la varianza acumulada es la adecuada, adicionalmente se probó que con dos clusters se obtuvieron mejores resultados que con cinco.
 
 ```{r}
 kmeans.set = testing.set[predictions == "normal", ]
@@ -1260,7 +1259,7 @@ kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack
 SumLabels(kmeans.set, ncol(kmeans.set))
 ```
 
-Se observa cómo se extrayeron los 4420 **falsos negativos** en conjunto con el resto del **tráfico normal** y ese será el conjunto de datos para la aplicación de **K-Medias**. A continuación se precalcularán los centroides. Las actividades relacionadas con el entrenamiento y predicciones será cronometrado de igual forma que con el primer nivel de clasificación del modelo.
+Se observa como se extrayeron los 4420 **falsos negativos** en conjunto con el resto del **tráfico normal** y ese será el conjunto de datos para la aplicación de **K-Medias**. A continuación se precalcularán los centroides. Las actividades relacionadas con el entrenamiento y predicciones serán cronometradas de igual forma que con el primer nivel de clasificación del modelo.
 
 ```{r}
 start.time.kmeans.training = Sys.time()
@@ -1284,7 +1283,7 @@ total.time.kmeans.predictions = Sys.time() - start.time.kmeans.predictions
 total.time.kmeans.predictions
 ```
 
-Ahora se creará la matroiz de confusión producto de la clasificación de **K-Medias**.
+Ahora se creará la matriz de confusión producto de la clasificación de **K-Medias**.
 
 ```{r}
 predictions = OrderKmeans(kmeans.model)
@@ -1330,7 +1329,7 @@ accuracy.total * 100
 ErrorRate(accuracy.total) * 100
 ```
 
-La tasa de aciertos mejoró con respecto al primer nivel de clasificación del modelo en un 5%. una mejora significativa en la detección de intrusos. Ahora veamos cómo quedaron el resto de las medidas de rendimiento concernientes a la **sensitividad**, **especificidad** y **precisión**.
+La tasa de aciertos mejoró con respecto al primer nivel de clasificación del modelo en un 5%. Una mejora significativa en la detección de intrusos. Ahora veamos cómo quedaron el resto de las medidas de rendimiento concernientes a la **sensitividad**, **especificidad** y **precisión**.
 
 ```{r}
 Sensitivity(confusion.matrix.two.labels) * 100
@@ -1338,7 +1337,7 @@ Especificity(confusion.matrix.two.labels) * 100
 Precision(confusion.matrix.two.labels) * 100
 ```
 
-Se nota un incremento con respecto a la **sensitividad** del primer nivel del 23%. Por otra parte, hubo un decremento con un promedio de alrededor 15% en la **especificidad** y en la **precisión**. En general el modelo híbrido tiene un desempeño bastante bueno, se logra incrementar la cantidad de **ataques** detectados y se obtiene una combinación balanceada entre los **falsos negativos** y **falsos positivos**. Por último el tiempo total para el entrenamiento y las predicciones se imprime a ocntinunajción respectivamente.
+Se nota un incremento con respecto a la **sensitividad** del primer nivel del 23%. Por otra parte, hubo un decremento con un promedio de alrededor 15% en la **especificidad** y en la **precisión**. En general el modelo híbrido tiene un desempeño bastante bueno, se logra incrementar la cantidad de **ataques** detectados y se obtiene una combinación balanceada entre los **falsos negativos** y **falsos positivos**. Por último el tiempo total para el entrenamiento y las predicciones se imprime a continuación respectivamente.
 
 ```{r}
 training.time + total.time.kmeans.training
@@ -1347,22 +1346,22 @@ total.time.predictions + total.time.kmeans.predictions
 
 ####Conclusiones
 
-El rendimiento del primer nivel con **red neuronal** comparado al redimiento obtenido en la sección de *Análisis en el conjunto de entrenamiento* es bastante inferior; sin embargo, es comprensible debido a que en el conjunto de prueba se agregan nuevos tipos de ataques que no estuvieron presentes en el conjutno de entrenamiento. Más allá de eso, el rendmiento es bueno, con 76% de **tasa de aciertos** y buenas medidas de rendimiento para la **sensitividad**, **especificidad** y **precisión**. Por otra parte la **curva ROC** indica que el modelo no es tan certero con respecto a la toma de decisiones, es decir, comete errores con grandes números de certeza, situación que en la sección de *Análisis en el conjunto de entrenamiento* no se presentó. Adicionalmente el modelo no comete gran cantidad de **falsos positivos**.
+El rendimiento del primer nivel con **red neuronal** comparado al redimiento obtenido en la sección de *análisis sobre el conjunto de entrenamiento* es bastante inferior; sin embargo, es comprensible debido a que en el conjunto de prueba se agregan nuevos tipos de ataques que no estuvieron presentes en el conjunto de entrenamiento. Más allá de eso, el rendimiento es bueno, con 76% de **tasa de aciertos** y buenas medidas de rendimiento para la **sensitividad**, **especificidad** y **precisión**. Por otra parte la **curva ROC** indica que el modelo no es tan certero con respecto a la toma de decisiones, es decir, comete errores con grandes valores de certeza, situación que en la sección de *análisis sobre el conjunto de entrenamiento* no se presentó. Adicionalmente el modelo no comete gran cantidad de **falsos positivos**.
 
-El segundo nivel se **K-Medias** en esta oportunidad tuvo mayor cantidad de ataques debido a que el primer nivel obtuvo un gran número de **falsos negativos**. La **tasa de aciertos** del modelo de **K-Medias** fue del 72.76%, un número similar a la tasa de aciertos del modelo de **red neuronal**. **K-Medias** logró detectar el 50% de los ataques presentes y redujo la cantidad de **falsos negativos** presentes en la entrada; sin embargo, incrementó la cantidad de **falsos positivos** notablemente.
+El segundo nivel de **K-Medias** en esta oportunidad tuvo mayor cantidad de ataques debido a que el primer nivel obtuvo un gran número de **falsos negativos**. La **tasa de aciertos** del modelo de **K-Medias** fue del 72.76%, un número similar a la tasa de aciertos del modelo de **red neuronal**. **K-Medias** logró detectar el 50% de los ataques presentes y redujo la cantidad de **falsos negativos** presentes en la entrada; sin embargo, incrementó la cantidad de **falsos positivos** notablemente.
 
-En conjunto, con la inclusión de **K-Medias** se logró un incremente de alrededor del 5% en la **tasa de aciertos** llegando así al 81%, y un incremento del 23% en la **sensitividad**. Por otra parte hubo un decremento de alrededor del 15% en la **especificidad** y **precisión**. Las comparaciones son realizadas con respecto al desempeño del primer nivel del modelo, que corresponde al clasificador de **red neuronal**.
+En conjunto, con la inclusión de **K-Medias** se logró un incremento de alrededor del 5% en la **tasa de aciertos** llegando así al 81%, y un incremento del 23% en la **sensitividad**. Por otra parte hubo un decremento de alrededor del 15% en la **especificidad** y **precisión**. Las comparaciones son realizadas con respecto al desempeño del primer nivel del modelo, que corresponde al clasificador de **red neuronal**.
 
-En general el desempeño es bastante bueno, la gran mayoría del tráfico fue clasificado de manera satisfactoria y se produjeron alredor de dos mil **falsos positivos** y dos mil **falsos negativos** del total de los 22 mil registros presentes en el conjunto de datos. Para un especialista que hecho de que haya mayor cantidad de **falsos positivos** representará más trabajo desde el punto de vista que tendrá que revisar registros que no son una amenaza. Por otra parte, la presencia de **falsos negativos** representa un punto más sensible debido a que los ataques están presentes y no fueron detectados.
+En general el desempeño es bastante bueno, la gran mayoría del tráfico fue clasificado de manera satisfactoria y se produjeron alredor de 2000 **falsos positivos** y 2000 **falsos negativos** del total de los 22 mil registros presentes en el conjunto de datos. Para un especialista el hecho de que haya mayor cantidad de **falsos positivos** representará más trabajo desde el punto de vista que tendrá que revisar registros que no son una amenaza. Por otra parte, la presencia de **falsos negativos** representa un punto más sensible debido a que los ataques están presentes y no fueron detectados.
 
 ### Máquina de soporte vectorial
-En esta sección se describirán las actividades realizadas para el entrenamiento y evaluación de las máquinas de soporte vectorial en el ámbito de la detección de intrusos en redes de computadoras. Esta sección se subdivide en
-dos grandes partes concernientes al **Entrenamiento del modelo** y **Evaluación del modelo**. Esto debido
-a que los pasos y observaciones se harán d emanera individual en cada fase.
+En esta sección se describirán las actividades realizadas para el entrenamiento y evaluación de la **máquina de soporte vectorial** en el ámbito de la detección de intrusos en redes de computadoras. Esta sección se subdivide en
+dos grandes partes concernientes al **entrenamiento del modelo** y **evaluación del modelo**. Esto debido
+a que los pasos y observaciones se harán de manera individual en cada fase.
 
 ####Entrenamiento del modelo
 
-Se aplicará el mismo criterio que se propueso en la sección *análisis sobre el conjunto de entrenamiento*; es decir, se usará máquinas de soporte vectorial con el **kernel radial**.
+Se aplicará el mismo criterio que se propuso en la sección *análisis sobre el conjunto de entrenamiento*; es decir, se usará máquina de soporte vectorial con el **kernel radial**.
 
 Se empezará por establecer el ambiente de trabajo eliminando variables parciales, cargando el archivo de funciones y la vista minable del conjunto de entrenamiento.
 
@@ -1378,7 +1377,7 @@ El paquete utilizado para el entrenamiento de las máquinas de soporte vectorial
 library("e1071")
 ```
 
-Una vez que tenemos nuestro ambiente de trabajo preparado se eliminarán aquella etiquetas del conjunto de datos que no van a ser utilizadas a lo largo del proceso de entrenamiento del modelo. El primer nivel de detección del modelo híbrido posee cinco calses obtetivo que son DoS, normal, Probing, R2L y U2R; esto con la finalidad de que la salida para el especialista sea más entendible y pueda identificar la(s) falla(s) de seguridad acotándola dentro de estas cuatro clases de araques. Dicho esto eliminaremos el resto de las etiquetas.
+Una vez que tenemos nuestro ambiente de trabajo preparado se eliminarán aquella etiquetas del conjunto de datos que no van a ser utilizadas a lo largo del proceso de entrenamiento del modelo. El primer nivel de detección del modelo híbrido posee cinco calses obtetivo que son **DoS**, **normal**, **Probing**, **R2L** y **U2R**; esto con la finalidad de que la salida para el especialista sea más entendible y pueda identificar la(s) falla(s) de seguridad acotándolas dentro de estas cuatro clases de ataques. Dicho esto eliminaremos el resto de las etiquetas.
 
 ```{r, eval=FALSE}
 dataset.training$Label_Normal_TypeAttack = NULL
@@ -1388,20 +1387,20 @@ dataset.training$Label_Normal_or_Attack = NULL
 
 Es obligatorio que para el uso de las máquinas de soporte vectorial todas las variables predictoras sean de tipo numérico. Por lo tanto, se transformarán cada una de estas a tipo numérico y la columna objetivo se transformará en tipo factor debido a que se realizarán labores de clasificación.
 
-```{r}
+```{r, eval=FALSE}
 for (i in 1 : (ncol(dataset.training) -1) )
   dataset.training[,i] = as.numeric(dataset.training[,i])
 
 dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dataset.training)])
 ```
 
-Para acelerar el tiempo de entrenamiento y tener un modelo más preciso es buena práctica escalar el conjunto de datos a rangos similares. En este caso, todas las columnas predictoras tendrán media cero (0) y desviación estándar uno (1).
+Para acelerar el tiempo de entrenamiento y tener un modelo más preciso es buena práctica escalar el conjunto de datos a rangos similares. En este caso, todas las columnas predictoras tendrán *media* cero (0) y *desviación estándar* uno (1).
 
-```{r}
+```{r, eval=FALSE}
 dataset.training = ScaleSet(dataset.training)
 ```
 
-Ya se tienen el conjunto de datos listo y el ambiente de trabajo preparado, a continuación se iniciará el proceso de entrenamiento. De igual manera que se realizó en la sección *Análisis sobre el conjunto de entrenamiento* el modelo creado será guardado en un objeto debido a que el proceso de entrenamiento es largo y es tedioso tener que esperar a su entrenamiento cada vez que se queira analizar el modelo. Adicionalmente, en esta oportunidad se calculará el tiempo que tarda el modelo entrenándose. Esto, para poder comparar el tiempo contra la **red neuronal** y luego contra el tiempo de entrenamiento luego de hacer la selección de características y selección de parámetros.
+Ya se tienen el conjunto de datos listo y el ambiente de trabajo preparado, a continuación se iniciará el proceso de entrenamiento. De igual manera que se realizó en la sección *análisis sobre el conjunto de entrenamiento* el modelo creado será guardado en un objeto debido a que el proceso de entrenamiento es largo y es tedioso tener que esperar a su entrenamiento cada vez que se quiera analizar el modelo. Adicionalmente, en esta oportunidad se calculará el tiempo que tarda el modelo entrenándose. Esto, para poder comparar el tiempo contra la **red neuronal** y luego contra el tiempo de entrenamiento luego de hacer la selección de características y selección de parámetros.
 
 ```{r, eval=FALSE}
 start.time = Sys.time()
@@ -1425,9 +1424,7 @@ saveRDS(list.results, file = "../source/normal_model/SVM/Real_Model/list_results
 
 ####Evaluación del modelo
 
-En esta sección se hará la evaluación de los resultados obtenidos en la sección anterior, adicionalmente se tomará el mejor modelo y las mejores predicciones obtenidas para agregarle el segundo nivel de clasificación correspondiente al algoritmo K-Medias.
-
-Se empezará por establecer el ambiente de trabajo eliminando variables parciales, cargando el paquete **e1071**, cargando el archivo de funciones, la lista con información exportada previamente y el conjunto de datos de prueba.
+En esta sección se hará la evaluación de los resultados obtenidos en la sección anterior, adicionalmente se tomará el mejor modelo y las mejores predicciones obtenidas para agregarle el segundo nivel de clasificación correspondiente al algoritmo K-Medias. Se empezará por establecer el ambiente de trabajo eliminando variables parciales, cargando el paquete **e1071**, cargando el archivo de funciones, la lista con información exportada previamente y el conjunto de datos de prueba.
 
 ```{r}
 rm(list = ls())
@@ -1447,7 +1444,8 @@ testing.set$Label_Normal_or_Attack = NULL
 
 #Cambiando el tipo de dato
 for (i in 1 : (ncol(testing.set) -1) )
-testing.set[,i] = as.numeric(testing.set[,i])
+  testing.set[,i] = as.numeric(testing.set[,i])
+
 testing.set[,ncol(testing.set)] = as.factor(testing.set[,ncol(testing.set)])
 
 #Escalando las variables predictoras
@@ -1473,3 +1471,165 @@ total.time.predictions = Sys.time() - start.time.predictions
 total.time.predictions
 ```
 
+A continuación se creará una matriz de confusión que nos ayude a ver gráficamente el desempeño del modelo durante el proceso de clasificación.
+
+```{r}
+confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
+                         Prediction = predictions)
+confusion.matrix
+```
+
+Si se compara con la matriz de confusión del modelo en la sección *análisis sobre el conjunto de entrenamiento*, se observa una matriz de confusión mucho más desordenada. Sin embargo, a simple vista se observa que la diagonal acumula la mayoría de los registros, adicionalmente se observa que existen más **falsos negativos** que **falsos positivos**, es decir, hubo más errores en los que se clasificó **tráfico normal** como **ataques** que **ataques** que se clasificaron como **tráfico normal**. A continuación veamos la **tasa de aciertos** y la **tasa de errores**.
+
+```{r}
+accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+
+Ya no se tiene un desempeño tan alto como se tuvo en el *análisis sobre el conjunto de entrenamiento*, y es entendible debido a que en el conjunto de prueba hay clases de ataques que no estuvieron presentes en el conjunto de entrenamiento. Sin embargo, una tasa de aciertos de 77.19% es bastante alta para este escenario y se espera que con la inclusión de **K-Medias** se incremente aún más la tasa de aciertos. Ahora veamos la precisión por etiquetas, recordemos que la salida corresponde a un vector con el siguiente orden: **DoS**, **normal**, **Probing**, **R2L** y **U2R**. En comparación con el modelo de **red neuronal** se tiene un porcentaje de acierto ligeramente mayor, debido a que el modelo de **red neuronal** tuvo una tasa de aciertos de 76.81%.
+
+```{r}
+AccuracyPerLabel(confusion.matrix, testing.set)
+```
+
+Para las etiquetas de **DoS**, **normal** y **Probing** el rendimiento es bastante bueno, en especial para **DoS** y **normal**. Sin embargo, para **R2L** y **U2R** es bastante pobre. Esto puede deberse a la poca cantidad de registros usados para el entrenamiento en ambos casos, en particular para la clase **U2R**. Con respecto a la **red neuronal**, este modelo es mejor en la clasificación de las etiquetas **DoS** y **normal**, sin embargo, en las demás el modelo de **red neuronal** tiene un mejor desempeño.
+
+A continuación crearemos una matriz de confusión binaria para poder calcular las medidas de rendimiento binarias correspondientes a **sensitividad**, **especificidad**, **precisión** y la graficación de la **curva ROC**.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predictions)
+attack.normal.confusion.matrix
+```
+
+Se nota una baja cantidad de **falsos positivos**, incluso menos cantidad que en el modelo de **red neuronal**, y una alta cantidad de **falsos negativos**, cantidad mayor que en el modelo de **red neuronal**, y una alta tasa de aciertos con respecto a la clasificación de los registros ubicados en la diagonal. Ahora que hay mayor cantidad de **falsos negativos**, el algoritmo de **K-Medias** puede aportar más al tema de la clasificación. Ahora veamos las medidas de rendimiento binarias mencionadas con anterioridad.
+
+```{r}
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+La **sensitividad** nos dice que el 63.53% de los ataques fueron detectados de forma correcta; así mismo, la especificidad nos dice que el 98.04% del **tráfico normal** fue clasificado de forma satisfactoria. Por último, la **precisión** nos dice que el 97%.72% de los registros clasificados como ataques de verdad eran ataques. Dicho esto el modelo es bastante efectivo a la hora de clasificar el **tráfico normal** y moderadamente bueno a la hora de clasificar los **ataques**, sin embargo, las decisiones tomadas con respecto a la detección de los ataques es bastante elevada, situación que hace que no tenga tantos **falsos positivos**. Si se compara con el modelo de **red neuronal**, la **red neuronal** detecta mayor cantidad de **ataques**, mientras que la **máquina de soporte vectorial** clafica mejor el tráfico normal.
+
+El gran problema del modelo recae en la cantidad de **falsos negativos generados**. Se espera que con la inclusión de **K-Medias** esta situación pueda mejorar. A continuación se graficará la **curva ROC**.
+
+```{r, fig.align="center"}
+probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)], probability = TRUE)
+roc.data = DataROC(testing.set, attr(probabilities, "probabilities"), predictions)
+generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction)
+```
+
+En comparación con la sección de *análisis sobre el conjutno de entrenamiento*, se observa un desempeño notablemente inferior, en esta ocasión, el desempeño es bastante errático, teniendo su mejor rendimiento al inicio y luego casi pegándose a la línea del **azar**. Que el desempeño sea inferior es entendible y esperado dada la naturaleza del conjunto de prueba donde hay nuevos tipos de ataques.
+
+#### Segundo nivel de clasificación (K-Medias)
+A continuación se añadirá el segundo nivel de clasificación que corresponde al uso de **K-Medias** para tomar todos aquellos registros clasificafos como **tráfico normal** y serán pasados al segundo nivel para corregir los **falsos positivos** producidos por el modelo del primer nivel correspondiente a la **máquina de soporte vectorial**- El algoritmo de **K-Medias** será implementado con dos clusters debido a que en la sección de *K-Medias* se ilustra que con dos clusters se acumula la mejor cantidad de varianzza, y adicionalmente se probó que con dos clusters se obtuvieron mejores resultados que con cinco clusters.
+
+```{r}
+kmeans.set = testing.set[predictions == "normal", ]
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+Se observa como se extrajeron los 4680 **falsos negativos** en conjunto con el resto del **tráfico normal**, y ese será el conjunto de datos para la aplicación de **K-Medias**. A continuación, se precalcularán los centroides. Las actividades relacionadas con el entrenamiento y predicción serán cronometradas de igual forma que se hizo en el primer nivel de clasificación del modelo.
+
+```{r}
+start.time.kmeans.training = Sys.time()
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+
+#Promediando los centroides
+matrix.centers = matrix.centers/100
+total.time.kmeans.training = Sys.time() - start.time.kmeans.training
+total.time.kmeans.training
+```
+
+Ahora se realizarán las predicciones.
+
+```{r}
+start.time.kmeans.predictions = Sys.time()
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+total.time.kmeans.predictions = Sys.time() - start.time.kmeans.predictions
+total.time.kmeans.predictions
+```
+
+Ahora se creará la matriz de confusión producto de la clasificación de **k-Medias**.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+confusion.matrix.kmeans.model
+```
+
+Se observa omo se separaron 542 **ataques** de los 4680 iniciales, la cantidad de **falsos negativos** se redujo y la cantidad de **falsos positivos** aumentó en 80. Es una mejora bastante conservadora que tiene un incremento bastante favorable en la detección de los **ataques** sin desordenar de gran manera la clasificación lograda para el **tráfico normal**. Veamos la **tasa de aciertos** y la **tasa de errores**.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)*100
+```
+
+Se obtuvo una **tasa de aciertos** de 70.30%, es un número bastante bueno, similar al obtenido en el primer nivel. Si se compara con el rendimiento obtenido por el modelo de **red neuronal**, entonces se obtiene 2% menos, pero en la **red neuronal** se cometen mayor cantidad de **falsos positivos**. Ahora veamos la tasa de aciertos por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Se detecta solo el 11.58% de los **ataques** presentes, y se clasifica de buena manera el 99.16% del **tráfico normal**. Si se compara con el el modelo de **red neuronal**, la **red neuronal** es mejor detectando ***ataques** pero la **máquina de soporte vectorial** clasifica mejor el **tráfico normal**. Ahora veamos las medidas binarias de **sensitividad**, **especificidad** y **precisión**.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+El modelo tiene un desempeño excelente en la detección del **tráfico normal**, por otra parte, el desempeño a la hora de clasificar los **ataques** es bastante pobre, pero acierta con alta probabildiad los ataques detectados, por lo tanto no genera muchos **falsos positivos**. Ahora veamos las estadísticas totales producto de la mezcla de ambos niveles. Empecemos por ver la matriz de confusión.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
+```
+
+El resultado total refleja un incremento positivo en la detección de **ataques** aunque no muy grande. La cantidad de **falsos negativos** sigue siendo bastante alta, mientras que la cantidad de **falsos positivos** es bastante baja. Por último, la fortaleza de este modelo es la correcta identificación del tráfico normal, motivo por el cuál existe una gran cantidad de **falsos negativos**. Ahora veamos la **tasa de aciertos** y la **tasa de errores**.
+
+```{r}
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+```
+
+Se logró un incremento del 3% en la **tasa de aciertos** con respecto al primer nivel de clasificación, una mejora significativa en el área de la detección de intrusos en redes de computadoras. Ahora veamos cómo quedaron el resto de las medidas de rendimiento concernientes a la **sensitividad**, **especificidad** y **precisión**.
+
+```{r}
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+```
+
+Se nota un incremento con respecto a la **sensitividad** del 4%, es decir, se detectaron 4% más de los ataques presentes con la inclusión de **K-Medias**. Por otra parte hubo un decremento de alrededor del 1% con respecto a la **especificidad** y **precisión**. En general el modelo híbrido tiene un buen desempeño, los puntos altos son la baja generación de **falsos positivos** y la alta eficacia en la clasificación del **tráfico normal**. Los puntos bajos corresponden a la gran cantidad de **falsos negativos** presentes en las predicciones. Por último, el tiempo total para el entrenamiento y las predicciones se mostrará a continuación respectivamente.
+
+```{r}
+training.time + total.time.kmeans.training
+total.time.predictions + total.time.kmeans.predictions
+```
+
+####Conclusiones
+El rendimiento del primer nivel con **máquina de soporte vectorial** comparado con el rendimiento obtenido en la sección *análisis sobre el conjunto de entrenamiento* es bastante inferior; sin embargo, es comprensible debido a que en el conjunto de prueba se agregan nuevos tipos de ataques que no estuvieron presentes en el conjunto de entrenamiento. Más allá de eso el rendmiento es bastante bueno con 77% de **tasa de aciertos** y buenas medidas de rendimiento para la **sensitividad**, **especificidad** y **precisión**. Por otra parte la **curva ROC** indica que el modelo es bastante variante con respecto a la certeza con la que toma las decisiones, llegando en un punto a pegarse bastante a la **línea del azar**, situación bastante deteriorada con respecto a la sección de *análisis sobre el conjunto de entrenamiento*. Como aspecto positivo, el modelo no comete gran cantidad de **falsos positivos**, pero si una gran cantidad de **falsos negativos**.
+
+El segundo nivel del modelo, con **K-Medias** tuvo un mejor desempeño comparado con la sección *análisis sobre el conjunto de entrenamiento*, esto debido a que el primer nivel correspondiente a la **máquina de soporte vectorial** tuvo gran cantidad de falsos negativos. La **tasa de aciertos** del modelo **K-Medias** fue del 70.30%, un número similar al del primer nivel. Sin embargo, **K-Medias** solo logró detectar el 11% de los ataques presentes y redujo escasamente la cantidad de **falsos negativos** presentes. Por otra parte, un aspecto positivo fue la no generación excesiva de **falsos positivos**.
+
+En conjunto, la inclusión de **K-Medias** logró un incremento de alrededor del 3% con respecto a los resultados obtenidos en el primer nivel en la **tasa de aciertos**, llegando así a un 80%. Por otra parte el incremento en la **sensitividad** fue de sólo el 4% que corresponde a la proporción de los ataques detectados por **K-Medias**. La **especificidad** y la **precisión** se vieron invariantes, decrementando ambas alrededor de 1%. Estas comparaciones fueron realizadas con respecto al desempeño obtenido por el primer nivel, que corresponde al clasificador de **máquina de soporte vectorial**.
+
+En general el desempeño es bastante bueno, la gran mayoría del tráfico fue clasificado de manera satisfactoria y se produjeron alrededor de 4400 errores en la clasificación, donde 4138 corresponden a **falsos negativos** de los 22 mil registros presentes en el conjunto de prueba. Para un especialista el hecho de que no haya gran cantidad de **falsos positivos** es positivo debido a que no tendrá que invertir tiempo revisando registros que no son una amenaza. Sin embargo, la gran cantidad de falsos negativos representan una gran amenaza debido a que los ataques no fueron detectados y además elimina la posibilidad de poder retroalimentar el modelo tomando los **falsos positivos** y colocándolos cómo pertenecientes al tráfico normal, para que de esta manera el modelo pueda aumentar su base de conocimientos.
+
+###Conclusiones generales
+El modelo de **red neuronal** es más efectivo a la hora de detectar ataques, adicionalmente se observa mediante la **curva ROC** que las decisiones tomadas tienen mayor certeza y son más precisas. Por otra parte, el modelo de **máquina de soporte vectorial** es mejor clasificando el tráfico normal, e incluso individualmente tiene mayor cantidad de **tasa de aciertos**. También se pudo observar que la **máquina de soporte vectorial** es más efectiva detectando las clases **DoS** y **normal**, mientras que la **red neuronal** es mejor detectando el resto de las clases concernientes a **Probing**. **R2L** y **U2R**.
+
+La inclusión de **K-Medias** en los modelos repercutó de manera diferente en ambos modelos. Para la **red neuronal** logró un incremento notable en la cantidad de ataques detectados, pero incrementó notablemente la cantidad de **falsos positivos generados**. Por el contrario, para la **máquina de soporte vectorial** la inclusión de **K-Medias** fue más conservadora, detectando menor cantidad de **ataques** pero sin generar exceso de **falsos positivos**.
+
+Para poder determinar cuál modelo es mejor que otro hay que irse por el tema de prioridades. Es decir, ¿Es más importante tener más cantidad de ataques detectados con un mayor número de falsos positivos presentes o es mejor un enfoque más conservador con menor cantidad de ataques detectados pero con menor cantidad de **falsos positivos** presentes? Particularmente me parece que la red neuronal es mejor debido a que el objetivo es la detección de ataques. Adicionalmente, en este caso los **falsos positivos** incrementan el trabajo del especialista para examinar los posibles ataques, y en caso de que una no sea correcta, esta puede ser etiquetada y ser usada para la retroalimentación del modelo, es decir, hay una curva de aprendizaje mucho más rápida que en el modelo híbrido de la máquina de soporte vectorial.
+
+Hasta este punto se han usado los parámetros por defecto, queda como tarea pendiente aún realizar la selección de características y la selección de parámetros y analizar el impacto sobre ambos enfoques.
