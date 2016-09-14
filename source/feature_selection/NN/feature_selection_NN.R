@@ -1,6 +1,6 @@
 #Setting work directory
 rm(list = ls())
-setwd("/home/dperez/Documents/Repos/Tesis/source")
+#setwd("/home/dperez/Documents/Repos/Tesis/source")
 #setwd("/home/dperez/Tesis/source")
 
 #Loading functions
@@ -76,23 +76,30 @@ for (i in 1:40)
     data.cv.training = do.call(rbind, data.cv.training)
     
     data.training.pca = as.data.frame(data.cv.training[,1:i])
+    colnames(data.training.pca) = names(data.cv.training)[1:i]
     data.training.pca = data.frame(data.training.pca,
                                    Label = data.cv.training$Label)
     
+    data.testing.pca = as.data.frame(data.cv.testing[,1:i])
+    colnames(data.testing.pca) = names(data.cv.testing)[1:i]
+    data.testing.pca = data.frame(data.testing.pca,
+                                  Label = data.cv.testing$Label)
+    
     model = nnet(Label ~ .,
-                data = data.training.pca,
-                size = 20,
-                maxit = 100)
+                 data = data.training.pca,
+                 size = 20,
+                 maxit = 100)
     
-    dataset.testing.pca.predict = as.data.frame(data.cv.testing[,1:i])
-    dataset.testing.pca.predict = data.frame(dataset.testing.pca.predict,
-                                             Label = data.cv.testing$Label)
+    if(i==1)
+      prediction = predict(model, data.frame(PC1 = data.testing.pca[,1]), type = "class")
+    else
+      prediction = predict(model, data.testing.pca[,1:i], type = "class")
     
-    prediction = predict(model, dataset.testing.pca.predict[,1:i], type = "class")
-    results.cv[j] = mean(prediction == dataset.testing.pca.predict[,ncol(dataset.testing.pca.predict)])
+    results.cv[j] = mean(prediction == data.testing.pca[,ncol(data.testing.pca)])
   }
   
   results[i,] = results.cv
+  cat(i)
 }
 
 #Exporting results
