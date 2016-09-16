@@ -1633,3 +1633,163 @@ La inclusión de **K-Medias** en los modelos repercutó de manera diferente en a
 Para poder determinar cuál modelo es mejor que otro hay que irse por el tema de prioridades. Es decir, ¿Es más importante tener más cantidad de ataques detectados con un mayor número de falsos positivos presentes o es mejor un enfoque más conservador con menor cantidad de ataques detectados pero con menor cantidad de **falsos positivos** presentes? Particularmente me parece que la red neuronal es mejor debido a que el objetivo es la detección de ataques. Adicionalmente, en este caso los **falsos positivos** incrementan el trabajo del especialista para examinar los posibles ataques, y en caso de que una no sea correcta, esta puede ser etiquetada y ser usada para la retroalimentación del modelo, es decir, hay una curva de aprendizaje mucho más rápida que en el modelo híbrido de la máquina de soporte vectorial.
 
 Hasta este punto se han usado los parámetros por defecto, queda como tarea pendiente aún realizar la selección de características y la selección de parámetros y analizar el impacto sobre ambos enfoques.
+
+#Selección de características
+En esta sección se realizán las actividades concernientes a la selección de características. La idea principal detrás de la reducción de características es la de quitar aquellas variables predictoras que puedan introducir ruido al modelo, adicionalmente al haber menor cantidad de dimensiones el modelo es entrenado de forma más rápida, y las predicciones también son hechas con mayor velocidad. El conjunto de datos **NSL-KDD** quedó con 40 variables predictoras luego de realizar el pre-procesamiento, y en esta sección se reducirá su número y se analizará su impacto para los modelos híbridos basados en **red neuronal** y en **máquina de soporte vectorial**. 
+
+Se aplicarán dos métodos para la selección de características. El primer método, que es uno de los más populares y ampliamente usados en el área de **aprendizaje automático** es el **Análisis de Componentes Principales - PCA**. Con la técnica de PCA se crea un nuevo espacio de variables predictoras basándose en combinaciones lineales entre las mismas. Cómo ventaja para este enfoque se tiene una manera efectiva de visualizar y obtener aquellas nuevas variables predictoras que acumulan mayor cantidad de varianza. Por otra parte, se pierde interpretabilidad de los datos, debido a que ya no hay variables predictoras con un nombre que se pueda asociar a un evento producido en el ámbito del problema.
+
+Como segunda técnica se usará la **Reducción Gradual de Características - GFR** que es una técnica propuesta por Li en su trabajo *An Efficient Intrusion Detection System Based on Support Vector Machines and Gradually Feature Removal Method*. Esta técnica tuvo buenos resultados en dicha publiación, adicionalmente es sencilla de implementar y de esta manera se puede visualizar cuales son las variables predictoras más importantes ya que en esta se mantiene la interpretabilidad de los datos. Por otra parte, habrá que compararla con PCA para saber cuál de estas tiene mejor desempeño.
+
+Comenzaremos por la implementacion de PCA y posteriormente con GFR.
+
+##PCA
+En esta sección se describirán las actividas concernientes a la implementación y análisis de la aplicación de PCA sobre el conjunto de datos **NSL-KDD** para la reducción de características. Estas actividades corresponden al **análisis exploratorio** y posteriormente se calculará el error producido por cada uno de los modelos basados de **red neuronal** y **máquina de soporte vectorial**.
+
+###Análisis exploratorio
+Acá se aplicará PCA sobre el conjunto de datos y se verá con cuántas variales predictoras se acumula una cantidad suficiente de varianza acumulada. También se verá si este número de variables corresponde a una reducción significativa.
+
+Empezaremos las actividades limpiando el ambiente de trabajo, cargando el conjunto de datos de entrenamiento y el archivo de funciones.
+
+```{r}
+rm(list = ls())
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+source("../source/functions/functions.R")
+```
+
+Para probar el error de las características, se usarán los clasificadores **red neuronal** y **máquina de soporte vectorial**, debido a esto se usaŕan 5 clases objetivo y motivado por esto es necesario eliminar aquellas etiquetas innecesarias, transformar las columnas predictoras a tipo **numérico**, la columna objetivo a tipo **factor** y escalar el conjunto de datos para que estos tengan *media* cero (0) y *desviación estándar* uno (1).
+
+```{r}
+#Eliminando columnas innecesarias
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+
+#Cambiando el tipo de dato de las columnas
+for (i in 1:(ncol(dataset)-1))
+  dataset[,i] = as.numeric(dataset[,i])
+
+dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
+
+#Escalando las variables predictoras
+dataset = ScaleSet(dataset)
+```
+
+Ya se tiene el ambiente de trabajo listo, y ahora podemos aplicar PCA.
+
+```{r}
+pca = prcomp(dataset[,-41], scale. = TRUE)
+```
+
+Se utilizó la función **prcomp** perteneciente a la biblioteca **stats**. se observa que como pará metros se pasaron todas las variables predictoras (se dejó por fuera la variable objetivo), y se pidió que se escalara el conjunto de datos. El esacalamiento de los datos juega un rol fundamental en PCA debido a que las combinaciones lineales ameritan que los valores estén unificados con respecto a su rango para poder tener éxito. De otra manera, las combinaciones lineales podrían no tener sentido. A continuación veamos un resumen del objeto **pca**.
+
+```{r}
+summary(pca)
+```
+
+Se observa que las componente fueron enumeradas en las columnas de la forma **PCX** donde la *X* corresponde a un número en el rango [1,40] debido a que teníamos 40 variables predictoras inicialmente. Adicionalmente las filas corresponden a tres medidas que son: *desviación estándar* que mide la desviación estándar que se logra sin dicha componente. La *proporción de varianza* dice cuál es la varianza lograda por dicha componente individualmente. Por último, la *proporción acumulada* tiene la sumatoria de todas las proporciones de varianza hasta cierto punto; es decir, la *proporción acumulada* hasta la **componente principal 3** es la sumatoria de la proporción de varianza desde PC1 hasta PC3.
+
+Las primeras componentes al ser las que mayor cantidad de varianza acumulan son las más relevantes. A continuación colocaremos en un **dataframe** las siguientes medidas: *desviación estándar*, *varianza por componente*, *porcentaje de varianza acumulada* y *varianza acumulada*.
+
+```{r}
+std.deviation = pca$sdev
+PC.variance = std.deviation^2
+PR.variance = PC.variance/sum(PC.variance)
+cum.variance = cumsum(PR.variance) * 100
+summary.pca = data.frame(std_deviation = std.deviation,
+                         PC_variance = PC.variance,
+                         PR_variance = PR.variance,
+                         cum_variance = cum.variance)
+summary.pca
+```
+
+De esta manera podemos ver por lo menos en la primera fila que la componente número 1 tiene una *desviación estándar* de 2.78, una varianza de *7.75*, un *porcentaje de varianza acumulada* de 19.38% y una varianza acumulada de 19.38%. Anteriormente se mencionó que la selección de las componente principales debería tener una varianza acumulada de alredor 95%, este número se alcanza con 24 componentes. Lo que nos dice que teóricamente con 24 variables predictoras de nuestras componentes principales se puede tener una buena selección de características. Ahora grafiquemos la varianza acumulada en función del número de componentes, de esta manera, se puede tener una vista gráfica de a partir de cuál cantidad de componentes principales la varianza se estabiliza.
+
+```{r, fig.align="center"}
+plot(summary.pca$cum_variance,
+     ylab = "Cumulative Proportion",
+     xlab = "Number of Principal Components",
+     type = "b", col = "blue")
+```
+
+Se observa que a partir de aproximadamente 24 componentes, la varianza acumulada crece de manera bastante lenta y aparentemente se estabiliza en ese punto. Dicho esto, 24 debería ser un buen número de variables predictoras a usar, reduciendo así en 16 la dimensionalidad del conjunto de datos.
+
+Por último en vista para preparar el ambiente de trabajo para las siguientes actividades, se unificará el nuevo espacio de variables predictoras con las etiquetas correspondientes a cada registro.
+
+```{r, eval=FALSE}
+dataset.pca = as.data.frame(pca$x)
+dataset.pca = data.frame(dataset.pca,
+                         Label = dataset$Label)
+```
+
+Adicionalmente, cómo se usará **validación cruzada de 10 conjuntos**, se dividirá el conjunto de datos en 10 subconjuntos de manera estratificada.
+
+```{r, eval=FALSE}
+cv.sets = CVSet(dataset.pca, k = 10, seed = 22)
+```
+
+###Efecto de PCA sobre SVM
+En esta sección se evaluará el efecto de la aplicación de PCA sobre SVM. Para esto se entrenarán modelos haciendo uso desde [1,40] variables predictoras y se calculará la tasa de aciertos en cada iteración. Para validar el modelo se hará uso de la técnica de validación de modelos de **validación cruzada de 10 conjuntos**. Esta sección se dividirá en dos partes: **entrenamiento** y **análisis**.
+
+####Entrenamiento
+A continuación se describen todas las tareas realizadas en el proceso de entrenamiento de los modelos en el rango de [1,40] variables predictoras. Cabe destacar que se hará uso de las varibles parciales utilizadas en la *sección de PCA*, ya que son necesarias para la elaboración de los diferentes modelos.
+
+Empezaremos por crear una matriz para almacenar los resultados de cada iteración. La matriz será de 40x10, donde las 40 filas corresponden al número de componentes y las 10 columnas a cada iteración corresponden a una iteración en el proceso de validación cruzada. Con esta matriz luego se pueden calcular medidas cómo la *media* por componente y la *desviación estándar* o *varianza* dentro de cada componente.
+
+```{r, eval=FALSE}
+results = matrix(nrow = 40, ncol = 10)
+```
+
+El siguiente segmento de código es el encargado de ejecutar las 400 iteraciones correspondientes al entrenamiendo de los modelos de SVM utilizando **validación cruzada de 10 conjuntos**.
+
+```{r, eval=FALSE}
+for (i in 1:40)
+{
+  results.cv = vector(mode = "numeric", length = 10)
+  
+  for (j in 1:10)
+  {
+    data.cv.testing = cv.sets[[j]]
+    data.cv.training = cv.sets
+    data.cv.training[[j]] = NULL
+    data.cv.testing = as.data.frame(data.cv.testing)
+    data.cv.training = do.call(rbind, data.cv.training)
+    
+    data.training.pca = as.data.frame(data.cv.training[,1:i])
+    colnames(data.training.pca) = names(data.cv.training)[1:i]
+    data.training.pca = data.frame(data.training.pca,
+                                   Label = data.cv.training$Label)
+    
+    data.testing.pca = as.data.frame(data.cv.testing[,1:i])
+    colnames(data.testing.pca) = names(data.cv.testing)[1:i]
+    data.testing.pca = data.frame(data.testing.pca,
+                                     Label = data.cv.testing$Label)
+    
+    model = svm(Label ~ .,
+                           data = data.training.pca,
+                           kernel = "radial",
+                           scale = FALSE)
+    
+    if(i==1)
+      prediction = predict(model, data.frame(PC1 = data.testing.pca[,1]), type = "class")
+    else
+      prediction = predict(model, data.testing.pca[,1:i], type = "class")
+    
+    results.cv[j] = mean(prediction == data.testing.pca[,ncol(data.testing.pca)])
+  }
+  
+  results[i,] = results.cv
+  cat(i, " ")
+}
+```
+
+Una vez que se acaba el proceso, la matriz es exportada como un objeto para su posterior análisis. Esto es debido a que el proceso para el entrenamiento de los 400 modelos llevó alrededor de 16 horas, y es tedioso tener que esperar todo ese tiempo cada vez que se quiera analizar los resultados.
+
+```{r, eval=FALSE}
+saveRDS(results, file = "../source/feature_selection/SVM/results_PCA.rds")
+```
+
+####Análisis
+
