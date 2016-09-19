@@ -1792,4 +1792,164 @@ saveRDS(results, file = "../source/feature_selection/SVM/results_PCA.rds")
 ```
 
 ####Análisis
+En esta sección se realizará el análisis de los resultados obtenidos en la fase de entrenamiento. Se cargarán los resultados, se calcularán la *desviación estándar* y la *media* de los resultados por cada componente y se graficarán para poder decidir un buen número de componentes a elegir para nuestro modelo definitivo.
+
+Se empezarán las tareas preparando el ambiente de trabajo, esto incluye la eliminación de variables parciales y la carga del objeto de resultados de la sección anterior.
+
+```{r}
+rm(list = ls())
+results  = readRDS("../source/feature_selection/SVM/results_PCA.rds")
+```
+
+En la variable **results** se tiene una matriz con los resultados de la **eficacia** producto de la validación cruzada sobre la combinación de componentes principales en el intérvalo [1,40]. A continuación se crearán dos vectores en los cuales de almacenarán los resultados producto del cálculo de la *desviación estándar* y la *media* de la **eficacia** por cada una de las componentes.
+
+```{r}
+sd.results = vector(mode = "numeric", length = nrow(results))
+mean.results = vector(mode = "numeric", length = nrow(results))
+```
+
+Lo siguiente será el cálculo de la *desviación estándar* y la *media* respectivamente.
+
+```{r}
+#Cálculo de la desviación estándar
+for (i in 1:length(sd.results))
+  sd.results[i] = sd(results[i,])
+
+#Cálculo de la media
+for (i in 1:length(mean.results))
+  mean.results[i] = mean(results[i,])
+```
+
+Para seleccionar el número de componentes se usará un criterio similar al del **codo de jambu**, es decir, se buscará el punto donde la **eficacia** empieza a suavizarse conforme el número de componentes principales son agregadas, adicionalmente, se verificará que la *desviación estándar* sea poca para dicho número de componentes.
+
+```{r, fig.align = "center"}
+#Dividiendo la pantalla en dos columnas
+par(mfrow = c(1,2))
+
+#Graficando Desviación Estándar vs Número de Componentes
+plot(sd.results, col = "blue", type = "b",
+     main = "Standard Dev. vs Components",
+     xlab = "Number of Components", ylab = "Standard Deviation")
+
+#Graficando Media de Eficacia vs Número de Componentes
+plot(mean.results, col = "blue", type = "b",
+     main = "Mean vs Components",
+     xlab = "Number of Components", ylab = "Mean Accuracy")
+```
+
+En las gráficas se observa que con 7 componentes principales que logra una **tasa de aciertos** de alrededor del 99%. A partir de ese punto la mejora obtenida es mínima; adicionalmente, se observa que la *desviación estándar* para dicho número de componentes principales es bastante bajo.
+
+Por lo anterior, se puede pensar que con 7 componentes principales se lograría una buena tasa de aciertos en la **detección de intrusos** y se reduciría la dimensionalidad del conjunto de datos en un 82.5%.
+
+###Efecto de PCA sobre NN
+En esta sección se evaluará el efecto de la aplicación de PCA sobre NN. Para esto se entrenarán modelos haciendo uso desde [1,40] variables predictoras y se calculará la tasa de aciertos en cada iteración. Para validar el modelo se hará uso de la técnica de validación modelos de **validación cruzada de 10 conjuntos**. Esta sección se dividirá en dos partes **entrenamiento** y **análisis**.
+
+####Entrenamiento
+
+A continuación se describren todas las tareas realizadas en el proceso de entrenamiento de los modelos en el rango [1,40] variables predictoras. Cabe destacar que se hará uso de las variables parciales utilizadas en la **sección de PCA**, ya que son necesarias para la elaboración de los diferentes modelos.
+
+Empezaremos por crear una matriz para almacenar los resultados de cada iteración. La matriz será de 40x10, donde las 40 filas corresponden al número de componentes y las 10 columnas a cada iteración durante el proceso de **validación cruzada**. Con esta matriz luego se pueden calcular medidas como la *media*, la *desviación estándar* o *varianza* por número de componentes.
+
+```{r, eval = FALSE}
+results = matrix(nrow = 40, ncol = 10)
+```
+
+El siguiente segmento de código es el encargado de ejecutar las 400 iteraciones correspondientes al entrenamiento de los modelos de NN utilizando **validación cruzada de 10 conjuntos**.
+
+```{r, eval=FALSE}
+for (i in 1:40)
+{
+  results.cv = vector(mode = "numeric", length = 10)
+  
+  for (j in 1:10)
+  {
+    data.cv.testing = cv.sets[[j]]
+    data.cv.training = cv.sets
+    data.cv.training[[j]] = NULL
+    data.cv.testing = as.data.frame(data.cv.testing)
+    data.cv.training = do.call(rbind, data.cv.training)
+    
+    data.training.pca = as.data.frame(data.cv.training[,1:i])
+    colnames(data.training.pca) = names(data.cv.training)[1:i]
+    data.training.pca = data.frame(data.training.pca,
+                                   Label = data.cv.training$Label)
+    
+    data.testing.pca = as.data.frame(data.cv.testing[,1:i])
+    colnames(data.testing.pca) = names(data.cv.testing)[1:i]
+    data.testing.pca = data.frame(data.testing.pca,
+                                  Label = data.cv.testing$Label)
+    
+    model = nnet(Label ~ .,
+                 data = data.training.pca,
+                 size = 20,
+                 maxit = 100)
+    
+    if(i==1)
+      prediction = predict(model, data.frame(PC1 = data.testing.pca[,1]), type = "class")
+    else
+      prediction = predict(model, data.testing.pca[,1:i], type = "class")
+    
+    results.cv[j] = mean(prediction == data.testing.pca[,ncol(data.testing.pca)])
+  }
+  
+  results[i,] = results.cv
+  cat(i, " ")
+}
+```
+
+una vez que se acaba el proceso, la matriz es exportada como un objeto para su posterior análisis. Esto es debiado a que el proceso de entrenamiento para los 400 modelos llevó alrededor de 13 horas, y es tedioso tener que esperar todo ese tiempo cada vez que se quieran analizar los resultados.
+
+```{r, eval=FALSE}
+saveRDS(results, file = "../source/feature_selection/NN/results_PCA.rds")
+```
+
+####Análisis
+En esta sección se realizará el análisis de los resultados obtenidos en la fase de entrenamiento. Se cargarán los resultados, se calculará la *desviación estándar* y la *media* de los resultados por cada número de componentes y se graficarán para poder decidir un buen número de componentes a elegir apra nuestro modelo definitivo.
+
+Se empezarán las tareas preparando el ambiente de trabajo, esto incluye la eliminación de variables parciales y la carga dle objeto de los resultados de la sección anterior.
+
+```{r}
+rm(list = ls())
+results = readRDS("../source/feature_selection/NN/results_PCA.rds")
+```
+
+En la variable **results** se tiene una matriz con los resultados de la **eficacia** producto de la aplicación de **validación cruzada** sobre la combinación de componentes principales en el intérvalo [1,40]. A continuación se crearán dos vectores en los cuales se almacenarán los resultados producto del cálculo de la *desviación estándar* y la *media* de la **eficacia** por cada una de las componentes.
+
+```{r}
+sd.results = vector(mode = "numeric", length = nrow(results))
+mean.results = vector(mode = "numeric", length = nrow(results))
+```
+
+Lo siguiente será el cálculo de la *desviación estándar* y la *media* respectivamente.
+
+```{r}
+#Cálculo de la desviación estándar
+for (i in 1:length(sd.results))
+  sd.results[i] = sd(results[i,])
+#Cálculo de la media
+for (i in 1:length(mean.results))
+  mean.results[i] = mean(results[i,])
+```
+
+Para seleccionar el número de componentes se usará un criterio similar al del **codo de jambu**. es decir, se buscará el punto donde la **eficacia** empieza a suavizarse conforme el número de componentes principales son agregadas; adicionalmente, se verificará que la *desviación estándar* sea poca para dicho número de componentes.
+
+```{r, fig.align="center"}
+#Dividiendo la pantalla en dos columnas
+par(mfrow = c(1,2))
+#Graficando Desviación Estándar vs Número de Componentes
+plot(sd.results, col = "blue", type = "b",
+main = "Standard Dev. vs Components",
+xlab = "Number of Components", ylab = "Standard Deviation")
+#Graficando Media de Eficacia vs Número de Componentes
+plot(mean.results, col = "blue", type = "b",
+main = "Mean vs Components",
+xlab = "Number of Components", ylab = "Mean Accuracy")
+```
+
+En las gráficas se observa que con 7 componentes principales se logra una **tasa de aciertos** de alrededor del 99%. A partir de ese punto, la mejora obtenida es mínima; adicionalmente, se observa que la *desviación estándar* para dicho número de componentes principales es bastante bajo.
+
+Por lo anterior se puede pensar que con 7 componentes principales se lograría una buena tasa de aciertos en la **detección de intrusos**, y se reduciría la dimensionalidad del conjunto de datos en un 82.5%.
+
+###Conclusión
+Una buena medida para seleccionar el número de componentes principales según **Andrew Ng** experto en el área de **aprendizaje automático** es elegir el número de componentes principales que logren capturar varianza en el rango [95%, 99%]. En el análisis exploratorio se observó que la medida de 95% es alcanzada con el uso de 24 componentes principales. Sin embargo, en la las secciones donde se realizó el análisis de PCA sobre SVM y NN, se puede notar que con 7 componentes principales se logra un excelente rendimiento reduciendo en 82.5% la dimensionalidad del conjunto de datos. La fase de análisis fue realizada haciendo uso de la técnica de validación de modelos de **validación cruzada de 10 conjuntos** y quedaría por ver el rendimiento de estos algoritmos utilizando el conjunto de pruebas para medir la eficacia de los mismos.
 
