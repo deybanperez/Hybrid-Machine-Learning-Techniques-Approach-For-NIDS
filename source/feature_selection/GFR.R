@@ -47,7 +47,8 @@ GFR = function(dataset, algorithm)
         }
         
         #Creo la predicciones
-        prediction = predict(model, testing.set[,-ncol(testing.set)], type = "class")
+        prediction = predict(model, subset(testing.set, subset = TRUE, select = names(testing.set)[-ncol(testing.set)]),
+                             type = "class")
         #Almaceno la media en al posición correspondiente
         results.cv[k] = mean(prediction == testing.set[, ncol(testing.set)])
       }
@@ -57,7 +58,7 @@ GFR = function(dataset, algorithm)
       
       #Si i == 1 agrego el de dicha columna al vector de nombres
       if(i == 1)
-        names.features[i] = names(training.set)
+        names.features[i] = names(training.set)[1]
       else #Sino agrego el vector que dice que usé todas la columnas
         names.features[i] = "All"
       
@@ -104,7 +105,8 @@ GFR = function(dataset, algorithm)
           }
           
           #Creo las predicciones
-          prediction = predict(model, testing.set[,-ncol(testing.set)], type = "class")
+          prediction = predict(model, subset(testing.set, subset = TRUE, select = names(testing.set)[-ncol(testing.set)]),
+                               type = "class")
           #Almaceno la media de las predicciones en la posición concerniente
           results.cv[k] = mean(prediction == testing.set[, ncol(testing.set)])
         }
@@ -124,6 +126,8 @@ GFR = function(dataset, algorithm)
       #Actualizo el vector auxiliar eliminando la columna no presente en el mejor resultado
       auxiliar.data = auxiliar.data[,-temporal.j]
     }
+    
+    cat(i, " ")
   }
   #Agrego los nombres a las filas
   rownames(features) = names.features
