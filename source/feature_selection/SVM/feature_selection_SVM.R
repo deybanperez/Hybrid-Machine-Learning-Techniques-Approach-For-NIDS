@@ -60,6 +60,21 @@ dataset.pca = data.frame(dataset.pca,
 cv.sets = CVSet(dataset.pca, k = 10, seed = 22)
 length(cv.sets)
 
+#Plotting the two first main components
+colors = as.character(dataset.pca[,ncol(dataset.pca)])
+colors[colors == "normal"] = "black"
+colors[colors == "DoS"] = "red"
+colors[colors == "Probing"] = "green"
+colors[colors == "R2L"] = "blue"
+colors[colors == "U2R"] = "cyan"
+
+plot(x = dataset.pca[,1],  y = dataset.pca[,2], col = colors,
+     main = "Gráfico de las Dos Componenets Principales",
+     xlab = "Componente 1", ylab = "Componente 2", pch = 19)
+
+legend("bottomleft", legend = c("Normal", "DoS", "Probing", "R2L", "U2R"),
+       col = c("black","red", "green", "blue", "cyan"), pch = 19)
+
 #PCA with 10-Fold Cross Validation
 results = matrix(nrow = 40, ncol = 10)
 

@@ -9,6 +9,7 @@ source("functions/functions.R")
 #Installing packages
 #install.packages("e1071")
 #install.packages("factoextra")
+#install.packages("nnet")
 #Loading packages
 require("nnet")
 require("factoextra")
@@ -51,7 +52,20 @@ plot(summary.pca$cum_variance,
      xlab = "Number of Principal Components",
      type = "b", col = "blue")
 
-fviz_pca_var(pca, col.var= "contrib")
+#Plotting the two first main components
+colors = as.character(dataset.pca[,ncol(dataset.pca)])
+colors[colors == "normal"] = "black"
+colors[colors == "DoS"] = "red"
+colors[colors == "Probing"] = "green"
+colors[colors == "R2L"] = "blue"
+colors[colors == "U2R"] = "cyan"
+
+plot(x = dataset.pca[,1],  y = dataset.pca[,2], col = colors,
+     main = "Gráfico de las Dos Componentes Principales",
+     xlab = "Componente 1", ylab = "Componente 2", pch = 19)
+
+legend("bottomleft", legend = c("Normal", "DoS", "Probing", "R2L", "U2R"),
+       col = c("black","red", "green", "blue", "cyan"), pch = 19)
 
 dataset.pca = as.data.frame(pca$x)
 dataset.pca = data.frame(dataset.pca,

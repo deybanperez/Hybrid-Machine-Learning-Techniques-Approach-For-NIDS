@@ -1716,13 +1716,35 @@ plot(summary.pca$cum_variance,
 
 Se observa que a partir de aproximadamente 24 componentes, la varianza acumulada crece de manera bastante lenta y aparentemente se estabiliza en ese punto. Dicho esto, 24 debería ser un buen número de variables predictoras a usar, reduciendo así en 16 la dimensionalidad del conjunto de datos.
 
-Por último en vista para preparar el ambiente de trabajo para las siguientes actividades, se unificará el nuevo espacio de variables predictoras con las etiquetas correspondientes a cada registro.
+Se unificará el nuevo espacio de variables predictoras con las etiquetas correspondientes a cada registro.
 
-```{r, eval=FALSE}
+```{r}
 dataset.pca = as.data.frame(pca$x)
 dataset.pca = data.frame(dataset.pca,
                          Label = dataset$Label)
 ```
+
+Para terminar con el análisis exploratorio se graficarán las primeras dos componentes principales para visualizar si existe una separación notable entre los registros clasificados como **ataques** y los clasificados como **tráfico normal**.
+
+
+```{r, fig.align= "center"}
+colors = as.character(dataset.pca[,ncol(dataset.pca)])
+colors[colors == "normal"] = "black"
+colors[colors == "DoS"] = "red"
+colors[colors == "Probing"] = "green"
+colors[colors == "R2L"] = "blue"
+colors[colors == "U2R"] = "cyan"
+
+plot(x = dataset.pca[,1],  y = dataset.pca[,2], col = colors,
+     main = "Gráfico de las Dos Componentes Principales",
+     xlab = "Componente 1", ylab = "Componente 2", pch = 19)
+
+legend("bottomleft", legend = c("Normal", "DoS", "Probing", "R2L", "U2R"),
+       col = c("black","red", "green", "blue", "cyan"), pch = 19)
+
+```
+
+En la gráfica se observa como los ataques **DoS** y **Probing** en su mayoría poseen una separación bastante marcada con respecto al **tráfico normal**, adicionalmente se observa que estas fronteras poseen una forma no lineal. Los ataques **R2L** y **U2R** están escondidos dentro del conglomerado de puntos del **tráfico normal**, situación que posiblemente conlleve a que esta clase de *ataques** sea más difícil de detectar que las clases **DoS** y **Probing**.
 
 Adicionalmente, cómo se usará **validación cruzada de 10 conjuntos**, se dividirá el conjunto de datos en 10 subconjuntos de manera estratificada.
 
