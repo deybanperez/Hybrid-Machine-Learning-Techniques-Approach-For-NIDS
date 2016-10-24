@@ -7,17 +7,11 @@ require("nnet")
 #Loading the results
 results  = readRDS("feature_selection/NN/results_PCA.rds")
 ###########################################################
-#Creating new variables
-sd.results = vector(mode = "numeric", length = nrow(results))
-mean.results = vector(mode = "numeric", length = nrow(results))
-
 #Calculating standard deviation
-for (i in 1:length(sd.results))
-  sd.results[i] = sd(results[i,])
+sd.results = apply(results, 1, sd)
 
 #Calculating mean
-for (i in 1:length(mean.results))
-  mean.results[i] = mean(results[i,])
+mean.results = apply(results, 1, mean)
 
 ##########################################################
 #Splitting the screen in 2
