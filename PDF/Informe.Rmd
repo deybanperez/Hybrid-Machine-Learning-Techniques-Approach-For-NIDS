@@ -2250,3 +2250,19 @@ Con GFR se muestra que se puede obtener bueno resultados para ambos modelos (SVM
 ##Análisis entre PCA y GFR
 
 Una vez realizadas las pruebas concernientes se puede observar que desde un punto de vista de rendimiento, PCA alcanza el 99% de precisión con 7 variables mientras que GFR alcanza 99% con 9 variables. Adicionalmente, PCA tardó a penas 13 horas para poder realizar la selección de componente principales, mientras que con GFR el proceso duró 12 días. Sin embargo, con GFR se pudo mantener el nombre de las variables importantes y no se perdió interpretación como si sucedió con la aplicación de PCA.
+
+#Selección de parámetros
+ene sta sección se detallan las actividades realizadas para la selección de parámetros y características. Esta sección abarca la selección de parámetros para los conjuntos de datos producto de PCA, GFR y el conjunto de datos original. Por lo mismo, esta sección será divida en *conjunto de datos original* y *conjunto de datos reducido*.
+
+Para la selección de los parámetros se hará uso de la técnica de *validación cruzada de 10 conjuntos* para de esta manera porder comparar el rendimiento de los modelos de la manera correcta.
+
+##Conjunto de datos original
+Acá se utilizará, es decir, se utilizarán todas las características presentes en el conjunto de datos.
+
+###SVM
+En esta sección se hará la selección de parámetros para el algoritmo SVM con kernel radial.
+
+
+
+###NN
+En esta sección se hará la selección de parámetros para el algoritmo NN.

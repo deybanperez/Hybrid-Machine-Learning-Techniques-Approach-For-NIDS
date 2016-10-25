@@ -1,4 +1,4 @@
-# Implementación y Análisis de Técnicas Híbridas de Aprendizaje Automático en la Detección de Intrusos en Redes de Computadoras.
+# Implementación y Análisis de Técnicas Híbridas de Aprendizaje Automático en la Detección de Intrusos en Redes de Computadoras
 Este repositorio corresponde al Trabajo Especial de Grado de mi persona, Deyban Andrés Pérez Abreu. El mismo tiene el siguiente título *Implementación y Análisis de Técnicas Híbridas de Aprendizaje Automático en la Detección de Intrusos en Redes de Computadoras*.
 
 Este trabajo busca responder la siguiente pregunta: ¿Es posible obtener un modelo eficaz al aplicar técnicas de aprendizaje automático en el aŕea de detección de intrusos en redes de computadoras? Para ello se plantearon los siguientes objetivos:
