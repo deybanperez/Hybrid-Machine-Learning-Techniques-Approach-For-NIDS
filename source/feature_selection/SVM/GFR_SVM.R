@@ -16,7 +16,7 @@ dataset$Label_Normal_or_Attack = NULL
 for (i in 1:(ncol(dataset)-1))
   dataset[,i] = as.numeric(dataset[,i])
 
-#Transforming remaining labes into numeric class
+#Transforming remaining labels into numeric class
 dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
 
 #Scaling

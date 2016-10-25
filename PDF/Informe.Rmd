@@ -1826,20 +1826,8 @@ results  = readRDS("../source/feature_selection/SVM/results_PCA.rds")
 En la variable **results** se tiene una matriz con los resultados de la **eficacia** producto de la validación cruzada sobre la combinación de componentes principales en el intérvalo [1,40]. A continuación se crearán dos vectores en los cuales de almacenarán los resultados producto del cálculo de la *desviación estándar* y la *media* de la **eficacia** por cada una de las componentes.
 
 ```{r}
-sd.results = vector(mode = "numeric", length = nrow(results))
-mean.results = vector(mode = "numeric", length = nrow(results))
-```
-
-Lo siguiente será el cálculo de la *desviación estándar* y la *media* respectivamente.
-
-```{r}
-#Cálculo de la desviación estándar
-for (i in 1:length(sd.results))
-  sd.results[i] = sd(results[i,])
-
-#Cálculo de la media
-for (i in 1:length(mean.results))
-  mean.results[i] = mean(results[i,])
+sd.results = apply(results, 1, sd)
+mean.results = apply(results, 1, mean)
 ```
 
 Para seleccionar el número de componentes se usará un criterio similar al del **codo de jambu**, es decir, se buscará el punto donde la **eficacia** empieza a suavizarse conforme el número de componentes principales son agregadas, adicionalmente, se verificará que la *desviación estándar* sea poca para dicho número de componentes.
@@ -1938,19 +1926,8 @@ results = readRDS("../source/feature_selection/NN/results_PCA.rds")
 En la variable **results** se tiene una matriz con los resultados de la **eficacia** producto de la aplicación de **validación cruzada** sobre la combinación de componentes principales en el intérvalo [1,40]. A continuación se crearán dos vectores en los cuales se almacenarán los resultados producto del cálculo de la *desviación estándar* y la *media* de la **eficacia** por cada una de las componentes.
 
 ```{r}
-sd.results = vector(mode = "numeric", length = nrow(results))
-mean.results = vector(mode = "numeric", length = nrow(results))
-```
-
-Lo siguiente será el cálculo de la *desviación estándar* y la *media* respectivamente.
-
-```{r}
-#Cálculo de la desviación estándar
-for (i in 1:length(sd.results))
-  sd.results[i] = sd(results[i,])
-#Cálculo de la media
-for (i in 1:length(mean.results))
-  mean.results[i] = mean(results[i,])
+sd.results = apply(results, 1, sd)
+mean.results = apply(results, 1, mean)
 ```
 
 Para seleccionar el número de componentes se usará un criterio similar al del **codo de jambu**. es decir, se buscará el punto donde la **eficacia** empieza a suavizarse conforme el número de componentes principales son agregadas; adicionalmente, se verificará que la *desviación estándar* sea poca para dicho número de componentes.
@@ -1975,3 +1952,301 @@ Por lo anterior se puede pensar que con 7 componentes principales se lograría u
 ###Conclusión
 Una buena medida para seleccionar el número de componentes principales según **Andrew Ng** experto en el área de **aprendizaje automático** es elegir el número de componentes principales que logren capturar varianza en el rango [95%, 99%]. En el análisis exploratorio se observó que la medida de 95% es alcanzada con el uso de 24 componentes principales. Sin embargo, en la las secciones donde se realizó el análisis de PCA sobre SVM y NN, se puede notar que con 7 componentes principales se logra un excelente rendimiento reduciendo en 82.5% la dimensionalidad del conjunto de datos. La fase de análisis fue realizada haciendo uso de la técnica de validación de modelos de **validación cruzada de 10 conjuntos** y quedaría por ver el rendimiento de estos algoritmos utilizando el conjunto de pruebas para medir la eficacia de los mismos.
 
+##GFR
+En esta sección se describen las actividades concernientes a la implementación y análisis de *GFR* sibre el conjunto de datos NSL-KDD para la reduccción de características. estas actividades corresponden al análisis de los resultados obtenidos para los modelos de *red neuronal* y *máquina de soporte vectorial*.
+
+###Efecto de GFR sobre SVM
+En esta sección se evaluará el efecto de la aplicación de GFR sobre SVM. Para esto se entrenarán modelos haciendo uso desde [1,40] variable predictoras y se calculará la tasa de aciertos en cada iteración. Para validar el modelo se hará uso de la técnica de validación de modelos de *validación cruzada de 10 conjuntos*. Esta sección se divide en dos partes: *entrenamiento* y *análisis*.
+
+####Entrenamiento
+Acá se describen todas las tareas realizadas en el proceso de entrenamiento de los modelos en el rango [1,40] variables predictoras. Se iniciará preparando el ambiente de trabajo: limpiar variables parciales, cargar paquetes necesarios y archivo de funciones.
+
+```{r, eval=FALSE}
+rm(list = ls())
+require("e1071")
+source("functions/functions.R")
+```
+
+Se eliminan las etiquetas a no ser usadas.
+
+```{r, eval=FALSE}
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Se transforman las variables predictoras a tipo *numérico*.
+
+```{r, eval=FALSE}
+for (i in 1:(ncol(dataset)-1))
+  dataset[,i] = as.numeric(dataset[,i])
+```
+
+Se transforma la variable objetivo a tipo *factor* esto es debido a que se realizarán labores de *clasificación*. Es importarnte recordar que la variable objetivo posee cinco clases: DoS, normal, Probing, R2L y U2R.
+
+```{r, eval= FALSE}
+dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
+```
+
+Se escala el conjunto de datos para que todas las variables predictoras tengan *media* cero (0) y *desviación estándar* uno (1).
+
+```{r, eval=FALSE}
+dataset = ScaleSet(dataset)
+```
+
+En este punto se tiene todo listo para aplicar el algoritmo GFR, este fue comprimido en la función **GFR** que recibe como parámetros un **dataframe** y el tipo de algoritmo que se desea usar **SVM** o **NN**.
+
+```{r, eval=FALSE}
+results = GFR(dataset, "NN")
+```
+
+*GFR* retorna una matriz de dimensiones 41x10 donde 41 son la cantidad de resultados por característica eliminada y 10 son los resultados obtenidos por iteración durante el proceso de *validación cruzada de 10 conjuntos*. Por último dicha matriz será almacenada en un objeto para su posterior análisis. El tiempo de entrenamiento de este método fue de 12 días, un tiempo bastante elevado y más si se compara con el método de reducción de características PCA.
+
+```{r, eval=FALSE}
+saveRDS(results, "../source/feature_selection/SVM/results_GFR.rds")
+```
+
+
+####Análisis
+En esta sección se describen las actividades realizadas para la fase de análisis. Esta empezará limpiando el ambiente de trabajo de variables parciales y cargando el archivo de funciones.
+
+```{r}
+rm(list = ls())
+source("../source/functions/functions.R")
+```
+
+A continuacióm se cargará el objeto con los resultados obtenidos en la sección anterior.
+
+```{r}
+svm.gfr = readRDS("../source/feature_selection/SVM/results_GFR.rds")
+```
+
+Las características más importantes extraídas en el proceso anterior se ilustran a continuación en orden descendente de importancia; es decir, la primera representa la más importante y las siguientes implican menor importancia.
+
+```{r}
+rownames(svm.gfr)[-nrow(svm.gfr)]
+```
+
+Veamos si con las primeras dos variables se puede determinar gráficamente alguna separación notable con respecto al tráfico *normal* o a los *ataques*. Para ello primero debemos cargar el conjutno de datos de entrenamietno y eliminar las columnas de etiquetas que no se utilizarán.
+
+```{r}
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+
+#Eliminando características innecesarias
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Adicionalmente se asegurará que las columnas variables predictoras sean de tipo *numérico*.
+
+```{r}
+for (i in 1:(ncol(dataset)-1))
+  dataset[,i] = as.numeric(dataset[,i])
+```
+
+Luego es necesario crear un vector de colores para poder diferenciar entre las diferentes clases en el gráfico.
+
+```{r}
+colors = as.character(dataset[,ncol(dataset)])
+colors[colors == "normal"] = "black"
+colors[colors == "DoS"] = "red"
+colors[colors == "Probing"] = "green"
+colors[colors == "R2L"] = "blue"
+colors[colors == "U2R"] = "cyan"
+```
+
+Donde *negro* corresponde a la clase normal, *rojo* a ataques DoS, *verde* a ataques Probing, *azúl* a ataques *R2L* y *cyan* a ataques *U2R*. El gráfico de las dos primeras características más importantes se muestra a continuación.
+
+```{r, fig.align="center"}
+par(mfrow = c(1,1))
+plot(dataset[, rownames(svm.gfr)[1]], dataset[, rownames(svm.gfr)[2]],
+     col = dataset$Label, pch = 19,
+     xlab = "Flag", ylab = "Count",
+     main = "Principales Características GFR - SVM")
+```
+
+En la gráfica anterior se pueden observar patrones con respecto a los valores de las características que pueden ayudar a la separación de las clases, por ejemplo, si *Flag* = 2 y *Count* >= 300, se puede decir que dicho registro pertenece a un a ataque probing. Sin embargo, SVM no funciona de esta manera (estableciendo reglas), a su vez, funciona delimitando fronteras, esto puede presentar una situación a analizar para la decisión del uso de SVM o de NN por ejemplo. Ya que NN si es capaz de establecer reglas como las mencionadas anteriormente.
+
+Ahora se procede a realizar los pasos para el análisis de las características a elegir de forma definitiva. Inicialmente, se calculan y la *media* y *desviación estándar*.
+
+```{r}
+mean.values = apply(svm.gfr, 1, mean)
+sdeviation.values = apply(svm.gfr, 1, sd)
+```
+
+Y se grafican las medidas calculadas previamente.
+
+```{r, fig.align="center"}
+par(mfrow = c(1,2))
+plot(sdeviation.values[2:length(mean.values)],
+     type = "b", col = "blue",
+     main = "SDeviation vs #Components",
+     xlab = "Number of Components", ylab = "Standard Deviation")
+plot(mean.values[2:length(mean.values)],
+     type = "b", col = "blue",
+     main = "Mean vs #Components",
+     xlab = "Number of Components", ylab = "Mean")
+```
+
+Para la selección de características en esta sección se usa un criterio similar al de *codo de jambu*. Acá se observá que la articulación se logra con 9 0 10 características. Como se observa en el gráfico de la *desviación estándar*, los resultados con 9 variables son más estables que con 10 variables y por dicho motivo se seleccionará dicho número como cantidad de variables ideal para el modelo de SVM. Las mismas se listan a continuación.
+
+```{r}
+rownames(svm.gfr)[1:9]
+```
+
+Luego, se puede observar con con la selección de 9 variables se lograría reducir la dimensionalidad del conjunto de datos en un 77.5%.
+
+###Efecto de GFR sobre NN
+En esta sección se evalua el efecto de la aplicación de GFR sobre SVM. Para esto se entrenan modelos haciendo uso de [1,40] variables predictoras y se calculan las tasa se aciertos en cada iteración. Para validar el modelo se hará uso de la técnica de *validación cruzada de 10 conjuntos*. Esta sección está dividida en dos partes: *entrenamiento* y *análisis*.
+
+####Entrenamiento
+Acá se describen todas las tareas realizadas en el proceso de entrenamiento de los modelos en el rango [1,40] variables predictoras. Se iniciará prepandado el ambiente de trabajo: limpiar variables parciales, cargar paquetes necesarios y archivos de funciones.
+
+```{r, eval=FALSE}
+rm(list = ls())
+require("nnet")
+source("functions/functions.R")
+```
+
+Se eliminan las etiquetas que no serán usadas.
+
+```{r, eval=FALSE}
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Se transforman las variables predictoras a tipo *numérico*.
+
+```{r, eval=FALSE}
+for (i in 1:(ncol(dataset)-1))
+  dataset[,i] = as.numeric(dataset[,i])
+```
+
+Se transforma la variabe objetivo a tipo factor, esto debido a que se realizarán labores de *clasificación*. Es importante recordar que la variable objetivo posee cinco clases: DoS, normal, Probing, R2L y U2R.
+
+```{r, eval=FALSE}
+dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
+```
+
+Se escala el conjutno de datos para que todas las variables predictoras tengan *media* cero (0) y *desviación estándar* uno (1).
+
+```{r, eval=FALSE}
+dataset = ScaleSet(dataset)
+```
+
+En este punto se tiene todo listo para aplicar el algoritmo GFR, este fue comprimido en la función **GFR** que recibe como parámetros un *dataframe* y el tipo de algortimo que se desea usar **SVM** o **NN**,
+
+```{r, eval=FALSE}
+results = GFR(dataset, "SVM")
+```
+
+GFR retorna una matriz de dimensiones 41x10, donde 41 corresponde a la cantidad de resultados por característica eliminada y 10 son los resultados obtenidos por iteración durante el proceso de *validación cruzada de 10 conjuntos*. Por último, la matriz será almacenada en un objeto para su posterior análisis. Esto debido a que este proceso duró 12 días para su culminación.
+
+```{r, eval=FALSE}
+saveRDS(results, "../source/feature_selection/NN/results_GFR.rds")
+```
+
+####Análisis
+Esta sección describe las actividades realizadas para la fase de análisis. Estas iniciarán limpiando el ambiente de trabajo de variables parciales y cargando el archivo de funciones.
+
+```{r}
+rm(list = ls())
+source("../source/functions/functions.R")
+```
+
+A continuación se cargará el objeto con los resultados obtenidos en la sección anterior.
+
+```{r}
+nn.gfr = readRDS("../source/feature_selection/NN//results_GFR.rds")
+```
+
+A continuación se ilustran los resultados de las características obtenidas en la sección anterior. Las mismas están ordenadas de manera descendente; es decir, las primeras posiciones representan las más importantes.
+
+```{r}
+rownames(nn.gfr)[-nrow(nn.gfr)]
+```
+
+Veamos si con las primeras dos variables má simportantes se puede determinar gráficamente alguna separación notable con respecto al *trafico normal* o a los *ataques*. Para ello primero debemos cargar el conjunto de datos de entrenamiento y eliminar las columnas de etiquetas que no se utilizarán.
+
+```{r}
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+#Eliminando características innecesarias
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Adicionalmente se asegurará que las columnas de variables predictoras sean de tipo *numérico*.
+
+```{r}
+for (i in 1:(ncol(dataset)-1))
+  dataset[,i] = as.numeric(dataset[,i])
+```
+
+Luego, es necesario crear un vector de colores para poder diferencias las diferentes clases en el gráfico.
+
+```{r}
+colors = as.character(dataset[,ncol(dataset)])
+colors[colors == "normal"] = "black"
+colors[colors == "DoS"] = "red"
+colors[colors == "Probing"] = "green"
+colors[colors == "R2L"] = "blue"
+colors[colors == "U2R"] = "cyan"
+```
+
+Donde *negro* corresponde a la clase normal, *rojo* a ataques DoS, *verde* a ataques Probing, *azúl* a ataques R2L y *cyan* a ataques U2R. El gráfico de las dos primeras características más importantes se muestra a continuación.
+
+```{r, fig.align="center"}
+par(mfrow = c(1,1))
+plot(dataset[, rownames(nn.gfr)[1]], dataset[, rownames(nn.gfr)[2]],
+     col = dataset$Label, pch = 19,
+     xlab = "Count", ylab = "Protocol Type",
+     main = "Principales Características GFR - NN")
+```
+
+En el gráfico se observan patrones que pueden separar notablemente a las diferentes clases. Por ejemplo, si Count > 50 y Protocol Type = 1, entonces el tráfico es normal. El gráfico muestra separaciones bastante ordenadas y esto ayuda mucho a la forma en la que se comportan las redes neuronales, ya que este algoritmo busca patrones analíticos en los datos que ayuden a la clasificación.
+
+Ahora se procede a realizar los pasos para el análisis de las características a elegir de forma definitiva. inicialmente, se calculan la *media* y *desviación estándar*.
+
+```{r}
+mean.values = apply(nn.gfr, 1, mean)
+sdeviation.values = apply(nn.gfr, 1, sd)
+```
+
+Y se gracian las medidas calculadas previamente.
+
+```{r, fig.align="center"}
+par(mfrow = c(1,2))
+plot(sdeviation.values[2:length(mean.values)],
+     type = "b", col = "blue",
+     main = "SDeviation vs #Components",
+     xlab = "Number of Components", ylab = "Standard Deviation")
+plot(mean.values[2:length(mean.values)],
+     type = "b", col = "blue",
+     main = "Mean vs #Components",
+     xlab = "Number of Components", ylab = "Mean")
+```
+
+Para la selección de características en esta sección se usa un criterio similar al de *codo de jambu*. Acá se pbserva que la articulación se logar con 9 ó 10 características. En el gráfico de *desviación estándar*, los resultados con 9 variables son más estables que con 10 variables y por dicho motivo se seleccionará dicho número como cantidad de variables ideal para el modelo de NN. Las mismas se listan a continuación.
+
+```{r}
+rownames(nn.gfr)[1:9]
+```
+
+Luego, se observa que con la selección de 9 variables se logra reducir la dimensionalidad del conjunto de datos en un 77.5%.
+
+###Conclusión
+
+Con GFR se muestra que se puede obtener bueno resultados para ambos modelos (SVM y NN) usando el 22.5% de las variables totales. Se observó también que la desviación estándar de los resultados en ambos casos es pequeña, por no decir mínima, y esto es un hecho que respalda positivamente a los resultados obtenidos, indicando que la reducción de dimensionalidad para este escenario es válido y efectivo. Como aspecto a destacar está el orden de las características seleccionadas es diferente con respecto a los modelos de SVM y NN y esto tiene su naturaleza en que el algoritmo de SVM tiene una orientación descriptiva y busca aquellas características que posicionalmente dividan mejor a las clases en un espacio geométrico *N-dimensional*. Por otra parte, el algoritmo de NN tiene un enfoque analítico que busca patrones en las diferentes características que sirvan como premisa para poder separar las diferentes clases. Es por esto, que se obtuvieron diferentes resultados en los diferentes modelos. Sin embargo, se puede destacar de acá que la unión de las primeras 9 características seleccionadas para ambos modelos son fuertes candidatas a variables predictoras a tomar en cuenta para la detección de intrusos en redes de computadoras.
+
+##Análisis entre PCA y GFR
+
+Una vez realizadas las pruebas concernientes se puede observar que desde un punto de vista de rendimiento, PCA alcanza el 99% de precisión con 7 variables mientras que GFR alcanza 99% con 9 variables. Adicionalmente, PCA tardó a penas 13 horas para poder realizar la selección de componente principales, mientras que con GFR el proceso duró 12 días. Sin embargo, con GFR se pudo mantener el nombre de las variables importantes y no se perdió interpretación como si sucedió con la aplicación de PCA.

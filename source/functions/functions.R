@@ -450,37 +450,37 @@ Accuracy = function(confusionMatrix)
 
 GFR = function(dataset, algorithm)
 {
-  #Definiendo el vector para los nombres a ser removidos
+  #Defining the vector for the names to be removed
   names.features = vector(mode = "character", length = ncol(dataset))
-  #Matriz de resultados
+  #Matrix for results
   features = matrix(nrow = ncol(dataset), ncol = 10)
-  #respaldando el dataset original
+  #Backup for the original dataset
   auxiliar.data = dataset
   
-  #Para cada una de las columnas presentes (40-1)
+  #For every row present in the range (40,1)
   for (i in ncol(dataset):1)
   {
-    #Si el i == 41 o a 1 entonces solo entreno y almaceno el resultado obtenido
+    #If i == (41 or 1) then just train and storage the result 
     if(i == ncol(dataset) | i == 1)
     {
-      #Creo el conjunto de validación cruzada
+      #Create Cross validation set
       cv.set =  CVSet(set = auxiliar.data, k = 10, seed = 22)
-      #Vector para el almacenamiento de los resultados en cada iteración
+      #Vector that storage result per iteration
       results.cv = vector(mode = "numeric", length = 10)
       
-      #Inicio de la validación cruzada de 10 conjuntos
+      #Starting 10-Fold-CrossValidation
       for (k in 1:length(cv.set))
       {
-        #Separo el conjutno de validación
+        #Splitting validation set
         testing.set = cv.set[[k]]
-        #Separo el conjunto de prueba
+        #Splitting test set
         training.set = cv.set
         training.set[[k]] = NULL
-        #Creo los dataframes
+        #Creating dataframes
         training.set = do.call(rbind, training.set)
         testing.set = as.data.frame(testing.set)
         
-        #Si el algoritmo es una red neuronal
+        #If algortihm selected is NN
         if(algorithm == "NN")
         {
           model = nnet(Label~.,
@@ -488,7 +488,7 @@ GFR = function(dataset, algorithm)
                        size = 20,
                        maxit = 100)
           
-        }else if(algorithm == "SVM") ##Si el algoritmo es SVM
+        }else if(algorithm == "SVM") ##If algorithm if SVM
         {
           model = svm(Label~.,
                       data = training.set,
@@ -496,57 +496,58 @@ GFR = function(dataset, algorithm)
                       scale = FALSE)
         }
         
-        #Creo la predicciones
+        #Create predictions
         prediction = predict(model, subset(testing.set, subset = TRUE, select = names(testing.set)[-ncol(testing.set)]),
                              type = "class")
-        #Almaceno la media en al posición correspondiente
+        #Storage mean in the right position
         results.cv[k] = mean(prediction == testing.set[, ncol(testing.set)])
       }
       
-      #Almaceno el vector resultado de validación cruzada en la posición correspondiente
+      #Storage the vector of results from cross validation process in the right position
       features[i,] = results.cv
       
-      #Si i == 1 agrego el de dicha columna al vector de nombres
+      #If i == 1 then add the name to the name's vector 
       if(i == 1)
         names.features[i] = names(training.set)[1]
-      else #Sino agrego el vector que dice que usé todas la columnas
+      else #Else add "All"
         names.features[i] = "All"
       
-    }else #Si i [2,40]
+    }else #If is in the range [2, 40]
     {
-      #El mejor resultado virtual es 0
+      #Best virtual result is 0
       best.result = 0 
       
       #Itero sobre cada característica y excluye la etiqueta del conjunto de datos
+      #Iter over every characteristic and exclude the label from data set
       for(j in 1:(ncol(auxiliar.data) -1))
       {
-        #Creo un conjunto temporal sin la columna j
+        #Create a temporal set without column j
         temporal.set = auxiliar.data[,-j]
-        #Creo el conjunto de validación cruzada
+        #Create cross validation set
         cv.set =  CVSet(set = temporal.set, k = 10, seed = 22)
-        #Creo vector de relsultados de validaicón cruzada
+        #Create result vector for cross validation
         results.cv = vector(mode = "numeric", length = 10)
         
-        #Inicia la validación cruzada
+        #Start cross validation
         for (k in 1:length(cv.set))
         {
-          #Separo el conjunto de entrenamiento
+          #Splitting cross validation set
           testing.set = cv.set[[k]]
-          #Separo el conjunto de entrenamiento
+          #spliting training set
           training.set = cv.set
           training.set[[k]] = NULL
-          #Creo los dataframes
+          #Create dataframes
           training.set = do.call(rbind, training.set)
           testing.set = as.data.frame(testing.set)
           
-          #Si el algoritmo es red neuronal
+          #If algorithm is NN
           if(algorithm == "NN")
           {
             model = nnet(Label~.,
                          data = training.set,
                          size = 20,
                          maxit = 100)
-          }else if(algorithm == "SVM") #Si es SVM
+          }else if(algorithm == "SVM") #If algorithm is SVM
           {
             model = svm(Label~.,
                         data = training.set,
@@ -554,33 +555,33 @@ GFR = function(dataset, algorithm)
                         scale = FALSE)
           }
           
-          #Creo las predicciones
+          #Creating predictions
           prediction = predict(model, subset(testing.set, subset = TRUE, select = names(testing.set)[-ncol(testing.set)]),
                                type = "class")
-          #Almaceno la media de las predicciones en la posición concerniente
+          #Storing mean from predictions in the right place
           results.cv[k] = mean(prediction == testing.set[, ncol(testing.set)])
         }
         
-        #Si la media es mayor que el mejor resultado
+        #If mean is greater than best result
         if(mean(results.cv) > best.result)
         {
-          best.result = mean(results.cv) #Actualizo el mejor resultado
-          best.result.vector = results.cv #Guardo el vector de mejor resultado
-          temporal.j = j #Guardo la posición de la columna eliminada
+          best.result = mean(results.cv) #Update best result
+          best.result.vector = results.cv #Storage best results vector
+          temporal.j = j #Storage the position of the dropped column
         }
       }
-      #Agrego a los nombres el nombre de la columna eliminada
+      #Add the names of the dropped column
       names.features[i] = names(auxiliar.data)[temporal.j] 
-      #Agrego el vector de validación cruzada a la matriz en la posición correspondiente
+      #Add cross validation vector to the matrix in the right place
       features[i,] = best.result.vector
-      #Actualizo el vector auxiliar eliminando la columna no presente en el mejor resultado
+      #Update auxiliar vector removing the column doesn't present in the best result
       auxiliar.data = auxiliar.data[,-temporal.j]
     }
     
     cat(i, " ")
   }
-  #Agrego los nombres a las filas
+  #Add the names to the row
   rownames(features) = names.features
-  #Retorno la matriz
+  #return the matrix
   return(features)
 }

@@ -9,7 +9,6 @@ results  = readRDS("feature_selection/NN/results_PCA.rds")
 ###########################################################
 #Calculating standard deviation
 sd.results = apply(results, 1, sd)
-
 #Calculating mean
 mean.results = apply(results, 1, mean)
 
