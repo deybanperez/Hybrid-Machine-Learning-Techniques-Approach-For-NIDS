@@ -29,7 +29,7 @@ time = Sys.time()
 
 tuned.model = tune.nnet(Label ~.,
                        data = dataset,
-                       size = 18:22,
+                       size = 17:21,
                        maxit = 100,
                        tunecontrol = tune.control(cross = 10))
 
