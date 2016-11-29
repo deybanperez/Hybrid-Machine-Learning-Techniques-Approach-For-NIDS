@@ -31,9 +31,7 @@ tuned.model = tune.svm(Label ~.,
                        data = dataset,
                        kernel = "radial",
                        scale = FALSE,
-                       probability = TRUE,
-                       gamma = 10^(-6:1),
-                       cost = seq(0.001, 2, 0.25),
+                       gamma = c(0.001, 0.025),
                        tunecontrol = tune.control(cross = 10))
 
 #Stopping time

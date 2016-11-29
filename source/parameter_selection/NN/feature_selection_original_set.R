@@ -1,5 +1,6 @@
 rm(list = ls())
 source("source/functions/functions.R")
+require(e1071)
 require(nnet)
 ###############################################################
 dataset = read.csv("dataset/NSLKDD_Training_New.csv")
@@ -35,3 +36,6 @@ tuned.model = tune.nnet(Label ~.,
 
 #Stopping time
 time = Sys.time() - time
+
+saveRDS(tuned.model, "source/parameter_selection/NN/tuned_model.rds")
+saveRDS(time, "source/parameter_selection/NN/time.rds")
