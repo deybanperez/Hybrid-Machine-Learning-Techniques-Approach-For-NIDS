@@ -1,6 +1,9 @@
 rm(list = ls())
 source("source/functions/functions.R")
 require(e1071)
+require(caret)
+require(kernlab)
+require(doMC)
 ###############################################################
 dataset = read.csv("dataset/NSLKDD_Training_New.csv")
 
@@ -24,15 +27,20 @@ remove(list = c("names", "Label"))
 #Scaling set
 dataset = ScaleSet(dataset)
 
+registerDoMC(cores = 4)
+set.seed(222)
+grid = expand.grid(sigma = c(0.07, 0.025),
+                   C = c(1,2))
+ctrl = trainControl(method = "repeatedcv", repeats = 5)
 #initializing time
 time = Sys.time()
 
-tuned.model = tune.svm(Label ~.,
-                       data = dataset,
-                       kernel = "radial",
-                       scale = FALSE,
-                       gamma = c(0.001, 0.025),
-                       tunecontrol = tune.control(cross = 10))
+tuned.model = train(x = dataset[,-ncol(dataset)],
+                    y = dataset$Label,
+                    method = "svmRadial",
+                    metric = "Accuracy",
+                    tuneGrid = grid,
+                    trControl = ctrl)
 
 #Stopping time
 time = Sys.time() - time
