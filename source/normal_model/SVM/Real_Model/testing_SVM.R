@@ -1,18 +1,14 @@
 #Setting work directory
 rm(list = ls())
-setwd("/home/dperez/Documents/Repos/Tesis/source")
-#setwd("/home/dperez/Tesis/source")
-#setwd("C:/Users/deyban.perez/Documents/Repos/source") #Windows
 
 #Loading packages
 library("e1071")
-#library("nnet")
 
 #Loading functions
-source("functions/functions.R")
+source("source/functions/functions.R")
 
 #Loading Testing set
-testing.set = read.csv("../dataset/NSLKDD_Testing_New.csv",
+testing.set = read.csv("dataset/NSLKDD_Testing_New.csv",
                        sep = ",", header = TRUE)
 
 #Removing unncessary features from testing set
@@ -24,7 +20,7 @@ testing.set$Label_Normal_or_Attack = NULL
 testing.set = ScaleSet(testing.set)
 
 #loading results from training
-results = readRDS("normal_model/SVM/Real_Model/list_results.rds")
+results = readRDS("source/normal_model/SVM/Real_Model/list_results.rds")
 
 #Extracting results
 training.time = results[[1]]

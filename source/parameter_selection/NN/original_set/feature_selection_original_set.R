@@ -29,10 +29,10 @@ dataset = ScaleSet(dataset)
 time = Sys.time()
 
 tuned.model = tune.nnet(Label ~.,
-                       data = dataset,
-                       size = 17:21,
-                       maxit = 100,
-                       tunecontrol = tune.control(cross = 10))
+                        data = dataset,
+                        size = 17:21,
+                        maxit = 100,
+                        tunecontrol = tune.control(cross = 10))
 
 #Stopping time
 time = Sys.time() - time

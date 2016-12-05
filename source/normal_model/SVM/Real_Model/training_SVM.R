@@ -1,16 +1,13 @@
 rm(list = ls())
-#setwd("/home/dperez/Documents/Repos/Tesis/source") #virtual Machine
-#setwd("/home/dperez/Tesis/source") #Server
-#setwd("C:/Users/deyban.perez/Documents/Repos/source") #Windows
+
 #Loading packages
 library("e1071")
-library("nnet")
 
 #Loading functions
-source("functions/functions.R")
+source("source/functions/functions.R")
 
 #Loading datasets
-dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+dataset.training = read.csv("dataset/NSLKDD_Training_New.csv",
                             sep = ",", header = TRUE)
 
 #removing unecesary labels in training set
@@ -32,10 +29,10 @@ start.time = Sys.time()
 
 set.seed(22)
 model = svm(Label~.,
-                data = dataset.training,
-                kernel = "radial",
-                scale = FALSE,
-                probability = TRUE)
+            data = dataset.training,
+            kernel = "radial",
+            scale = FALSE,
+            probability = TRUE)
 
 #Calculating time of training
 total.time = Sys.time() - start.time
@@ -43,4 +40,4 @@ total.time = Sys.time() - start.time
 #Storing information
 list.results = list(total.time, model)
 
-saveRDS(list.results, file = "normal_model/SVM/Real_Model/list_results.rds")
+saveRDS(list.results, file = "source/normal_model/SVM/Real_Model/list_results.rds")

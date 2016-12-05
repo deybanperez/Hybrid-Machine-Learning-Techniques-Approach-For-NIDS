@@ -1,16 +1,14 @@
 #Setting work directory
 rm(list = ls())
-setwd("/home/dperez/Documents/Repos/Tesis/source")
-#setwd("/home/dperez/Tesis/source")
 
 #Loading packages
 library("e1071")
 
 #Loading functions
-source("functions/functions.R")
+source("source/functions/functions.R")
 
 #Loading dataset
-dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+dataset.training = read.csv("dataset/NSLKDD_Training_New.csv",
                             sep = ",", header = TRUE)
 
 #Removing unnecesary labels
@@ -76,4 +74,4 @@ for (i in 1:10)
 list.results$results = results
 
 #Saving list of objects
-saveRDS(list.results, "normal_model/SVM/Tests/list_results.rds")
+saveRDS(list.results, "source/normal_model/SVM/Tests/list_results.rds")

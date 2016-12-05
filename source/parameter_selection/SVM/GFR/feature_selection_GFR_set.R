@@ -19,7 +19,7 @@ names = colnames(dataset)
 
 
 #Transforming predictors into numeric
-dataset = as.data.frame(apply(dataset[,-ncol(dataset)], 2, as.numeric))
+dataset = as.data.frame(apply(dataset, 2, as.numeric))
 dataset[,ncol(dataset)+1] = Label
 colnames(dataset) = names
 
@@ -37,9 +37,9 @@ tuned.model = tune(svm,
                    data = dataset,
                    scale = F,
                    kernel = "radial",
-                   ranges = list(cost = c(2, 3, 4),
-                                 gamma = c(0.07, 0.08, 0.06))
-                   )
+                   ranges = list(cost = c(1, 2, 3, 4),
+                                 gamma = c(0.06, 0.07, 0.08, 0,11))
+)
 
 #Stopping time
 time = Sys.time() - time

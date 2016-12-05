@@ -13,8 +13,8 @@ dataset$Label_Normal_or_Attack = NULL
 #Extracting information
 Label = dataset$Label_Normal_ClassAttack
 dataset = dataset[, c("Count", "Protocol_type", "Dst_host_srv_count", "Dst_host_same_src_port_rate",
-            "Dst_host_rerror_rate", "Dst_host_count", "Hot", "Dst_host_serror_rate",
-            "Dst_host_serror_rate")]
+                      "Dst_host_rerror_rate", "Dst_host_count", "Hot", "Dst_host_serror_rate",
+                      "Dst_host_serror_rate")]
 names = colnames(dataset)
 
 
@@ -34,7 +34,7 @@ time = Sys.time()
 
 tuned.model = tune.nnet(Label ~.,
                         data = dataset,
-                        size = 17:21,
+                        size = 17:30,
                         maxit = 100)
 
 #Stopping time

@@ -1,15 +1,11 @@
 #Setting work directory
 rm(list = ls())
-setwd("/home/dperez/Documents/Repos/Tesis/source") #Virtual Machine
-#setwd("/home/dperez/Tesis/source") #Server
-#setwd("C:/Users/deyban.perez/Documents/Repos/source") #Windows
-
 
 #Loading functions
-source("functions/functions.R")
+source("source/functions/functions.R")
 
 #Loading dataset
-dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+dataset.training = read.csv("dataset/NSLKDD_Training_New.csv",
                             sep = ",", header = TRUE)
 
 #Removing unnecesary labels
@@ -96,7 +92,7 @@ ErrorRate(best.accuracy.five)*100
 AccuracyPerLabel(confusion.matrix.five, dataset.five)
 #Confusion matrix Attack vs Normal
 attack.normal.confusion.matrix.five = AttackNormalConfusionMatrix(dataset.five,
-                                                             best.prediction.five)
+                                                                  best.prediction.five)
 attack.normal.confusion.matrix.five
 #printing accuracy per label
 AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
@@ -114,7 +110,7 @@ for (i in 1:length(results.two))
 {
   set.seed(i)
   model.kmeans.two = kmeans(dataset.two[,1:(ncol(dataset.two)-1)],
-                             2, iter.max = 100)
+                            2, iter.max = 100)
   
   prediction.two = OrderKmeans(model.kmeans.two)
   accuracy.two = mean(prediction.two == dataset.two$Label)
@@ -133,7 +129,7 @@ results.two
 mean(results.two) * 100
 #Creating confusion matrix
 confusion.matrix.two = table(Real = dataset.two$Label,
-                              Prediction = best.prediction.two)
+                             Prediction = best.prediction.two)
 #Printing confusion matrix
 confusion.matrix.two
 #Printig accuracy rate and error rate

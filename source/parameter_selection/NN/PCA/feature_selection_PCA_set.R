@@ -34,7 +34,7 @@ time = Sys.time()
 
 tuned.model = tune.nnet(Label ~.,
                         data = dataset,
-                        size = 17:21,
+                        size = 17:30,
                         maxit = 100)
 
 #Stopping time

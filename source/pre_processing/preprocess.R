@@ -1,13 +1,12 @@
 #Setting work directory
 rm(list = ls())
-setwd("/home/dperez/Documents/Repos/Tesis/source")
 
 #Loading functions
-source("../source/functions/functions.R")
+source("source/functions/functions.R")
 
 #Loading tarining and testing datasets
-dataset.training = read.csv(file = "../dataset/KDDTrain+.txt", sep = ",", header = FALSE)
-dataset.testing = read.csv(file = "../dataset/KDDTest+.txt", sep = ",", header = FALSE)
+dataset.training = read.csv(file = "dataset/KDDTrain+.txt", sep = ",", header = FALSE)
+dataset.testing = read.csv(file = "dataset/KDDTest+.txt", sep = ",", header = FALSE)
 
 #Inspecting datasets
 dim(dataset.training)
@@ -134,5 +133,5 @@ dataset.training = FlagTransformation(dataset.training)
 dataset.testing = FlagTransformation(dataset.testing)
 
 #Writing datasets into .csv file
-write.csv(dataset.training, file = "../dataset/NSLKDD_Training_New.csv", row.names = FALSE)
-write.csv(dataset.testing, file = "../dataset/NSLKDD_Testing_New.csv", row.names = FALSE)
+write.csv(dataset.training, file = "dataset/NSLKDD_Training_New.csv", row.names = FALSE)
+write.csv(dataset.testing, file = "dataset/NSLKDD_Testing_New.csv", row.names = FALSE)

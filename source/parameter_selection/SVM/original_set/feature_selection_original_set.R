@@ -32,9 +32,9 @@ tuned.model = tune(svm,
                    data = dataset,
                    scale = F,
                    kernel = "radial",
-                   ranges = list(cost = c(2, 3, 4),
-                                 gamma = c(0.07, 0.08, 0.06))
-                   )
+                   ranges = list(cost = c(1, 2, 3, 4),
+                                 gamma = c(0.025, 0.06, 0.07, 0.08))
+)
 
 #Stopping time
 time = Sys.time() - time

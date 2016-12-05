@@ -1,10 +1,8 @@
 rm(list = ls())
 source("source/functions/functions.R")
-setwd("~/Documents/Repos/Tesis/")
 svm.gfr = readRDS("source/feature_selection/SVM/results_GFR.rds")
 
 # I need to extract mean, std and variance from the results and then plot
-
 rownames(svm.gfr)[-nrow(svm.gfr)]
 
 mean.values = apply(svm.gfr, 1, mean)
@@ -13,12 +11,12 @@ sdeviation.values = apply(svm.gfr, 1, sd)
 par(mfrow = c(1,2))
 plot(sdeviation.values[2:length(mean.values)],
      type = "b", col = "blue",
-     main = "SDeviation vs #Components",
-     xlab = "Number of Components", ylab = "Standard Deviation")
+     main = "Desviación Estándar vs # Componentes",
+     xlab = "Número de Componentes", ylab = "Desviación Estándar")
 plot(mean.values[2:length(mean.values)],
      type = "b", col = "blue",
-     main = "Mean vs #Components",
-     xlab = "Number of Components", ylab = "Mean")
+     main = "Media vs # Componentes",
+     xlab = "# Componentes", ylab = "Media")
 
 rownames(svm.gfr)[1:9]
 
@@ -51,5 +49,4 @@ par(mfrow = c(1,1))
 plot(dataset[, rownames(svm.gfr)[1]], dataset[, rownames(svm.gfr)[2]],
      col = dataset$Label, pch = 19,
      xlab = "Flag", ylab = "Count",
-     main = "Principales Características GFR - SVM")
-
+     main = "Características Principales GFR - SVM")

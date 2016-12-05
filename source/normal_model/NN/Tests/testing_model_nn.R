@@ -1,17 +1,14 @@
 #Setting work directory
 rm(list = ls())
-setwd("/home/dperez/Documents/Repos/Tesis/source")
-#setwd("/home/dperez/Tesis/source")
-#setwd("C:/Users/deyban.perez/Documents/Repos/source") #Windows
 
 #Loading packages
 library("nnet")
 
 #Loading functions
-source("functions/functions.R")
+source("source/functions/functions.R")
 
 #Loading best objects
-list.results = readRDS("normal_model/NN/Tests/list_results.rds")
+list.results = readRDS("source/normal_model/NN/Tests/list_results.rds")
 
 #Showing all results
 list.results$results
