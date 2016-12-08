@@ -10,11 +10,13 @@ dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 dataset$Label_Normal_or_Attack = NULL
 
+#Extracting features
+svm.gfr = readRDS("source/feature_selection/SVM/results_GFR.rds")
+svm.gfr = rownames(svm.gfr)[1:9]
+
 #Extracting information
 Label = dataset$Label_Normal_ClassAttack
-dataset = dataset[, c("Count", "Protocol_type", "Dst_host_srv_count", "Dst_host_same_src_port_rate",
-                      "Dst_host_rerror_rate", "Dst_host_count", "Hot", "Dst_host_serror_rate",
-                      "Dst_host_serror_rate")]
+dataset = dataset[, svm.gfr]
 names = colnames(dataset)
 
 
@@ -29,20 +31,15 @@ remove(list = c("names", "Label"))
 #Scaling set
 dataset = ScaleSet(dataset)
 
-#initializing time
-time = Sys.time()
-
+set.seed(22)
 tuned.model = tune(svm,
                    Label ~.,
                    data = dataset,
                    scale = F,
                    kernel = "radial",
-                   ranges = list(cost = c(1, 2, 3, 4),
-                                 gamma = c(0.06, 0.07, 0.08, 0,11))
-)
-
-#Stopping time
-time = Sys.time() - time
+                   ranges = list(cost = c(1, 2, 3, 4, 5, 6),
+                                 gamma = c(0.06, 0.07, 0.08, 0.11, 0.2, 0.3, 0.4)
+                                 )
+                   )
 
 saveRDS(tuned.model, "source/parameter_selection/SVM/GFR/tuned_model.rds")
-saveRDS(time, "source/parameter_selection/SVM/GFR/time.rds")

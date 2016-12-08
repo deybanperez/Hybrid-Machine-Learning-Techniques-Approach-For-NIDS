@@ -25,17 +25,10 @@ remove(list = c("names", "Label"))
 #Scaling set
 dataset = ScaleSet(dataset)
 
-#initializing time
-time = Sys.time()
-
+set.seed(22)
 tuned.model = tune.nnet(Label ~.,
                         data = dataset,
-                        size = 17:21,
-                        maxit = 100,
-                        tunecontrol = tune.control(cross = 10))
-
-#Stopping time
-time = Sys.time() - time
+                        size = 17:30,
+                        maxit = 100)
 
 saveRDS(tuned.model, "source/parameter_selection/NN/tuned_model.rds")
-saveRDS(time, "source/parameter_selection/NN/time.rds")

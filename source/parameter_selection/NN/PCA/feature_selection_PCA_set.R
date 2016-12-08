@@ -29,16 +29,10 @@ dataset = ScaleSet(dataset)
 pca = prcomp(dataset[, -41], scale. = TRUE)
 dataset = cbind(as.data.frame(pca$x[,1:7]), Label = dataset$Label)
 
-#initializing time
-time = Sys.time()
-
+set.seed(22)
 tuned.model = tune.nnet(Label ~.,
                         data = dataset,
                         size = 17:30,
                         maxit = 100)
 
-#Stopping time
-time = Sys.time() - time
-
 saveRDS(tuned.model, "source/parameter_selection/NN/PCA/tuned_model.rds")
-saveRDS(time, "source/parameter_selection/NN/PCA/time.rds")

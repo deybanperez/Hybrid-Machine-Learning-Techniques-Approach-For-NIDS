@@ -29,20 +29,15 @@ dataset = ScaleSet(dataset)
 pca = prcomp(dataset[, -41], scale. = TRUE)
 dataset = cbind(as.data.frame(pca$x[,1:7]), Label = dataset$Label)
 
-#initializing time
-time = Sys.time()
-
+set.seed(22)
 tuned.model = tune(svm,
                    Label ~.,
                    data = dataset,
                    scale = F,
                    kernel = "radial",
-                   ranges = list(cost = c(2, 3, 4),
-                                 gamma = c(0.06, 0.07, 0.08, 0,14))
-)
-
-#Stopping time
-time = Sys.time() - time
+                   ranges = list(cost = c(1, 2, 3, 4, 5, 6),
+                                 gamma = c(0.06, 0.07, 0.08, 0.14, 0.2, 0.3, 0.4)
+                                 )
+                   )
 
 saveRDS(tuned.model, "source/parameter_selection/SVM/PCA/tuned_model.rds")
-saveRDS(time, "source/parameter_selection/SVM/PCA/time.rds")

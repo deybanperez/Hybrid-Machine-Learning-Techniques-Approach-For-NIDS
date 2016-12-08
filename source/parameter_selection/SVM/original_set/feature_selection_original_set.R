@@ -24,20 +24,15 @@ remove(list = c("names", "Label"))
 #Scaling set
 dataset = ScaleSet(dataset)
 
-#initializing time
-time = Sys.time()
-
+set.seed(22)
 tuned.model = tune(svm,
                    Label ~.,
                    data = dataset,
                    scale = F,
                    kernel = "radial",
-                   ranges = list(cost = c(1, 2, 3, 4),
-                                 gamma = c(0.025, 0.06, 0.07, 0.08))
-)
-
-#Stopping time
-time = Sys.time() - time
+                   ranges = list(cost = c(1, 2, 3, 4, 5, 6),
+                                 gamma = c(0.01, 0.025, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08)
+                                 )
+                   )
 
 saveRDS(tuned.model, "source/parameter_selection/SVM/original_set/tuned_model.rds")
-saveRDS(time, "source/parameter_selection/SVM/original_set/time.rds")

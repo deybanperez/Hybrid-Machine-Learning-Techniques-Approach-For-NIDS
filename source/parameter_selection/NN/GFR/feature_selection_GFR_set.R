@@ -10,16 +10,17 @@ dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 dataset$Label_Normal_or_Attack = NULL
 
+#Loading features
+nn.gfr = readRDS("source/feature_selection/NN/results_GFR.rds")
+nn.gfr = rownames(nn.gfr)[1:9]
+
 #Extracting information
 Label = dataset$Label_Normal_ClassAttack
-dataset = dataset[, c("Count", "Protocol_type", "Dst_host_srv_count", "Dst_host_same_src_port_rate",
-                      "Dst_host_rerror_rate", "Dst_host_count", "Hot", "Dst_host_serror_rate",
-                      "Dst_host_serror_rate")]
+dataset = dataset[, nn.gfr]
 names = colnames(dataset)
 
-
 #Transforming predictors into numeric
-dataset = as.data.frame(apply(dataset[,-ncol(dataset)], 2, as.numeric))
+dataset = as.data.frame(apply(dataset, 2, as.numeric))
 dataset[,ncol(dataset)+1] = Label
 colnames(dataset) = names
 
@@ -29,16 +30,10 @@ remove(list = c("names", "Label"))
 #Scaling set
 dataset = ScaleSet(dataset)
 
-#initializing time
-time = Sys.time()
-
+set.seed(22)
 tuned.model = tune.nnet(Label ~.,
                         data = dataset,
                         size = 17:30,
                         maxit = 100)
 
-#Stopping time
-time = Sys.time() - time
-
 saveRDS(tuned.model, "source/parameter_selection/NN/GFR/tuned_model.rds")
-saveRDS(time, "source/parameter_selection/NN/GFR/time.rds")
