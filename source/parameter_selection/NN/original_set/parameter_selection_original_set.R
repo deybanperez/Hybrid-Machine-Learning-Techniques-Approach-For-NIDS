@@ -28,7 +28,7 @@ dataset = ScaleSet(dataset)
 set.seed(22)
 tuned.model = tune.nnet(Label ~.,
                         data = dataset,
-                        size = 17:30,
+                        size = 17:21,
                         maxit = 100)
 
 saveRDS(tuned.model, "source/parameter_selection/NN/tuned_model.rds")
