@@ -585,3 +585,31 @@ GFR = function(dataset, algorithm)
   #return the matrix
   return(features)
 }
+
+#Selec Distance in KMeans
+
+MeasuareKMeans = function(dataset, k)
+{
+  Hartigan = 0
+  Lloyd = 0
+  Forgy = 0
+  Macqueen = 0
+  
+  for(i in 1:50)
+  {
+    set.seed(i)
+    groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Hartigan-Wong")
+    Hartigan = Hartigan + groups$betweenss
+    set.seed(i)
+    groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Lloyd")
+    Lloyd = Lloyd + groups$betweenss
+    set.seed(i)
+    groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Forgy")
+    Forgy = Forgy + groups$betweenss
+    set.seed(i)
+    groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "MacQueen")
+    Macqueen = Macqueen + groups$betweenss
+  }
+  
+  return(list(Hartigan = Hartigan/50, Lloyd = Lloyd/50, Forgy = Forgy/50, Macqueen = Macqueen/50))
+}

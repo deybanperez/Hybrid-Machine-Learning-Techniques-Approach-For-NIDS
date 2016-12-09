@@ -1,35 +1,32 @@
-#Getting ready enviroment
 rm(list = ls())
+source("source/functions/functions.R")
 require(e1071)
 require(nnet)
-source("source/functions/functions.R")
-
-#Loading Dataset
-dataset = read.csv("dataset/NSLKDD_Training_New.csv", sep = ",", header = TRUE)
+###############################################################
+dataset = read.csv("dataset/NSLKDD_Training_New.csv")
 
 #Removing unnecesary labels
 dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 
-#Loading features
-nn.gfr = readRDS("source/feature_selection/NN/results_GFR.rds")
-nn.gfr = rownames(nn.gfr)[1:9]
-
-#Extracting information
+#Extracting inforomation
 Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
-dataset = dataset[, nn.gfr]
 
 #Transforming predictors into numeric
-dataset = as.data.frame(apply(dataset, 2, as.numeric))
-dataset.five = cbind(dataset, Label = Labels[,1])
-dataset.two = cbind(dataset, Label = Labels[,2])
+dataset = as.data.frame(apply(dataset[, c(-41, -42)], 2, as.numeric))
+dataset = cbind(dataset, Label = Labels[,1])
 
-#Removing parcial variables
-remove(list = c("Labels"))
+#Scaling set
+dataset = ScaleSet(dataset)
 
-#Scaling sets
-dataset.two = ScaleSet(dataset.two)
-dataset.five = ScaleSet(dataset.five)
+#Aplying PCA
+pca = prcomp(dataset[, -41], scale. = TRUE)
+dataset = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,1])
+dataset.five = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,1])
+dataset.two = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,2])
+
+#removing parcial variables
+remove(list = c("pca", "Labels"))
 
 #Jambu's Elbow
 IIC.Hartigan = vector(mode = "numeric", length = 30)

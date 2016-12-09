@@ -5,31 +5,28 @@ rm(list = ls())
 source("source/functions/functions.R")
 
 #Loading dataset
-dataset.training = read.csv("dataset/NSLKDD_Training_New.csv",
+dataset = read.csv("dataset/NSLKDD_Training_New.csv",
                             sep = ",", header = TRUE)
 
 #Removing unnecesary labels
-dataset = dataset.training
 dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 
-#Assigning classes to the data
-for (i in 1 : (ncol(dataset) -2) )
-  dataset[,i] = as.numeric(dataset[,i])
+#Extracting inforomation
+Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
 
-for (i in (ncol(dataset) -1):ncol(dataset) )
-  dataset[,i] = as.factor(dataset[,i])
+#Transforming predictors into numeric
+dataset = as.data.frame(apply(dataset[, c(-41, -42)], 2, as.numeric))
+dataset = cbind(dataset, Label = Labels[,1])
 
-#Splitting set
-dataset.two = dataset[-(ncol(dataset)-1)]
-dataset.two[, ncol(dataset.two)] = as.character(dataset.two[, ncol(dataset.two)])
-dataset.five = dataset[-ncol(dataset)]
-
-#scaling sets
-dataset$Label_Normal_or_Attack = NULL
+#Scaling set
 dataset = ScaleSet(dataset)
-dataset.two = ScaleSet(dataset.two)
-dataset.five = ScaleSet(dataset.five)
+
+dataset.five = cbind(dataset[, -ncol(dataset)], Label = Labels[,1])
+dataset.two = cbind(dataset[, -ncol(dataset)], Label = Labels[,2])
+
+#removing parcial variables
+remove(list = c("Labels"))
 
 #Codo de Jambu
 IIC.Hartigan = vector(mode = "numeric", length = 30)
@@ -52,7 +49,7 @@ for (k in 1:30)
   groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "MacQueen")
   IIC.MacQueen[k] = groups$tot.withinss
 }
-plot(IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Jambu Elbow",
+plot(IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
      xlab = "Número de Centroides", ylab = "Varianza")
 points(IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(IIC.Forgy, col = "green", type = "b", pch = 19)
@@ -61,28 +58,10 @@ legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
        col = c("blue","red", "green", "magenta"), pch = 19)
 
 #Selecting best distance measure
-Hartigan = 0
-Lloyd = 0
-Forgy = 0
-Macqueen = 0
-
-for(i in 1:50)
-{
-  set.seed(k)
-  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Hartigan-Wong")
-  Hartigan = Hartigan + groups$betweenss
-  set.seed(k)
-  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Lloyd")
-  Lloyd = Lloyd + groups$betweenss
-  set.seed(k)
-  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Forgy")
-  Forgy = Forgy + groups$betweenss
-  set.seed(k)
-  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "MacQueen")
-  Macqueen = Macqueen + groups$betweenss
-}
-
-max(c(Hartigan/50,Lloyd/50,Forgy/50, Macqueen/50))
+measure.two = lapply(MeasuareKMeans(dataset, 2), max)
+measure.five = lapply(MeasuareKMeans(dataset, 5), max)
+measure.two
+measure.five
 
 #Testing the models
 #Five class model
