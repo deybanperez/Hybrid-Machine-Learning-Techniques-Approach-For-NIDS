@@ -1,37 +1,37 @@
-#Setting work directory
+#Getting ready enviroment
 rm(list = ls())
-
-#Loading functions
+require(e1071)
+require(nnet)
 source("source/functions/functions.R")
 
-#Loading dataset
-dataset.training = read.csv("dataset/NSLKDD_Training_New.csv",
-                            sep = ",", header = TRUE)
+#Loading Dataset
+dataset = read.csv("dataset/NSLKDD_Training_New.csv", sep = ",", header = TRUE)
 
 #Removing unnecesary labels
-dataset = dataset.training
 dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 
-#Assigning classes to the data
-for (i in 1 : (ncol(dataset) -2) )
-  dataset[,i] = as.numeric(dataset[,i])
+#Loading features
+nn.gfr = readRDS("source/feature_selection/NN/results_GFR.rds")
+nn.gfr = rownames(nn.gfr)[1:9]
 
-for (i in (ncol(dataset) -1):ncol(dataset) )
-  dataset[,i] = as.factor(dataset[,i])
+#Extracting information
+Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
+dataset = dataset[, nn.gfr]
 
-#Splitting set
-dataset.two = dataset[-(ncol(dataset)-1)]
-dataset.two[, ncol(dataset.two)] = as.character(dataset.two[, ncol(dataset.two)])
-dataset.five = dataset[-ncol(dataset)]
+#Transforming predictors into numeric
+dataset = as.data.frame(apply(dataset, 2, as.numeric))
+dataset.five = cbind(dataset, Labels[,1])
+dataset.two = cbind(dataset, Labels[,2])
 
-#scaling sets
-dataset$Label_Normal_or_Attack = NULL
-dataset = ScaleSet(dataset)
+#Removing parcial variables
+remove(list = c("Labels"))
+
+#Scaling sets
 dataset.two = ScaleSet(dataset.two)
 dataset.five = ScaleSet(dataset.five)
 
-#Codo de Jambu
+#Jambu's Elbow
 IIC.Hartigan = vector(mode = "numeric", length = 30)
 IIC.Lloyd = vector(mode = "numeric", length = 30)
 IIC.Forgy = vector(mode = "numeric", length = 30)
@@ -53,7 +53,7 @@ for (k in 1:30)
   IIC.MacQueen[k] = groups$tot.withinss
 }
 plot(IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Jambu Elbow",
-     xlab = "Número de Centroides", ylab = "Varianza")
+     xlab = "Centros", ylab = "Varianza")
 points(IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(IIC.Forgy, col = "green", type = "b", pch = 19)
 points(IIC.MacQueen, col = "magenta", type = "b", pch= 19)
@@ -106,7 +106,7 @@ for (i in 1:length(results.five))
   }
 }
 #Printing results
-results.five
+results.five * 100
 #Calculating mean of results
 mean(results.five) * 100
 #Creating confusion matrix
@@ -153,7 +153,7 @@ for (i in 1:length(results.two))
   }
 }
 #Printing results
-results.two
+results.two * 100
 #Calculating mean of results
 mean(results.two) * 100
 #Creating confusion matrix

@@ -31,4 +31,4 @@ tuned.model = tune.nnet(Label ~.,
                         size = 17:21,
                         maxit = 100)
 
-saveRDS(tuned.model, "source/parameter_selection/NN/tuned_model.rds")
+saveRDS(tuned.model, "source/parameter_selection/NN/original_set/tuned_model.rds")
