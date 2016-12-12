@@ -1,7 +1,9 @@
 ---
 title: "Implementación y Análisis de Técnicas Híbridas de Aprendizaje Automático en la Detección Intrusos en Redes de Computadoras"
 author: "Deyban Andrés Pérez Abreu"
-output: pdf_document
+output: 
+  pdf_document: 
+    toc: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -2276,6 +2278,33 @@ Luego, se observa que con la selección de 9 variables se logra reducir la dimen
 
 Con GFR se muestra que se puede obtener bueno resultados para ambos modelos (SVM y NN) usando el 22.5% de las variables totales. Se observó también que la desviación estándar de los resultados en ambos casos es pequeña, por no decir mínima, y esto es un hecho que respalda positivamente a los resultados obtenidos, indicando que la reducción de dimensionalidad para este escenario es válido y efectivo. Como aspecto a destacar está el orden de las características seleccionadas es diferente con respecto a los modelos de SVM y NN y esto tiene su naturaleza en que el algoritmo de SVM tiene una orientación descriptiva y busca aquellas características que posicionalmente dividan mejor a las clases en un espacio geométrico N-Dimensional. Por otra parte, el algoritmo de NN tiene un enfoque analítico que busca patrones en las diferentes características que sirvan como premisa para poder separar las diferentes clases. Es por esto, que se obtuvieron diferentes resultados en los diferentes modelos. Sin embargo, se puede destacar de acá que la unión de las primeras 9 características seleccionadas para ambos modelos son fuertes candidatas a variables predictoras a tomar en cuenta para la detección de intrusos en redes de computadoras.
 
+Se puede hacer una unión entre las características seleccionadas por SVM y NN para así tener las características más importantes.
+
+Eliminaremos las variables parciales por defecto y cargaremos los resultados de la selección de características para GFR.
+
+```{r}
+#Eliminando variables parciales
+rm(list = ls())
+
+#Cargando características de SVM y NN
+svm.gfr = readRDS("../source/feature_selection/SVM/results_GFR.rds")
+nn.gfr = readRDS("../source/feature_selection/NN/results_GFR.rds")
+```
+
+Previamente se mencionó que se usarían las primeras 9 variables de mayor importancia.
+
+```{r}
+svm.gfr = rownames(svm.gfr)[1:9]
+nn.gfr = rownames(nn.gfr)[1:9]
+```
+
+Al hacer unión entre estos dos vectores se puede observar como existen 12 variables que los modelos sugieren que deben estar presentes para el análisis de anomalías en redes de computadoras.
+
+```{r}
+union(nn.gfr, svm.gfr)
+length(union(nn.gfr, svm.gfr))
+```
+
 ##Análisis entre PCA y GFR
 
 Una vez realizadas las pruebas concernientes se puede observar que desde un punto de vista de rendimiento, PCA alcanza el 99% de precisión con 7 variables mientras que GFR alcanza 99% con 9 variables. Adicionalmente, PCA tardó a penas 13 horas para poder realizar la selección de componente principales, mientras que con GFR el proceso duró 12 días. Sin embargo, con GFR se pudo mantener el nombre de las variables importantes y no se perdió interpretación como si sucedió con la aplicación de PCA.
@@ -2289,15 +2318,487 @@ Para la selección de los parámetros se hará uso de la técnica de validación
 Acá se utilizará el conjunto de datos original. Es decir, se utilizarán todas las características presentes en el conjunto de datos de entrenamiento NSL-KDD.
 
 ###SVM
-En esta sección se hará la selección de parámetros para el algoritmo SVM con kernel radial.
+En esta sección se hará la selección de parámetros para el algoritmo SVM con kernel radial. La biblioteca *e1071* es la interfaz de R para la biblioteca *LibSVM*, que corresponde a la biblioteca más utilizada para la utilización de SVM en todos los lenguajes de programación.
 
+El kernel radial de SVM consta de dos parámetros ajustables. Estos son: *gamma* y *cost*. El parámetro *gamma* determinará lo amplio de las zonas de los vectores de soporte y el parámetro *cost* determinará la tolerancia o margen de error que se permite para la clasificación. Los parámetros por defecto de estos valores son: *gamma* = $\frac{1}{\# Características}$ y cost = 1.
 
+El conjunto de datos NSL-KDD luego del pre-procesamiento realizado quedó con 40 variables predictoras, lo que hace que el parámetro por defecto de *gamma* sea $\frac{1}{40} = 0.025$. Thaseen en una de sus publicaciones realizó el tunning de los parámetros y dio con que 0.07 es el valor óptimo de *gamma* y 10 el valor para el parámetro *cost*.
+
+A continuación se realizará el ajuste d elos parámetros de SVM para el conjunto de entrenamiento original colocando los valores de *gamma*: {0.01, 0.025, 0.03, 0.04, 0.05, 0.07, 0.08} y de *cost*: {1, 2, 3, 4, 5, 6}. Se hará uso de la función *tune* quien por defecto hace uso de la técnica de validación cruzada de 10 conjuntos.
+
+Empezaremos por preparar el ambiente de trabajo eliminando variables parciales, cargando el archivo de funciones y la biblioteca a utilizar *e1071*.
+
+```{r, eval=FALSE}
+rm(list = ls())
+source("../source/functions/functions.R")
+require(e1071)
+```
+
+Posteriormente, cargaremos el conjunto original de entrenamiento y eliminaremos la etiquetas que no serán utilizadas. Recordando que la variable objetivo corresponde a cinco niveles: DoS, normal, Probing, R2L y U2R.
+
+```{r, eval=FALSE}
+dataset = read.csv("../dataset/NSLKDD_Training_New.csv")
+
+#Eliminando etiquetas innecesarias
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+A continuación se transformarán las variables predictoras a tipo numérico y se escalará el conjunto de datos para que cada una de las variables predictoras tenga media cero y desviación estándar uno.
+
+```{r, eval = FALSE}
+#Extrayendo las etiquetas
+names = colnames(dataset)
+Label = dataset$Label_Normal_ClassAttack
+
+#Transformando las variables predictoras a tipo numérico
+dataset = as.data.frame(apply(dataset[,-ncol(dataset)], 2, as.numeric))
+dataset[,ncol(dataset)+1] = Label
+colnames(dataset) = names
+
+#Elminando variables parciales
+remove(list = c("names", "Label"))
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+```
+
+El siguiente paso pasa por establecer una semilla y hacer el ajuste de los parámetros en los rangos mencionados. Es importante destacar que este proceso es bastante largo y los resultados serán exportados a un objeto para su posterior análisis.
+
+```{r, eval=FALSE}
+set.seed(22)
+tuned.model = tune(svm,
+                   Label ~.,
+                   data = dataset,
+                   scale = F,
+                   kernel = "radial",
+                   ranges = list(cost = c(1, 2, 3, 4, 5, 6),
+                                 gamma = c(0.01, 0.025, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08)
+                                 )
+                   )
+#Guardando los resultados
+saveRDS(tuned.model, "../source/parameter_selection/SVM/original_set/tuned_model.rds")
+```
+
+Una vez que el proceso terminó podemos ver el resumen de los resultados obtenidos cargando el objeto y visualizar los resultados y el mejor modelo obtenido.
+
+```{r}
+tuned.model = readRDS("../source/parameter_selection/SVM/original_set/tuned_model.rds")
+tuned.model$performances
+tuned.model$best.parameters
+```
+
+Se puede observar que los mejores parámetros fueron *cost* = 6 y *gamma* = 0.08. Estos resultados dieron una tasa de aciertos de 99.9962%.
+
+```{r}
+100 - 0.003802480
+```
+
+Adicionalmente con estos parámetros se obtuvieron medidas de dispersión de resultados durante el proceso de validación cruzada de 10 conjuntos bastante bajas, lo que es señal de que ese resultado está bastante bien aproximado. Por último, se puede observar como Thaseen tenía razón al decir que los parámetros por defecto no eran los idóneos.
 
 ###NN
-En esta sección se hará la selección de parámetros para el algoritmo NN.
+En esta sección se hará la selección de parámetros para el algoritmo de NN haciendo uso del conjunto de entrenamiento original de NSL-KDD. Se utilizará el paquete *nnet* que permite crear arquitecturas de NN con una sola capa intermedia. Este aspecto no es una limitación debido a que se pudo observar en secciones previas como el modelo de NN se comporta de muy buena manera con una arquitectura 40-20-5. Como las neuronas de entrada y se salida son determinadas por la cantidad de variables predictoras y clases objetivo respectivamente, el único nivel de la NN que se puede ajustar es la cantidad de neuronas de la capa intrmedia.
+
+El rango seleccionado para el ajuste de neuronas en la capa intermedia será [17, 21]. Esto es debido a que el paquete *nnet* tiene un límite de pesos por defecto debido a que con ese número se alcanza un tiempo de ejecución bastante alto  y ya superar esa cantidad de pesos en el modelo tardaría una cantidad de tiempo excesiva. Para hacer el ajuste de parámetros se hará uso de la función *tune.nnet* del paquete *e1071*. Este paquete hace uso de la *nnet* para hacer el entrenamiento de los parámetros y selecciona el mejor modelo haciendo uso de validación cruzada de 10 conjuntos por defecto.
+
+Se empezará con la preparación del ambiente de trabajo eliminando variables parciales, cargando los paquetes correspondientes y el archivo de funciones.
+
+```{r, eval=FALSE}
+rm(list = ls())
+source("source/functions/functions.R")
+require(e1071)
+require(nnet)
+```
+
+Como se mencionó previamente, se utilizará el conjunto de datos de entrenamiento NSL-KDD preprocesado y que contiene 40 variables predictoras. El mismo será cargado y se le serán eliminadas aquellas etiquetas que no serán utilizadas puesto que se utilizarán 5 clases objetivo, las cuales son: DoS, normal, Probing, R2L y U2R.
+
+```{r, eval=FALSE}
+dataset = read.csv("../dataset/NSLKDD_Training_New.csv")
+
+#Eliminando etiquetas innecesarias
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Se deben transformas las variables predictoras a tipo númerico y escalar el conjunto de datos para que todas las variables predictoras tengan media 0 y desviación estándar uno.
+
+```{r, eval=FALSE}
+#Extrayendo información
+names = colnames(dataset)
+Label = dataset$Label_Normal_ClassAttack
+
+#Transformando variables predictoras a tipo numérico
+dataset = as.data.frame(apply(dataset[,-ncol(dataset)], 2, as.numeric))
+dataset[,ncol(dataset)+1] = Label
+colnames(dataset) = names
+
+#Eliminando variables parciales
+remove(list = c("names", "Label"))
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+```
+
+Por último se hará el ajuste de los parámetros estableciendo el rango de las neuronas de la capa intermedia en el rango [17,21]. Se establecerá una semilla para que esta corrida sea reproducible. Adicionalmente, este proceso dura algunas horas y es por ello que el resultado será exportado a un objeto para su posterior carga y análisis.
+
+```{r, eval=FALSE}
+set.seed(22)
+tuned.model = tune.nnet(Label ~.,
+                        data = dataset,
+                        size = 17:21,
+                        maxit = 100)
+
+#Guardando los resultados
+saveRDS(tuned.model, "source/parameter_selection/NN/original_set/tuned_model.rds")
+```
+
+Una vez que se tienen los resultados es posible cargar el objeto almacena y visualizar los resultados obtenidos.
+
+```{r}
+tuned.model = readRDS("../source/parameter_selection/NN/original_set/tuned_model.rds")
+tuned.model$performances
+tuned.model$best.parameters
+```
+
+Se puede observar que los mejores resultados se obtuvieron con 21 neuronas con un rendimiento de 99.99546% de acierto.
+
+```{r}
+100 - 0.004543848
+```
+
+Adicionalmente, se puedo obserar que la dispersión de los resultados mediante el proceso de validación cruzada de 10 conjuntos es bastante baja. Este aspecto refleja que los resultados obtenidos no están sesgados.
 
 ##Conjunto de datos reducido
+En esta sección se realiza la selección de parámetros sobre los conjuntos de datos reducidos producto de la aplicación de la selección de características haciendo uso de las técnicas PCA y GFR.
+
+La selección de los parámetros cambia en conjunto con la reducción de características, puesto que el problema cambió. Es por ello que las características seleccionadas para el conjunto de datos original ya no son de fiar y se deben ajustar los parámetros para los nuevos conjuntos de datos. La reducción de características, como se mencionó previamente ayuda a seleccionar las características realmente útiles y elimina aquellas que puedan aportar ruido. Así mismo, con un conjunto de características reducido es una posibilidad para poder utilizar más neuronas en la capa intermedia del modelo de NN. Puesto que se mencionó previamente que el paquete *nnet* tiene un número máximo de pesos por defecto para proteger al programador o al analista a la hora de entrenar el modelo.
+
+Se poseen dos conjuntos de datos reducidos, el de PCA y el de GFR. Primero se trabajará con el conjunto de PCA y posteriormente con el conjunto de GFR.
 
 ###PCA
+En la sección de selección de características usando PCA se seleccionaron 7 componentes principales como número de características relevantes. Por ello, en esta sección se trabajará haciendo uso de dichas componentes principales para el ajuste de los parámetros de los modelos NN y SVM.
+
+####SVM
+Previamente se mencionó que para el algoritmo SVM con kernel radial hay dos parámetros ajustables que hacen referencia a *gamma* y *cost*. En este caso el parámetro *gamma* por defecto es $\frac{1}{7}$ = 0.14; esto debido a que ahora hay 7 variables predictoras. Por otra parte, *cost* = 1. Dicho esto, el espacio de valores para a probar para cada el ajuste del modelo será: *cost* = {1, 2, 3, 4, 5, 6} y *gamma* = {0.06, 0.07, 0.08, 0.14, 0.2, 0.3, 0.4}. De esta manera se están probando combinaciones usando parámetros por defecto, los parámetros seleccionados haciendo uso del conjunto original y nuevos parámetros cercanos a los parámetros por defecto.
+
+Se empezarán las labores preparando el ambiente de trabajo. Se eliminarán las variables parciales, se cargarán los parámetros por defecto y se cargarppan las bibliotecas a utilizar.
+
+```{r, eval=FALSE}
+rm(list = ls())
+source("../source/functions/functions.R")
+require(e1071)
+require(nnet)
+```
+
+Se debe cargar el conjunto de datos original y remover las etiquetas que no se utilizarán.
+
+```{r, eval=FALSE}
+dataset = read.csv("../dataset/NSLKDD_Training_New.csv")
+
+#Eliminando etiquetas innecesarias
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Al igual que en otras ocasiones, se deben transformar las variables predictoras a tipo numérico. Y escalar el conjunto de datos para que tenga media cero y desviación estándar uno.
+
+```{r, eval= FALSE}
+#Transformando variables predictoras a tipo numérico
+dataset = as.data.frame(apply(dataset[,-ncol(dataset)], 2, as.numeric))
+dataset[,ncol(dataset)+1] = Label
+colnames(dataset) = names
+
+#Eliminando variables parciales
+remove(list = c("names", "Label"))
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+```
+
+El siguiente paso pasa por aplicar PCA al conjunto de datos y seleccionar las primeras 7 componentes principales.
+
+```{r, eval=FALSE}
+#Aplicando PCA
+pca = prcomp(dataset[, -41], scale. = TRUE)
+#Seleccionando las primeras 7 componentes
+dataset = cbind(as.data.frame(pca$x[,1:7]), Label = dataset$Label)
+```
+
+Una vez que se tiene el conjunto de datos deseado, se procede a hacer uso de la función *tune* para hacer la selección de los parámetros. Recordemos que esta función hace uso de validaicón cruzada de 10 conjuntos. Adicionalmente, se colocará una semilla para hacer este paos reproducible.
+
+Este proceso dura algunas horas y es por eso que los resultados se exportarán a un objeto para su posterior análisis.
+
+```{r, eval=FALSE}
+set.seed(22)
+tuned.model = tune(svm,
+                   Label ~.,
+                   data = dataset,
+                   scale = F,
+                   kernel = "radial",
+                   ranges = list(cost = c(1, 2, 3, 4, 5, 6),
+                                 gamma = c(0.06, 0.07, 0.08, 0.14, 0.2, 0.3, 0.4)
+                                 )
+                   )
+
+#Guardando los resultados
+saveRDS(tuned.model, "../source/parameter_selection/SVM/PCA/tuned_model.rds")
+```
+
+Una vez que el proceso es completado se puede cargar el objeto y visualizar los resultados.
+
+```{r}
+tuned.model = readRDS("../source/parameter_selection/SVM/PCA/tuned_model.rds")
+tuned.model$performances
+tuned.model$best.parameters
+```
+
+Se observa el resultado con el mejor rendimiento es haciendo uso de los parámetros *cost* = 6 y *gamma* = 0.4. Adicionalmente, se puede apreciar como la dispersión de los resultados es bastante baja. El mejor desempeño obtenido fue de 99.99452% de acierto.
+
+```{r}
+100 - 0.005476092
+```
+
+De esta manera, se espera que con dichos parámetros se pueda alcanzar un mejor desempeño que el alcanzado por el modelo de SVM con parámetros por defecto.
+
+####NN
+Esta sección corresponde a la selección de parámetros haciendo uso del conjunto de datos reducido producto de la aplicación de PCA para el modelo de NN. Como se mencionó previamente, se hará uso de las primeras 7 componentes principales. El parámetro a ajustar corresponde a la cantidad de neuronas en la capa intermedia. Parámetro que haciendo uso del conjunto de datos original no podía exceder de 21 neuronas debido a la cantidad de pesos que generaba. Esta es una de las ventajas de la reducción de características reflejada en el modelo de redes neuronales. El rango neuronas intermedias será [17,30].
+
+Se iniciará con el proceso preparando el ambiente de trabajo. Se eliminarán variables parciales, se cargará el archivo de funciones y se cargarán los paquetes a utilizar.
+
+```{r, eval=FALSE}
+rm(list = ls())
+source("../source/functions/functions.R")
+require(e1071)
+require(nnet)
+```
+
+Una vez listo el ambiente de trabajo es necesario cargar el conjunto de datos original y eliminar aquellas etiquetas que no serán utilizadas.
+
+```{r, eval=FALSE}
+#Cargando el conjutno de datos
+dataset = read.csv("../dataset/NSLKDD_Training_New.csv")
+
+#Eliminando etiquetas innecesarias
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Se deben transformar las variables predictoras a tipo numérico y escalar el conjunto de datos para que todas las variables predictoras tengan media cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+#Extrayendo información
+Label = dataset$Label_Normal_ClassAttack
+names = colnames(dataset)
+
+#Tranformando variables predictoras a tipo numérico
+dataset = as.data.frame(apply(dataset[,-ncol(dataset)], 2, as.numeric))
+dataset[,ncol(dataset)+1] = Label
+colnames(dataset) = names
+
+#Eliminando variables parciales
+remove(list = c("names", "Label"))
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+```
+
+Una vez que se tiene el conjunto de datos listo, se le deba aplicar PCA y seleccionar las primeras 7 componentes principales.
+
+```{r, eval=FALSE}
+#Aplicando PCA
+pca = prcomp(dataset[, -41], scale. = TRUE)
+#Seleccionando las primeras 7 componentes
+dataset = cbind(as.data.frame(pca$x[,1:7]), Label = dataset$Label)
+```
+
+Ya se tiene el conjunto de datos reducido que será utilizado. Se establece una semilla para hacer este proceso reproducible y se hace uso de la funcion *nnet*. Recordemos que esta función hace uso de la técnica de validación cruzada de 10 conjuntos para el proceso de selección de parámetros. Adicionalmente, al proceso ser bastante largo, los resultados serán exportados a una objeto para su posterior análisis.
+
+```{r, eval= FALSE}
+set.seed(22)
+tuned.model = tune.nnet(Label ~.,
+                        data = dataset,
+                        size = 17:30,
+                        maxit = 100)
+
+#Guardando los resultados
+saveRDS(tuned.model, "../source/parameter_selection/NN/PCA/tuned_model.rds")
+```
+
+Una vez que el proceso culmina, se puede cargar el objeto y visualizar los resultados obtenidos.
+
+```{r}
+tuned.model = readRDS("../source/parameter_selection/NN/PCA/tuned_model.rds")
+tuned.model$performances
+tuned.model$best.parameters
+```
+
+Se observa que con 30 neuronas el desempeño es de 99.99%.
+
+```{r}
+100 - 0.009972417
+```
+
+Adicionalmente, este resultado está respaldado con una dispersión bastante baja en los resultados. De tal manera, se espera que con una mayor cantidad de neuronas que las presentadas en el conjunto de datos por defecto se pueda alcanzar un mejor desempeño a la hora de clasificar las anomalías.
 
 ###GFR
+En esta sección se hará el ajuste de los parámetros para los modelos de NN y de SVM haciendo uso del conjunto de datos reducido producto de la aplicación de GFR. En la sección de GFR se seleccionaron 9 características como número ideal de características. Estas características difieren en sus nombres entre los modelos de SVM y NN. Sin embargo, para cada modelo en particular se seleccionarán aquellas características seleccionadas idealmente para cada caso.
+
+####SVM
+En esta sección se seleccionan los parámetros para el modelo de SVM. en este caso los valores por defecto son: *gamma* = $\frac{1}{9}$ = 0.11 y *cost* = 1. De igual manera que con PCA pasa que al hacer reducción de características el problema cambia y es necesario hacer un ajuste nuevo de los parámetros, diferente al del conjunto original de  NSL-KDD.
+
+Empezaremos la labores preparando el ambiente de trabajo eliminando variables parciales, cargando los paquetes a utilizar y cargando el archivos de funciones a utilizar.
+
+```{r, eval=FALSE}
+rm(list = ls())
+source("../source/functions/functions.R")
+require(e1071)
+require(nnet)
+```
+
+A continuación, se cargará el conjunto de datos de entrenamiento y se eliminarán aquellas etiquetas que no se utilizarán.
+
+```{r, eval=FALSE}
+dataset = read.csv("../dataset/NSLKDD_Training_New.csv")
+
+#Eliminando etiquetas innecesarias
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Se deben pasar todas las variables predictoras a tipo numérico y escalar el conjunto de datos para que las mismas tenga media cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+#Extrayendo características
+svm.gfr = readRDS("../source/feature_selection/SVM/results_GFR.rds")
+svm.gfr = rownames(svm.gfr)[1:9]
+
+#Extrayendo información
+Label = dataset$Label_Normal_ClassAttack
+dataset = dataset[, svm.gfr]
+names = colnames(dataset)
+
+
+#Transformando variables predictoras en tipo numérico
+dataset = as.data.frame(apply(dataset, 2, as.numeric))
+dataset[,ncol(dataset)+1] = Label
+colnames(dataset) = names
+
+#Eliminando variables parciales
+remove(list = c("names", "Label"))
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+```
+
+En este punto se tiene todo listo para seleccionar los parámetros. Se seleccionará una semilla para la reproducibilidad de la prueba y se almacenará el resultado del proceso en un objeto para su posterior análisis debido al tiempo que tarda este paso en ejecutarse.
+
+```{r, eval=FALSE}
+set.seed(22)
+tuned.model = tune(svm,
+                   Label ~.,
+                   data = dataset,
+                   scale = F,
+                   kernel = "radial",
+                   ranges = list(cost = c(1, 2, 3, 4, 5, 6),
+                                 gamma = c(0.06, 0.07, 0.08, 0.11, 0.2, 0.3, 0.4)
+                                 )
+                   )
+
+#Guardando los resultados
+saveRDS(tuned.model, "source/parameter_selection/SVM/GFR/tuned_model.rds")
+```
+
+Una vez que el proceso culmina se puede cargar el objeto almacenado y visualizar los resultados obtenidos.
+
+```{r}
+tuned.model = readRDS("../source/parameter_selection/SVM/GFR/tuned_model.rds")
+tuned.model$performances
+tuned.model$best.parameters
+```
+
+Se observa que los mejores parámetros fueron *cost* = 6 y *gamma* = 0.4. Estos resultados respaldados por la poca dispersión obtenida con dicho resultado. El mejor resultado fue de 99.99354%.
+
+```{r}
+100 - 0.006461745
+```
+
+####NN
+En esta sección se realizará la selección de parámetros para NN haciendo uso del conjunto de datos reducido de GFR. En la sección de reducción de características se seleccionaron 9 variables predictoras para NN que serán utilizadas para la selección de parámetros. Adicionalmente, al igual que se explicó en PCA, al haber menor cantidad de neuronas en la capa de salida es posible incrementar la complejidad de la capa intermedia, esperando de esta manera tener mejores resultados.
+
+Se empezarán las labores preparando el ambiente de trabajo eliminando variables parciales, cargando el archivo de funciones y los paquetes a utilizar.
+
+```{r, eval=FALSE}
+rm(list = ls())
+source("../source/functions/functions.R")
+require(e1071)
+require(nnet)
+```
+
+A continuación se cargará el conjunto de datos de entrenamiento de NSL-KDD original y se eliminarán las etiquetas que no se utilizarán.
+
+```{r, eval=FALSE}
+dataset = read.csv("../dataset/NSLKDD_Training_New.csv")
+
+#Eliminando etiquetas innecesarias
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+A continuación se deben extraer las características, transformas las variables predictoras a tipo numérico y escalar el conjunto de datos a media cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+#Cargando características
+nn.gfr = readRDS("../source/feature_selection/NN/results_GFR.rds")
+nn.gfr = rownames(nn.gfr)[1:9]
+
+#Extrayendo información
+Label = dataset$Label_Normal_ClassAttack
+dataset = dataset[, nn.gfr]
+names = colnames(dataset)
+
+#Transformando predictores a tipo numérico
+dataset = as.data.frame(apply(dataset, 2, as.numeric))
+dataset[,ncol(dataset)+1] = Label
+colnames(dataset) = names
+
+#Eliminando variables parciales
+remove(list = c("names", "Label"))
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+```
+
+En este punto ya se tiene el conjunto de datos listo para hacer el proceso de selección de características. Se seleccionará una semilla aleatoria para reproducir los resultados posterioremente y se guardará el resultado en un objeto para su posterior evaluación. Esto, debido a que el proceso dura algunas horas en culiminar.
+
+```{r, eval=FALSE}
+set.seed(22)
+tuned.model = tune.nnet(Label ~.,
+                        data = dataset,
+                        size = 17:30,
+                        maxit = 100)
+
+#Guardando los resultados
+saveRDS(tuned.model, "../source/parameter_selection/NN/GFR/tuned_model.rds")
+```
+
+Una vez terminado el proceso es posible cargar los resultados obtenidos y examinar los mismos.
+
+```{r}
+tuned.model = readRDS("../source/parameter_selection/NN/GFR/tuned_model.rds")
+tuned.model$performances
+tuned.model$best.parameters
+```
+
+Se puede observar que con 28 neuronas el modelo alcanza el mejor rendimiento. El mismo correspondiente a 99.99027% de acierto.
+
+```{r}
+100 - 0.009730928
+```
+
+Este resultado respaldado por la baja dispersión en los resultados en la validación cruzada de 10 conjuntos.
