@@ -1,9 +1,11 @@
 ---
-title: "Implementación y Análisis de Técnicas Híbridas de Aprendizaje Automático en la Detección Intrusos en Redes de Computadoras"
+title: "Implementación y Análisis de Técnicas Híbridas de Aprendizaje Automático en la Detección de Intrusos en Redes de Computadoras"
 author: "Deyban Andrés Pérez Abreu"
 output: 
   pdf_document: 
+    number_sections: yes
     toc: yes
+    toc_depth: 5
 ---
 
 ```{r setup, include=FALSE}
@@ -276,7 +278,7 @@ write.csv(dataset.testing,
           file = "../dataset/NSLKDD_Testing_New.csv", row.names = FALSE)
 ```
 
-# Implementación de modelos híbridos
+# Implementación de modelos híbridos sobre el conjunto de datos original usando parámetros por defecto
 La propuesta del Trabajo Especial de Grado consta del entrenamiento de dos modelos híbridos de aprendizaje automático. El primer modelo (I) consta de una red neuronal en el primer nivel y K-Medias en el segundo nivel. Por otra parte, el segundo modelo (II) consta de una máquina de vectores de soporte en el primer nivel y K-Medias en el segundo nivel.
 
 En esta sección los modelos serán entrenados con los parámetros por defecto. Porteriormente se hará selección de características y parámetros, y se analizará el impacto con respecto a los modelos creados en esta sección.
@@ -2802,3 +2804,19 @@ Se puede observar que con 28 neuronas el modelo alcanza el mejor rendimiento. El
 ```
 
 Este resultado respaldado por la baja dispersión en los resultados en la validación cruzada de 10 conjuntos.
+
+# Implementación de modelos híbridos sobre el conjunto de datos original, PCA y GFR haciendo uso de parámetros seleccionados
+
+En esta sección se implementarán y analizarán los modelos (III) PCA - NN - K-Medias, (IV) PCA - SVM - K-Medias, (V) GFR - NN - K-Medias y (VI) GFR - SVM - K-Medias. Los mismos se realizarán utilizando parámetros seleccionados. Adicionalmente se probará la repercusión de la selección de parámetros para los modelos (I) NN - K-Medias y (II) SVM - K-Medias. 
+
+Los análisis sobre los modelos descritos previamente serán ejecutados haciendo uso del conjunto de entrenamiento para entrenamiento y prueba, y haciendo uso del conjunto de entrenamiento para el entrenamiento y del conjunto de prueba para la prueba. Este doble enfoque se realizará para observar el desempeño de los modelos ante registros conocidos y sobre registros no conocidos. Recordemos que el conjunto de prueba tiene 14 nuevos ataques que no están presentes en el conjunto de entrenamiento. Y es por esto que se tendrán dos apartaos concernientes al análisis sobre el conjunto de entrenamiento y al análisis sobre el conjunto de prueba.
+
+##Análisis sobre el conjunto de entrenamiento
+En esta sección se listan las actividades concernientes al entrenamiento y evaluación de los modelos híbridos haciendo uso exclusivo del conjunto de entrenamiento y de la técnica de validación cruzada de 10 conjunto para la validación del modelos. 
+
+###Conjunto original
+En este apartado se utilizará el conjunto de entrenamiento original y se analizará el impacto de la selección de características para los modelos (I) SVM - K-Medias y (II) NN - K-Medias. La sección de análisis de K-Medias será omitida debido a que ya fue realizada anteriormente, es por ello que sólo se entrenará y analizarám los diferentes modelos.
+
+#### (I) NN - K-Medias
+Se utilizará la misma arquitectura propuesta con anterioridad, la cual corresponde a 40-20-5 para el modelo de NN en el primer nivel y se utilizará K-Medias con dos centroides.
+
