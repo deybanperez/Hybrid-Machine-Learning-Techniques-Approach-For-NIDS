@@ -21,7 +21,8 @@ testing.set = ScaleSet(testing.set)
 
 #Aplying PCA
 pca = prcomp(testing.set[, -41], scale. = TRUE)
-testing.set = cbind(as.data.frame(pca$x[,1:7]), Label = testing.set$Label)
+testing.set = cbind(as.data.frame(pca$x[,1:7]),
+                    Label = testing.set$Label)
 
 #loading results from training
 results = readRDS("source/tuned_model/PCA/SVM/testing_set/list_results.rds")

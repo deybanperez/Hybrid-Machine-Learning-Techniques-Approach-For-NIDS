@@ -36,7 +36,7 @@ dataset.training = dataset.training[, svm.gfr]
 dataset.training = cbind(dataset.training, Label = Label)
 
 #Loading tuned parameters
-tuned.parameters = readRDS("source/parameter_selection/SVM/original_set/tuned_model.rds")
+tuned.parameters = readRDS("source/parameter_selection/SVM/GFR/tuned_model.rds")
 tuned.cost = tuned.parameters$best.parameters$cost
 tuned.gamma = tuned.parameters$best.parameters$gamma
 tuned.cost

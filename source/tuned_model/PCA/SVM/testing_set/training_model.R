@@ -25,8 +25,9 @@ dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dat
 dataset.training = ScaleSet(dataset.training)
 
 #Aplying PCA
-pca = prcomp(dataset[, -41], scale. = TRUE)
-dataset = cbind(as.data.frame(pca$x[,1:7]), Label = dataset$Label)
+pca = prcomp(dataset.training[, -41], scale. = TRUE)
+dataset.training = cbind(as.data.frame(pca$x[,1:7]),
+                         Label = dataset.training$Label)
 
 #Loading tuned parameters
 tuned.parameters = readRDS("source/parameter_selection/SVM/PCA/tuned_model.rds")
