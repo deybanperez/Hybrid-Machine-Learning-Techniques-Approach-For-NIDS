@@ -249,7 +249,7 @@ AccuracyPerLabel = function(confusionMatrix, set)
   labels = sort(unique(set[, ncol(set)]))
   returnValue = vector(mode = "numeric", length = length(labels))
   
-  for (i in 1:length(returnValue))
+  for (i in 1:ncol(confusionMatrix))
     returnValue[i] = confusionMatrix[i,i] / sum(set[,ncol(set)] == labels[i])
   
   return(100*returnValue)
