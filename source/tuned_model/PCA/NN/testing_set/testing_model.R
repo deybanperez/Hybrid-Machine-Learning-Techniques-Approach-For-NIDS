@@ -48,7 +48,6 @@ confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
 confusion.matrix
 
 #Accuracy
-Accuracy(attack.normal.confusion.matrix) * 100
 accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
 accuracy * 100
 ErrorRate(accuracy) * 100
@@ -61,6 +60,7 @@ attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predic
 attack.normal.confusion.matrix
 
 #Binary measures
+Accuracy(attack.normal.confusion.matrix) * 100
 Sensitivity(attack.normal.confusion.matrix) * 100
 Especificity(attack.normal.confusion.matrix) * 100
 Precision(attack.normal.confusion.matrix) * 100
