@@ -20,7 +20,7 @@ testing.set$Label_Normal_or_Attack = NULL
 testing.set = ScaleSet(testing.set)
 
 #loading results from training
-results = readRDS("source/normal_model/NN/Real_Model/list_results.rds")
+results = readRDS("source/default_parameters/original_set/NN/Real_Model/list_results.rds")
 
 #Extracting results
 training.time = results[[1]]
