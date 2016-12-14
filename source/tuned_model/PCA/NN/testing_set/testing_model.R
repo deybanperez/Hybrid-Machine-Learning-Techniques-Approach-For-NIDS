@@ -48,6 +48,7 @@ confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
 confusion.matrix
 
 #Accuracy
+Accuracy(attack.normal.confusion.matrix) * 100
 accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
 accuracy * 100
 ErrorRate(accuracy) * 100

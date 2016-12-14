@@ -40,4 +40,4 @@ total.time = Sys.time() - start.time
 #Storing information
 list.results = list(total.time, model)
 
-saveRDS(list.results, file = "source/normal_model/SVM/Real_Model/list_results.rds")
+saveRDS(list.results, file = "source/default_parameters/original_set/SVM/Real_Model/list_results.rds")

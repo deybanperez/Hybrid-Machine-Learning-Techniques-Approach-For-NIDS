@@ -60,6 +60,7 @@ attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predic
 attack.normal.confusion.matrix
 
 #Binary measures
+Accuracy(attack.normal.confusion.matrix) * 100
 Sensitivity(attack.normal.confusion.matrix) * 100
 Especificity(attack.normal.confusion.matrix) * 100
 Precision(attack.normal.confusion.matrix) * 100

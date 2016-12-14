@@ -8,7 +8,7 @@ library("e1071")
 source("source/functions/functions.R")
 
 #Loading best objects
-list.results = readRDS("source/normal_model/SVM/Tests/list_results.rds")
+list.results = readRDS("source/default_parameters/original_set/SVM/Tests/list_results.rds")
 
 #Showing all results
 list.results$results
@@ -33,6 +33,7 @@ attack.normal.confusion.matrix = AttackNormalConfusionMatrix(list.results$best_t
                                                              list.results$best_predictions)
 attack.normal.confusion.matrix
 #Binary measures
+Accuracy(attack.normal.confusion.matrix) * 100
 Sensitivity(attack.normal.confusion.matrix) * 100
 Especificity(attack.normal.confusion.matrix) * 100
 Precision(attack.normal.confusion.matrix) * 100
