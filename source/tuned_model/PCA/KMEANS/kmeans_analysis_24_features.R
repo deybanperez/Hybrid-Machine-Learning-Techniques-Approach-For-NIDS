@@ -1,70 +1,49 @@
-#Getting ready enviroment
 rm(list = ls())
+source("source/functions/functions.R")
 require(e1071)
 require(nnet)
-source("source/functions/functions.R")
-
-#Loading Dataset
-dataset = read.csv("dataset/NSLKDD_Training_New.csv", sep = ",", header = TRUE)
+###############################################################
+dataset = read.csv("dataset/NSLKDD_Training_New.csv")
 
 #Removing unnecesary labels
 dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 
-#Loading features
-nn.gfr = readRDS("source/feature_selection/NN/results_GFR.rds")
-nn.gfr = rownames(nn.gfr)[1:9]
-
-#Extracting information
+#Extracting inforomation
 Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
-dataset = dataset[, nn.gfr]
 
 #Transforming predictors into numeric
-dataset = as.data.frame(apply(dataset, 2, as.numeric))
-dataset.five = cbind(dataset, Label = Labels[,1])
-dataset.two = cbind(dataset, Label = Labels[,2])
+dataset = as.data.frame(apply(dataset[, c(-41, -42)], 2, as.numeric))
+dataset = cbind(dataset, Label = Labels[,1])
 
-#Removing parcial variables
-remove(list = c("Labels"))
+#Scaling set
+dataset = ScaleSet(dataset)
 
-#Scaling sets
-dataset.two = ScaleSet(dataset.two)
-dataset.five = ScaleSet(dataset.five)
+#Aplying PCA
+pca = prcomp(dataset[, -41], scale. = TRUE)
+dataset = cbind(as.data.frame(pca$x[,1:24]), Label = Labels[,1])
+dataset.five = cbind(as.data.frame(pca$x[,1:24]), Label = Labels[,1])
+dataset.two = cbind(as.data.frame(pca$x[,1:24]), Label = Labels[,2])
 
-#Jambu's Elbow
-IIC.Hartigan = vector(mode = "numeric", length = 30)
-IIC.Lloyd = vector(mode = "numeric", length = 30)
-IIC.Forgy = vector(mode = "numeric", length = 30)
-IIC.MacQueen = vector(mode = "numeric", length = 30)
+#removing parcial variables
+remove(list = c("pca", "Labels"))
 
-for (k in 1:30)
-{
-  set.seed(k)
-  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Hartigan-Wong")
-  IIC.Hartigan[k] = groups$tot.withinss
-  set.seed(k)
-  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Lloyd")
-  IIC.Lloyd[k] = groups$tot.withinss
-  set.seed(k)
-  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Forgy")
-  IIC.Forgy[k] = groups$tot.withinss
-  set.seed(k)
-  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "MacQueen")
-  IIC.MacQueen[k] = groups$tot.withinss
-}
-plot(IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Jambu Elbow",
-     xlab = "Centros", ylab = "Varianza")
-points(IIC.Lloyd, col = "red", type = "b", pch = 19)
-points(IIC.Forgy, col = "green", type = "b", pch = 19)
-points(IIC.MacQueen, col = "magenta", type = "b", pch= 19)
+#Analyzing Jambu's elbow results
+jambu.results = readRDS("source/tuned_model/PCA/KMEANS/jambu_results_24_features.rds")
+plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
+     xlab = "Número de Centroides", ylab = "Varianza")
+points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
+points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
+points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
 legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
        col = c("blue","red", "green", "magenta"), pch = 19)
 
-#Selecting best distance measure
-measure.two = lapply(MeasuareKMeans(dataset, 2), max)
-measure.five = lapply(MeasuareKMeans(dataset, 5), max)
-measure.two
-measure.five
+#Selecting the best distance's algorithm
+measures.results = readRDS("source/tuned_model/SVM/KMEANS/measures_results_24_features.rds")
+measures.results$measure.two
+measures.results$measure.two[1]
+measures.results$measure.five
+measures.results$measure.five[1]
 
 #Testing the models
 #Five class model
