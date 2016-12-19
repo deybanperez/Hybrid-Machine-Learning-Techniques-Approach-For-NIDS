@@ -1,7 +1,5 @@
 rm(list = ls())
 source("source/functions/functions.R")
-require(e1071)
-require(nnet)
 ###############################################################
 dataset = read.csv("dataset/NSLKDD_Training_New.csv")
 
@@ -9,7 +7,7 @@ dataset = read.csv("dataset/NSLKDD_Training_New.csv")
 dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 
-#Extracting inforomation
+#Extracting information
 Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
 
 #Transforming predictors into numeric

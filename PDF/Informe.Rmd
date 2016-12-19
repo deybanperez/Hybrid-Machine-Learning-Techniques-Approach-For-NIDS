@@ -363,7 +363,7 @@ for (k in 1:30)
 jambu.results = list(IIC.Hartigan = IIC.Hartigan, IIC.Lloyd = IIC.Lloyd,
      IIC.Forgy = IIC.Forgy, IIC.MacQueen = IIC.MacQueen)
 #Guardando los resultados del codo de Jambu
-saveRDS(object = jambu.results, file = "source/normal_model/KMEANS/jambu_results.rds")
+saveRDS(object = jambu.results, file = "source/default_parameters/original_set/KMEANS/jambu_results.rds")
 ```
 
 El proceso anterior dura algunos minutos y por ello es que los resultados fueron almacenados en un objeto para su posterior carga y evaluación, sin la necesidad de que el proceso de codo de jambu sea realizado cada vez que se desee analizar el proceso.
@@ -371,7 +371,7 @@ El proceso anterior dura algunos minutos y por ello es que los resultados fueron
 Para poder observar los resultados se creará una gráfica que permita ver la varianza contra la cantidad de grupos o de centroides.
 
 ```{r, fig.align="center"}
-jambu.results = readRDS("../source/normal_model/KMEANS/jambu_results.rds")
+jambu.results = readRDS("../source/default_parameters/original_set/KMEANS/jambu_results.rds")
 plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
      xlab = "Número de Centroides", ylab = "Varianza")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
@@ -392,13 +392,13 @@ measure.five = lapply(MeasuareKMeans(dataset, 5), max)
 #Creando una lista para almacenar los resultados
 measures.results = list(measure.two = measure.two, measure.five = measure.five)
 #Salvando las medidas de rendimiento obtenidas en un objeto
-saveRDS(object = measures.results, file = "../source/normal_model/KMEANS/measures_results.rds")
+saveRDS(object = measures.results, file = "../source/default_parameters/original_set/KMEANS/measures_results.rds")
 ```
 
 El paso anterior fue realizado haciendo uso de la función *MeasureKMeans*, que permite promediar la inercia inter-grupos. Seleccionando aquella medida que maximize esta medida de rendimiento. Esta función es algo costosa en tiempo y por eso los resultados fueron exportados a un objeto para el posterior análisis. A continuación se cargan los resultados y se examinan los mismos.
 
 ```{r}
-measures.results = readRDS("../source/normal_model/KMEANS/measures_results.rds")
+measures.results = readRDS("../source/default_parameters/original_set/KMEANS/measures_results.rds")
 measures.results$measure.two
 measures.results$measure.two[1]
 measures.results$measure.five
@@ -665,7 +665,7 @@ Una vez que se culmina el proceso de entrenamiento, se almacenan en la lista los
 
 ```{r, eval=FALSE}
 list.results$results = results
-saveRDS(list.results, "../source/normal_model/NN/Tests/list_results.rds")
+saveRDS(list.results, "../source/default_parameters/original_set/NN/Tests/list_results.rds")
 ```
 
 ####Evaluación del modelo
@@ -677,7 +677,7 @@ Se empezará por establecer el ambiente de trabajo eliminando variables parciale
 rm(list = ls())
 library("nnet")
 source("../source/functions/functions.R")
-list.results = readRDS("../source/normal_model/NN/Tests/list_results.rds")
+list.results = readRDS("../source/default_parameters/original_set/NN/Tests/list_results.rds")
 ```
 
 A continuación se visualizará la eficacia obtenida del proceso de validación cruzada y se calculará la media de los resultados obtenidos.
@@ -944,7 +944,7 @@ Una vez que se culmina el proceso de entrenamiento y validación, se almacenan e
 
 ```{r, eval=FALSE}
 list.results$results = results
-saveRDS(list.results, "../source/normal_model/SVM/Tests/list_results.rds")
+saveRDS(list.results, "../source/default_parameters/original_set/SVM/Tests/list_results.rds")
 ```
 
 #### Evaluación del modelo
@@ -956,7 +956,7 @@ Se empezará por establecer el ambiente de trabajo eliminando variables parciale
 rm(list = ls())
 library("e1071")
 source("../source/functions/functions.R")
-list.results = readRDS("../source/normal_model/SVM/Tests/list_results.rds")
+list.results = readRDS("../source/default_parameters/original_set/SVM/Tests/list_results.rds")
 ```
 
 A continuación se visualizará la eficacia obtenida en cada iteración del proceso de validación cruzada y se calculará la media de acierto.
@@ -1181,7 +1181,7 @@ Por último, el tiempo y el modelo creado se guardan en una lista y se exportan 
 
 ```{r, eval=FALSE}
 list.results = list(total.time, model)
-saveRDS(list.results, file = "../source/normal_model/NN/Real_Model/list_results.rds")
+saveRDS(list.results, file = "../source/default_parameters/original_set/NN/Real_Model/list_results.rds")
 ```
 
 ####Evaluación del modelo
@@ -1193,7 +1193,7 @@ Se empezará por establecer el ambiente de trabajo eliminando variables parciale
 rm(list = ls())
 library("nnet")
 source("../source/functions/functions.R")
-results = readRDS("../source/normal_model/NN/Real_Model/list_results.rds")
+results = readRDS("../source/default_parameters/original_set/NN/Real_Model/list_results.rds")
 testing.set = read.csv("../dataset/NSLKDD_Testing_New.csv",
                        sep = ",", header = TRUE)
 ```
@@ -1453,7 +1453,7 @@ Por último, el tiempo y el modelo creado se guardan en una lista y se exportan 
 
 ```{r, eval=FALSE}
 list.results = list(total.time, model)
-saveRDS(list.results, file = "../source/normal_model/SVM/Real_Model/list_results.rds")
+saveRDS(list.results, file = "../source/default_parameters/original_set/SVM/Real_Model/list_results.rds")
 ```
 
 ####Evaluación del modelo
@@ -1464,7 +1464,7 @@ En esta sección se hará la evaluación de los resultados obtenidos en la secci
 rm(list = ls())
 library("e1071")
 source("../source/functions/functions.R")
-results = readRDS("../source/normal_model/SVM/Real_Model/list_results.rds")
+results = readRDS("../source/default_parameters/original_set/SVM/Real_Model/list_results.rds")
 testing.set = read.csv("../dataset/NSLKDD_Testing_New.csv", sep = ",", header = TRUE)
 ```
 
@@ -2815,8 +2815,1457 @@ Los análisis sobre los modelos descritos previamente serán ejecutados haciendo
 En esta sección se listan las actividades concernientes al entrenamiento y evaluación de los modelos híbridos haciendo uso exclusivo del conjunto de entrenamiento y de la técnica de validación cruzada de 10 conjunto para la validación del modelos. 
 
 ###Conjunto original
-En este apartado se utilizará el conjunto de entrenamiento original y se analizará el impacto de la selección de características para los modelos (I) SVM - K-Medias y (II) NN - K-Medias. La sección de análisis de K-Medias será omitida debido a que ya fue realizada anteriormente, es por ello que sólo se entrenará y analizarám los diferentes modelos.
+En este apartado se utilizará el conjunto de entrenamiento original y se analizará el impacto de la selección de características para los modelos (I) SVM - K-Medias y (II) NN - K-Medias. La sección de análisis de K-Medias será omitida debido a que ya fue realizada anteriormente, es por ello que sólo se entrenará y analizarán los diferentes modelos.
 
 #### (I) NN - K-Medias
-Se utilizará la misma arquitectura propuesta con anterioridad, la cual corresponde a 40-20-5 para el modelo de NN en el primer nivel y se utilizará K-Medias con dos centroides.
+Se utilizarán los parámetros seleccionados para el conjunto de datos de entrenamiento original. De esta manera la arquitectura usada será 40-X-5. Donde X corresponde al número de neuronas seleccionadas en el proceso de selección de parámetros.
 
+#### Entrenamiento del modelo
+
+Se iniciarán las tareas limpiando el ambiente de trabajp, cagrando el paquete a hacer utilizado y cargando el archivo de funciones.
+
+```{r, eval=FALSE}
+rm(list = ls())
+#Cargando paquete
+library("nnet")
+#Cargando funciones
+source("../source/functions/functions.R")
+```
+
+Posteriormente se cargará el conjunto de datos de entrenamiento y se eliminarán las etiquetas que no se utilizarán. Recordando que se utilizarán cinco clases objetivo: DoS, normal, Probing, R2L y U2R.
+
+```{r, eval=FALSE}
+#Cargando conjunto de datos
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Es importante que las variables predictoras sean de tipo numérico y la variable objetivo de tipo *factor*. Adicionalmente, las variables predictoras deben ser escaladas para que tengan media cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+#Asignando los tipos de dato
+for (i in 1 : (ncol(dataset) -1) )
+  dataset[,i] = as.numeric(dataset[,i])
+
+dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+```
+
+Una vez listo el conjunto de datos se inicia con el proceso de validaicón cruzada de 10 conjuntos diviendo el conjunto de datos en 10 partes iguales para su posterior uso.
+
+```{r, eval=FALSE}
+#Iniciando el proceso de validación cruzada de 10 conjuntos
+cv.sets = CVSet(dataset, k = 10, seed = 22)
+length(cv.sets)
+```
+
+Se crearán algunas variables parciales que llevarán el registro de los resultados obtenidos durante el proceso.
+
+```{r, eval=FALSE}
+#Inicializando algunas variables
+results = vector(mode = "numeric", length = 10)
+list.results = list(0, 0, 0, 0)
+names(list.results) = c("results", "best_model", "best_testing_set", "best_predictions")
+best.accuracy = 0
+```
+
+En este punto se cargarán los mejores parámetros seleccionados durante el proceso de selección de parámetros para el conjunto de datos de entrenamiento original.
+
+```{r}
+hidden.neurons = readRDS("../source/parameter_selection/NN/original_set/tuned_model.rds")
+hidden.neurons = hidden.neurons$best.parameters$size
+hidden.neurons
+```
+
+El número de neuronas seleccionado fue de 21. Así que ese será el número utilizado para el entrenamiento de la red neuronal. Dicho esto, inicia el proceso de validaicón cruzada de 10 conjuntos.
+
+```{r, eval=FALSE}
+for (i in 1:10)
+{
+  #Extracting sets
+  testingset = as.data.frame(cv.sets[[i]])
+  trainingset = cv.sets
+  trainingset[[i]] = NULL
+  trainingset = do.call(rbind, trainingset)
+  
+  #NN Model
+  model = nnet(Label ~ .,
+               data = trainingset,
+               size = hidden.neurons,
+               maxit = 100)
+  
+  #Making predictions
+  predictions = predict(model, testingset[, 1:(ncol(testingset)-1)], type = "class")
+  
+  
+  #Calculating accuracy
+  accuracy = mean(testingset[, ncol(testingset)] == predictions)
+  #Storing results
+  results[i] = accuracy
+  
+  #Storing best results
+  if(best.accuracy < accuracy)
+  {
+    list.results$best_model = model
+    list.results$best_testing_set = testingset
+    list.results$best_predictions = predictions
+    best.accuracy = accuracy
+  }
+}
+```
+
+Como el proceso es bastante largo, los resultados serán almacenados en un objeto para su posterior carga y análisis.
+
+```{r, eval=FALSE}
+#Storing results
+list.results$results = results
+
+#Saving list of objects
+saveRDS(list.results, "../source/tuned_model/original_set/NN/training_set/list_results.rds")
+```
+
+####Evaluación del modelo
+
+En esta sección se analizan los resulatdos obtenidos en la sección anterior y adicionalmente agrega el segundo nivel de clasificación correspondiente a K-Medias con dos centroides.
+
+Se empezará por establecer el ambiente de trabajo eliminando variables parciales, cargando el paquete a utilizar y cargando el archivo de funciones correspondiente.
+
+```{r}
+rm(list = ls())
+#Cargando paquete
+library("nnet")
+#Cargando funciones
+source("../source/functions/functions.R")
+```
+
+A continuación se carga la lista de resultados obtenidos la sección anterior y visualizaremos los resultados obtenidos.
+
+```{r}
+#Cargando la lista de resultados
+list.results = readRDS("../source/tuned_model/original_set/NN/training_set/list_results.rds")
+#Mostrando los resultados
+list.results$results * 100
+```
+
+Se puede observar un resultado excelente con un porcentaje de acierto superior al 99% en todas las iteraciones. A continuación veamos la media de lso resultados obtenidos.
+
+```{r}
+mean(list.results$results) * 100
+```
+
+Una media de 99.51%. Un resultado excelente para la clasificación. Ahora empezaremos a hacer uso de la matriz de confusión para evaluar el desempeño del mejor modelo obtenido.
+
+```{r}
+#Creando la matriz de confusión
+confusion.matrix = table(Real = list.results$best_testing_set[,ncol(list.results$best_testing_set)],
+                         Prediction = list.results$best_predictions)
+#Visualizando la matriz de confusión
+confusion.matrix
+```
+
+Una matriz de confusión excelente, presentando solo 17 fallos. Ahora veamos la tasa de acierto y la tasa de error.
+
+```{r}
+accuracy = mean(list.results$best_testing_set[,ncol(list.results$best_testing_set)] == 
+                  list.results$best_predictions)
+
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+
+Con 99.69% se refleja el resultado obtenido en la matriz de confusión. Veamos la eficacia por clase.
+
+```{r}
+AccuracyPerLabel(confusion.matrix, list.results$best_testing_set)
+```
+
+La salida del vector corresponde a las posiciones DoS, normal, Probing, R2L y U2R. Se puede observar como todos los ataques DoS son detectados. Y se tiene un excelente desempeño en la clasificación de las clases normal, Probing y R2L. U2R fue la clase con menor porcentaje de acierto, pero también hay que considerar la escaza ocurrencia de este tipo de clase en el conjunto de entrenamiento.
+
+A continuación se pasará la matriz de confusión de cinco clases a una matriz de confusión binaria para poder sacar otro tipo de medidas.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(list.results$best_testing_set,
+                                                             list.results$best_predictions)
+attack.normal.confusion.matrix
+```
+
+Se obserba que hubo 9 falsos negativos y 8 falsos positivos. Con K-Medias se tratarán de extraer esos 9 ataques que fueorn clasificados como normal. Adicionalmente veamos la sotras medidas de rendimiento.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+Todas están por encima del 99% de acierto. Esto quiere decir que el modelo es muy bueno clasificando el tráfico anómalo y el normal. Para visualizar la certeza del modelo a la hora de tomar decisiones se utilizará la curva ROC.
+
+```{r, fig.align="center"}
+#Extrayendo probabilidades
+probabilities = predict(list.results$best_model,
+                        list.results$best_testing_set[, 1:(ncol(list.results$best_testing_set)-1)])
+
+#Generando la curva ROC
+roc.data = DataROC(list.results$best_testing_set, probabilities,
+                   list.results$best_predictions)
+generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
+             pred = roc.data$Prediction)
+```
+
+Se puede ver una curva ROC bastante buena que muestra que el modelo toma las decisiones correctar con una alta certeza en las mismas. Ahora se añadirá el segundo nivel de clasificación de K-Medias extrayendo las etiquetas que fueron etiquetadas como normal para intentar extraer los 9 ataques presentes en dicho sub-conjunto.
+
+####Segundo nivel de clasificación (K-Medias)
+
+```{r}
+kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+Una vez que se tiene el conjunto de datos a utilizar se pre-calcularán los centroides para maximizar la eficacia en los resultados obtenidos.
+
+```{r}
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+```
+
+Y una vez precalculados los centroides se procede a la clasificación de K-Medias usando dichos centroides.
+
+```{r}
+matrix.centers = matrix.centers/100
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+```
+
+Posteriormente las predicciones son ordenadas y se crea la matriz de confusión de los resultados.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+confusion.matrix.kmeans.model
+```
+
+En este caso de observa que se detectaron 3 de los ataques, se mantuvieron 6 falsos negativos y se incrementó considerablemente el número de falsos positivos. Un desempeño bastante malo que ensucia y deteriora al primer nivel. Veamos la eficacia del modelo.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)*100
+```
+
+El resultado de 76.56% refleja lo visto en la matriz de confusión. Veamos el acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Solo el 33.33% de los ataques que estaban presentes fueron detectados y se hubieron muchos falsos positivos.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+La baja precisión ilustra lo malo que fue el modelo a la hora de acertar en los ataques que clasificó como ataques.
+
+####Estadísticas totales
+
+Se completará uniendo los resultados obtenidos de ambos niveles para explorar el rendimiento conjunto.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix,
+                                          confusion.matrix.kmeans.model)
+
+confusion.matrix.two.labels
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+```
+
+Evidentemente la tasa de aciertos total bajó debido al pobre rendimiento de K-Medias, sin embargo sigue siendo bastante alta, pero por el excelente rendimiento que obtuvo el primer nivel.
+
+```{r}
+ErrorRate(accuracy.total) * 100
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+```
+
+El resto de las medidas se ven deterioradas con respecto a las obtenidas en el primer nivel debido a que K-Medias solo empeoró los resultados.
+
+#####Conclusión
+Con la inclusión de una neurona más, se obtuvieron mejores resultados con respecto a la tasa de aciertos por parte de K-Medias. Sin embargo, al quitar ataques, K-Medias deterioró su desempeño comparado al previo análisis con parámetros por defecto. Adicionalmente se puede observar que la curva ROC se comporta de manera similar en ambos casos.
+
+###(II) SVM - K-Medias
+En este apartado se utilizarán los parámetros seleccionados para el conjunto de datos original.
+
+####Entrenamiento del modelo
+Se iniciarán las labores eliminando las variables parciales, cargando los paquetes a utilizar y el archivo de funciones correspondiente.
+
+```{r, eval=FALSE}
+rm(list = ls())
+
+#Cargando paquete
+library("e1071")
+
+#Cargando archivo de funciones
+source("../source/functions/functions.R")
+```
+
+Se cargará el conjunto de entrenamiento y se eliminarán las etiquetas que no se utilizarán. Teniendo en cuenta que las cinco variables objetivo son: DoS, normal, Probing, R2L y U2R.
+```{r, eval=FALSE}
+#Cargando el conjunto de datos
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Las variables predictoras deben ser de tipo numérico y las variables objetivo de tipo factor. Adicionalmente, las variables predictoras deben ser escaladas para que todas tengan media cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+#Asignando el tipo de dato correcto
+for (i in 1 : (ncol(dataset) -1) )
+  dataset[,i] = as.numeric(dataset[,i])
+
+dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+```
+
+Una vez que se tiene el conjunto de datos preparado, es posible empezar con las labores de validación cruzada de 10 conjuntos. Así se empezará con al división del conjunto de datos en 10 sub-conjuntos.
+
+```{r, eval=FALSE}
+cv.sets = CVSet(dataset, k = 10, seed = 22)
+length(cv.sets)
+```
+
+Porteriormente, se inicializarán algunas variables que recolectarán los resultados obtenidos durante dicho proceso.
+
+```{r, eval=FALSE}
+results = vector(mode = "numeric", length = 10)
+list.results = list(0, 0, 0, 0)
+names(list.results) = c("results", "best_model", "best_testing_set", "best_predictions")
+best.accuracy = 0
+```
+
+Se cargarán los parámetros obtenidos durante el proceso de selección de parámetros.
+
+```{r}
+tuned.parameters = readRDS("../source/parameter_selection/SVM/original_set/tuned_model.rds")
+tuned.cost = tuned.parameters$best.parameters$cost
+tuned.gamma = tuned.parameters$best.parameters$gamma
+tuned.cost
+tuned.gamma
+```
+
+Donde se puede observar que *cost* = 6 y *gamma* = 0.08. Es decir, que el modelo opta por permitir mayor error y una región de separación mayor. Ahora, estos parámetros serán utilizados para el proceso de validación cruzada de 10 conjuntos.
+
+```{r, eval=FALSE}
+for (i in 1:10)
+{
+  #Extracting sets
+  testingset = as.data.frame(cv.sets[[i]])
+  trainingset = cv.sets
+  trainingset[[i]] = NULL
+  trainingset = do.call(rbind, trainingset)
+  
+  #SVM Model
+  model = svm(Label ~ .,
+              data = trainingset,
+              kernel = "radial",
+              cost = tuned.cost,
+              gamma = tuned.gamma,
+              scale = FALSE,
+              probability = TRUE)
+  
+  #Making predictions
+  predictions = predict(model, testingset[, 1:(ncol(testingset)-1)], type = "class")
+  
+  
+  #Calculating accuracy
+  accuracy = mean(testingset[, ncol(testingset)] == predictions)
+  #Storing results
+  results[i] = accuracy
+  
+  #Storing best results
+  if(best.accuracy < accuracy)
+  {
+    list.results$best_model = model
+    list.results$best_testing_set = testingset
+    list.results$best_predictions = predictions
+    best.accuracy = accuracy
+  }
+}
+```
+
+Al este proceso ser bastante largo en tiempo, los reusltados serán guardados en un objeto para su posterior evaluación.
+
+```{r, eval=FALSE}
+list.results$results = results
+saveRDS(list.results, "source/tuned_model/original_set/SVM/training_set/list_results.rds")
+```
+
+####Evaluación del modelo
+En esta sección se evaluará el desempeño del modelo creado en la sección previa. Se iniciará por preparar el ambiente de trabajo eliminando variables parciales, cargando el paquete a utilizar y el archivo de funciones.
+
+```{r}
+rm(list = ls())
+
+#Cargando el paquete
+library("e1071")
+
+#Cargando funciones
+source("../source/functions/functions.R")
+```
+
+Posteriormente se cargarán los resultados obtenidos previamente.
+
+```{r}
+list.results = readRDS("../source/tuned_model/original_set/SVM/training_set/list_results.rds")
+```
+
+Veamos los resultados obtenidos y la media de aciertos correspondiente.
+
+```{r}
+#Mostrando los resultados
+list.results$results * 100
+#Calculando la media de los resultados
+mean(list.results$results) * 100
+```
+
+Se puede observar un rendimiento superior a 99.48%. Siendo 99.579% la tasa de acierto promedio. Esta tasa de acierto bastante buena. Veamos graficamente el desempeño del mejor modelo obtenido haciendo uso de la matriz de confusión.
+
+```{r}
+#Creando la matriz de confusión
+confusion.matrix = table(Real = list.results$best_testing_set[,ncol(list.results$best_testing_set)],
+                         Prediction = list.results$best_predictions)
+#Mostrando la matriz de confusión
+confusion.matrix
+```
+
+Solo se presentaron 26 errores en la clasificación. De esta manera se mejora el desempeño obtenido haciendo uso de los parámetros por defecto obtenidos en secciones previas. Ahora veamos algunas medidas de rendimiento como lo son la tasa de aciertos y la tasa de aciertos por etiqueta.
+
+```{r}
+accuracy = mean(list.results$best_testing_set[,ncol(list.results$best_testing_set)] == 
+                  list.results$best_predictions)
+
+accuracy * 100
+ErrorRate(accuracy) * 100
+AccuracyPerLabel(confusion.matrix, list.results$best_testing_set)
+```
+
+Se puede observar un desempeño muy alto a la hora de detectar las clases DoS, normal, Probing y R2L. Por otra parte, la clase U2R, es la que peor desempeño tiene con solo un 33% de acierto.
+
+A continuación veamos las medidas de rendimiento binarias. Empezando por unificar la matriz de confusión en dos clases: Attack o normal.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(list.results$best_testing_set,
+                                                             list.results$best_predictions)
+attack.normal.confusion.matrix
+```
+
+Se pueden observar que solo hay 26 mala clasificaciones, de las cuales 15 son falsos negativos y 11 falsos positivos. Calculemos algunas medidas de rendimiento.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+Estas medidas de rendimiento nos dicen que el modelo funciona de muy buena manera clasificando el tráfico normal y anómalo. Ahora veamos gráficamente el comportamiento del modelo haciendo uso de la curva ROC.
+
+```{r, fig.align="center"}
+#Extrayendo probabilidades
+probabilities = attr(predict(list.results$best_model,
+                             list.results$best_testing_set[, 1:(ncol(list.results$best_testing_set)-1)],
+                             probability = TRUE), "probabilities")
+
+#Generando la curva ROC
+roc.data = DataROC(list.results$best_testing_set, probabilities,
+                   list.results$best_predictions)
+generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
+             pred = roc.data$Prediction)
+```
+
+Se puede observar un mejor comportamiento que el visto en al curva ROC con parámetros por defecto, esto quiere decir, que con el ajuste de los parámetros se ayudó al modelo a mejorar la confianza con respecto a la toma de decisiones. Sin embargo, el comportamiento sigue siendo más errático que el presentado por NN. 
+
+####Segundo nivel de clasificación (K-Medias)
+Se añadirá el segundo nivel de clasificaicón correspondiente a K-Medias con dos grupos. Se empezará por crear el conjunto de datos a utilizar.
+
+```{r}
+kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+En este punto se extrajeron todos aquellos registros clasificados como normal, de los cuales se espera poder separar de la mejor manera posible los 15 registros que corresponden a ataques. Se precalcularán los centroides para aumentar la tasa de aciertos del proceso.
+
+```{r}
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+```
+
+Y una vez finalizado dicho paso, entonces se clasificarán los registros teniendo como punto de partida dichos centroides pre-calculados.
+
+```{r}
+matrix.centers = matrix.centers/100
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+```
+
+Las predicciones son ordenas y se crea la matriz de confusión.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+
+#Creando la matriz de confusión
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+#Imprimiendo la matriz de confusión
+confusion.matrix.kmeans.model
+```
+
+Veamos la tasa de aciertos y la tasa de error.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)
+```
+
+Se puede observar como la inclusión de K-Medias se comportó de manera similar a la que se comportó con parámetros por defecto. No aportó absolutamente nada al primer nivel, sin embargo, no deterioró tampoco el desempeño. Ahora veamos el desempeño por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Evidentemente al no detectar ningún ataque el rendimiento por ataque es 0%, sin y el de normal es 99.98% debido a que mantuvo los mismos resultados que los arrojados en el primer nivel.
+
+Veamos el restos de las estadísticas que no aportarán mayor información.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+Se observa una alta efectividad al clasificar el tráfico normal y una efectividad nula para detectar los ataques.
+
+####Estadísticas totales
+Ahora veamos cual es el desempeño en conjunto de ambos modelos. Empezaremos por unir las dos matrices de confusión.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix,
+                                          confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
+```
+
+La matriz de confusión es idéntica a la presentada en el primer nivel. Ahora veamos la tasa de aciertos y de error totales.
+
+```{r}
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+```
+
+No modificó con respecto a la presentada en el primer nivel de SVM. Por último veamos las estadísticas binarias.
+
+
+```{r}
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+```
+
+Los resultados muestran que el modelo se comporta de muy buena manera a la hora de clasificar el tráfico normal y anómalo.
+
+####Conclusión
+Se mejoró el desempeño de SVM con respecto a los parámetros por defecto. Hubo menor cantidad de errores y se mejoró el comportamiento errático presentado en la curva ROC. Por otra parte, K-Medias no aportó nada al modleo ni lo deterioró, situación que si sucedió con la inclusión de una nueva neurona el el modelo presentado previamente. Por último este último modelo mejora el rendimiento de NN con 21 neuronas en la capa intermedia. Siendo su único punto débil el comportamiento errático de la curva ROC.
+
+## Conjunto reducido PCA
+En esta sección se hará uso del conjunto de datos derivado de la aplicación de PCA, el cual corresponde al uso de las 7 primeras componentes principales seleccionadas en la sección de selección de características.
+
+### K-Medias
+Se empezará por realizar el análisis sobre K-Medias haciendo uso del nuevo conjunto de datos. El análisis realizado para este algoritmo haceindo uso del conjunto de datos por defecto ya no es válido debido a la reducción del mismo.
+
+Se empezará por establecer el ambiente de trabajo eliminando variables parciales y el archivo de funciones correspondiente.
+
+```{r, eval=FALSE}
+rm(list = ls())
+source("../source/functions/functions.R")
+```
+
+Seguidamente se cargará el conjunto de datos de entrenamiento y se eliminarán las etiquetas que no se utilizarán, en esta ocasión se dejarán las etiquetas de cinco clases: Dos, nomrla, Probing, R2L y U2R. Y la de dos clases: Attack y normal.
+
+```{r, eval=FALSE}
+dataset = read.csv("../dataset/NSLKDD_Training_New.csv")
+
+#eliminando etiquetas innecesarias
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+```
+
+El siguiente paso pasa por asignarle el tipo numérico a las variables predictoras, escalar el conjunto de datos, aplicar PCA y seleccionar las primeras 7 componentes principales.
+
+```{r, eval=FALSE}
+#Extrayendo información
+Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
+
+#Transformando predictores en tipo numérico
+dataset = as.data.frame(apply(dataset[, c(-41, -42)], 2, as.numeric))
+dataset = cbind(dataset, Label = Labels[,1])
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+
+#Aplicando PCA
+pca = prcomp(dataset[, -41], scale. = TRUE)
+dataset = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,1])
+dataset.five = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,1])
+dataset.two = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,2])
+
+#Eliminando variables parciales
+remove(list = c("pca", "Labels"))
+```
+
+En este punto se tienen los conjuntos de datos que se utilizarán listos y se puede aplicar el codo de Jambu para ver cual es la cantidad de centroides óptima a utilizar.
+#### Codo de Jambu
+Al igual que en secciones anteriores, se utilizará el método de codo de Jambú para ver con cual configuración de centroides y con cual tipo de algoritmo se obtiene un mejor desempeño.
+
+```{r, eval=FALSE}
+IIC.Hartigan = vector(mode = "numeric", length = 30)
+IIC.Lloyd = vector(mode = "numeric", length = 30)
+IIC.Forgy = vector(mode = "numeric", length = 30)
+IIC.MacQueen = vector(mode = "numeric", length = 30)
+
+for (k in 1:30)
+{
+  set.seed(k)
+  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Hartigan-Wong")
+  IIC.Hartigan[k] = groups$tot.withinss
+  set.seed(k)
+  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Lloyd")
+  IIC.Lloyd[k] = groups$tot.withinss
+  set.seed(k)
+  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Forgy")
+  IIC.Forgy[k] = groups$tot.withinss
+  set.seed(k)
+  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "MacQueen")
+  IIC.MacQueen[k] = groups$tot.withinss
+}
+```
+
+Los resultados obtenidos son guardados en un objeto para su posterior análisis.
+
+```{r, eval=FALSE}
+#Creando una lista para guardar los resultados
+jambu.results = list(IIC.Hartigan = IIC.Hartigan, IIC.Lloyd = IIC.Lloyd,
+                     IIC.Forgy = IIC.Forgy, IIC.MacQueen = IIC.MacQueen)
+#Guardando los resultados
+saveRDS(object = jambu.results, file = "../source/tuned_model/PCA/KMEANS/jambu_results_7_features.rds")
+```
+
+Adicionalmente, se seleccionará el mejor algoritmo haciendo 50 corridas de los mismos con 2 y 5 centroides y luego promediando los resultados.
+
+```{r, eval = FALSE}
+measure.two = lapply(MeasuareKMeans(dataset, 2), max)
+measure.five = lapply(MeasuareKMeans(dataset, 5), max)
+```
+
+De igual manera, los resultados derivados serán almacenados en un objeto para su posterior análisis.
+
+#####Análisis codo de Jambu
+Una vez finalizado el proceso, entonces se pueden observar los resultados obtenidos para el análisis del codo de Jambu. Empezaremos por eliminar variables parciales y cargar el archivo de funciones correspondiente.
+
+```{r}
+rm(list = ls())
+source("../source/functions/functions.R")
+```
+
+Se hará el mismo trabajo de cargar el conjunto de datos, eliminar etiquetas innecesarias, transformar los predicores a tipo numérico, escalar el conjunto de datos y aplicar PCA para crear los conjuntos de datos a utilizar.
+
+```{r}
+#Cargando el conjunto de datos
+dataset = read.csv("../dataset/NSLKDD_Training_New.csv")
+
+#Eliminando etiquetas innecesarias
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+
+#Extrayendo información
+Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
+
+#Transformando predictores en tipo numérico
+dataset = as.data.frame(apply(dataset[, c(-41, -42)], 2, as.numeric))
+dataset = cbind(dataset, Label = Labels[,1])
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+
+#Aplicando PCA
+pca = prcomp(dataset[, -41], scale. = TRUE)
+dataset = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,1])
+dataset.five = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,1])
+dataset.two = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,2])
+
+#Eliminando variables parciales
+remove(list = c("pca", "Labels"))
+```
+
+Una vez realizado este procedimiento se puden cargar los resultados obtenidos del codo de Jambu y graficarlos.
+
+```{r, fig.align="center"}
+jambu.results = readRDS("../source/tuned_model/PCA/KMEANS/jambu_results_7_features.rds")
+plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
+     xlab = "Número de Centroides", ylab = "Varianza")
+points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
+points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
+points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
+legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
+       col = c("blue","red", "green", "magenta"), pch = 19)
+```
+
+Se puede observar como el gráfico es mucho más estable que el presentando con el conjunto de datos original. aparentemente con 3 centroides debería ser un buen número, sin embargo, se sabe de antemano que se debe hacer uso de 2 o 5 grupos. Así que de nuevo este gráfico no nos ayuda de mucho. Veamos cual de los algoritmos es el mejor, aunque todos para 2 y 5 clases presentan el mismo rendimiento, así que es indiferente cual se utilice.
+
+```{r}
+measures.results = readRDS("../source/tuned_model/PCA/KMEANS/measures_results_7_features.rds")
+measures.results$measure.two
+measures.results$measure.two[1]
+measures.results$measure.five
+measures.results$measure.five[1]
+```
+
+Se observa que Hartigan es el algoritmo seleccionado para dos y cinco grupos.
+#### K-Medias (cinco grupos)
+Ahora comenzaremos con el análisis con la utilización de cinco grupos. Para ello entrenaremos 10 modelos de K-Medias
+
+```{r}
+results.five = vector(mode = "numeric", length = 10)
+best.accuracy.five = 0
+for (i in 1:length(results.five))
+{
+  set.seed(i)
+  model.kmeans.five = kmeans(dataset.five[,-ncol(dataset.five)],
+                             5, iter.max = 100)
+  
+  prediction.five = OrderKmeans(model.kmeans.five)
+  accuracy.five = mean(prediction.five == dataset.five$Label)
+  
+  results.five[i] = accuracy.five
+  
+  if(best.accuracy.five < accuracy.five)
+  {
+    best.prediction.five = prediction.five
+    best.accuracy.five = accuracy.five
+  }
+}
+```
+
+Una vez finalizado el proceso veamos los resultados y la media de aciertos.
+
+```{r}
+results.five * 100
+mean(results.five) * 100
+```
+
+Se observa un desempeño promedio de 74%.
+
+Ahora vamos a analizar el mejor modelo obtenido visualizando la matriz de confusión.
+
+```{r}
+confusion.matrix.five = table(Real = dataset.five$Label,
+                              Prediction = best.prediction.five)
+confusion.matrix.five
+```
+
+Se observa que presenta muchos registros mal clasificados que quedan fuera de la diagonal. Ahora veamos la tasa de acierto y de error alcanzada por el modelo.
+
+```{r}
+best.accuracy.five*100
+ErrorRate(best.accuracy.five)*100
+```
+
+Una tasa de aciertos de 79% bastante alta. Ahora veamos la eficacia por clase.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.five, dataset.five)
+```
+
+Se observa que el modelo es bastante bueno detectando las clases DoS y normal. Regular para la clase *Probing* y muy malo para el restos de las clases correspondientes a R2L y U2R. Veamos la matriz binaria para calcular otras medidas de rendimiento.
+
+```{r}
+attack.normal.confusion.matrix.five = AttackNormalConfusionMatrix(dataset.five,
+                                                                  best.prediction.five)
+attack.normal.confusion.matrix.five
+```
+
+A pesar de que hay bastantes falsos postivos y negativos, estadísticamente se puede apreciar una alta tasa de aciertos.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix.five) * 100
+AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
+Sensitivity(attack.normal.confusion.matrix.five) * 100
+Especificity(attack.normal.confusion.matrix.five) * 100
+Precision(attack.normal.confusion.matrix.five) * 100
+```
+
+Se puede observar que  se obtuvo un 90% de acierto con 91% de los ataques detectados, el resto de las medidas respaldan los resultados de un modelo que separando tráfico anómalo del normal parace hacerlo bastante bien.
+
+#### K-Medias (dos grupos)
+Veamos el desempeño a la hora de utilizar dos grupos en vez de cinco. Empezaremos poe ejecutar 10 veces el algoritmo.
+
+
+```{r}
+results.two = vector(mode = "numeric", length = 10)
+best.accuracy.two = 0
+
+for (i in 1:length(results.two))
+{
+  set.seed(i)
+  model.kmeans.two = kmeans(dataset.two[,-ncol(dataset.two)],
+                            2, iter.max = 100)
+  
+  prediction.two = OrderKmeans(model.kmeans.two)
+  accuracy.two = mean(prediction.two == dataset.two$Label)
+  
+  results.two[i] = accuracy.two
+  
+  if(best.accuracy.two < accuracy.two)
+  {
+    best.prediction.two = prediction.two
+    best.accuracy.two = accuracy.two
+  }
+}
+```
+
+Veamos los resultados obtenidos y el promedio.
+
+```{r}
+results.two * 100
+mean(results.two) * 100
+```
+
+Se obtiene una media de 80.6% que supera a la obtenida con cinco clases y se observa que hay resultados que se repiten en diferentes iteraciones, es decir, se alcanza el mismo mínimo local varias veces, esto da la sensación de pensar que con dos conjuntos el modelo alcanza su mejor desempeño. Ahora veamos como queda ordenada la matriz de confusión del mejor modelo obtenido.
+
+```{r}
+confusion.matrix.two = table(Real = dataset.two$Label,
+                             Prediction = best.prediction.two)
+confusion.matrix.two
+```
+
+Se obtienen muchos falsos negativos en comparación a los falsos positivos generados. De esta manera se reducen el número de fallos presentados con cinco grupos. Ahora veamos la mejor tasa de aciertos presentada.
+
+```{r}
+best.accuracy.two*100
+ErrorRate(best.accuracy.two)*100
+```
+
+El mejor modelo alcanzó una tasa de aciertos del 90.45%. Mejorando la obtenida por los cinco grupos. Terminemos el análisis viendo las medidas de rendimiento restantes.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.two, dataset.two)
+Sensitivity(confusion.matrix.two) * 100
+Especificity(confusion.matrix.two) * 100
+Precision(confusion.matrix.two) * 100
+```
+
+Se presenta un 80% de acierto a la hora de detectar ataques, 10% menor que el número de ataques presentados en el modelo con cinco clases. Luego el resto de las estadísticas muestran un modelo cuya fortaleza es la de clasificar el tráfico normal, con un alto acierto en la detección de ataques.
+
+#### Conclusión
+Con la reducción de características se quitó ruido al codo de Jambu, se obtienen muy buenos resultados a la hora de clasificar y crear los grupos, que sugiere que la reducción de características funciona de buena manera. Por otra parte, con dos grupos se alcanza el mejor desempeño por parte de K-Medias, ya que es el algoritmo que presenta mejor porcentaje de acierto, mejor promedio y acierta contables veces a el mismo mínimo local.
+
+###(III) PCA - NN - K-Medias
+Se iniciará el proceso para el modelo que combina PCA - NN - K-Medias. Se hará uso de lso parámetros seleccionados con anterioridad en la sección correspondiente a la selección de parámetros.
+
+####Entrenamiento del modelo
+
+Se empezarán las labores preparando el ambiente de trabajo eliminando variables parciales, cargando el archivo de funciones y el paquete correspondiente.
+
+```{r, eval=FALSE}
+rm(list = ls())
+
+#Cargando paquete
+library("e1071")
+
+#Cargando funciones
+source("../source/functions/functions.R")
+```
+
+El siguiente paso consta de la carga del conjunto de datos de entrenamiento y la eliminación de las etiquetas que no se utilizarán. Ya que se utilizará la etiqueta de cinco clases correspondientes a: DoS, normal, Probing, R2L y U2R.
+
+```{r, eval=FALSE}
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Las variables predictoras deben ser de tipo numérico y la objetivo de tipo *factor*. Adicionalmente el conjunto de datos será escalado para que la svariables predictoras tenga media cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+#asignando el tipo de dato correspondiente a las variables
+for (i in 1 : (ncol(dataset) -1) )
+  dataset[,i] = as.numeric(dataset[,i])
+
+dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+```
+
+En este punto se tiene todo listo para aplicar PCA y seleccionar las primeras 7 componentes.
+
+```{r, eval=FALSE}
+pca = prcomp(dataset[, -41], scale. = TRUE)
+dataset = cbind(as.data.frame(pca$x[,1:7]), Label = dataset$Label)
+```
+
+Luego, se puede empezar con el proceso de validación cruzada dividiendo el conjunto de datos en 10 sub-conjuntos.
+
+```{r, eval=FALSE}
+cv.sets = CVSet(dataset, k = 10, seed = 22)
+length(cv.sets)
+```
+
+Y luego inicializar algunas variables para almacenar los resultados de dicho proceso.
+
+```{r, eval=FALSE}
+results = vector(mode = "numeric", length = 10)
+list.results = list(0, 0, 0, 0)
+names(list.results) = c("results", "best_model", "best_testing_set", "best_predictions")
+best.accuracy = 0
+```
+
+El número de neuronas seleccionado se carga para luego ser pasado como paŕametro.
+
+```{r}
+hidden.neurons = readRDS("../source/parameter_selection/NN/PCA/tuned_model.rds")
+hidden.neurons = hidden.neurons$best.parameters$size
+hidden.neurons
+```
+
+30 fue el número de neuronas de la capa intermedia que se seleccionaron. Ahora si se puede ejecutar la validacipon cruzada de 10 conjuntos.
+
+```{r, eval=FALSE}
+for (i in 1:10)
+{
+  #Extracting sets
+  testingset = as.data.frame(cv.sets[[i]])
+  trainingset = cv.sets
+  trainingset[[i]] = NULL
+  trainingset = do.call(rbind, trainingset)
+  
+  #NN Model
+  model = nnet(Label ~ .,
+               data = trainingset,
+               size = hidden.neurons,
+               maxit = 100)
+  
+  #Making predictions
+  predictions = predict(model, testingset[, 1:(ncol(testingset)-1)], type = "class")
+  
+  
+  #Calculating accuracy
+  accuracy = mean(testingset[, ncol(testingset)] == predictions)
+  #Storing results
+  results[i] = accuracy
+  
+  #Storing best results
+  if(best.accuracy < accuracy)
+  {
+    list.results$best_model = model
+    list.results$best_testing_set = testingset
+    list.results$best_predictions = predictions
+    best.accuracy = accuracy
+  }
+}
+```
+
+Como el proceso es extenso, los resultados son guardados en una lista y posteriormente en un objeto para sus posterior análisis.
+
+```{r, eval=FALSE}
+list.results$results = results
+saveRDS(list.results, "../source/tuned_model/PCA/NN/training_set/list_results.rds")
+```
+
+####Evaluación del modelo
+En esta sección se evaluará el modelo creado en la sección anterior. Emepezaremos eliminando variables parciales, cargando el paquete a utilizar y el archivo de funciones correspondiente.
+
+```{r}
+rm(list = ls())
+
+#Cargando paquetes
+library("nnet")
+
+#Cargando el archivo de funciones
+source("../source/functions/functions.R")
+```
+
+Carguemos los resultados obtenidos, y veamos los resultados.
+
+```{r}
+list.results = readRDS("../source/tuned_model/PCA/NN/training_set/list_results.rds")
+list.results$results
+mean(list.results$results) * 100
+```
+
+Se puede observar una media de aciertos de 99.08%. Veamos como quedó organizada la matriz de confusión del mejor modelo obtenido.
+```{r}
+confusion.matrix = table(Real = list.results$best_testing_set[,ncol(list.results$best_testing_set)],
+                         Prediction = list.results$best_predictions)
+confusion.matrix
+```
+
+Una matriz de confusión bastante ordenada, ahora veamos la tasa de acierto y de error.
+
+```{r}
+accuracy = mean(list.results$best_testing_set[,ncol(list.results$best_testing_set)] == 
+                  list.results$best_predictions)
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+
+Con 99.3%, la tasa de aciertos es excelente. Por último veamos la tasa de aciertos por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix, list.results$best_testing_set)
+```
+
+Se obtiene un excelente desempeño para detectar las clases DoS, normal y *Probing*, para la clase *R2L* es bastante bueno también y un desempeño intermedio para la clase U2R, que es la clase que menor cantidad de registros presenta. Ahora se calcularán las medidas de rendimiento binarias, para ello se creará una matriz de confusión binaria.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(list.results$best_testing_set,
+                                                             list.results$best_predictions)
+attack.normal.confusion.matrix
+```
+
+Se presentan solo 36 errores donde 16 son falsos negativos y 20 falsos positivos. La cantidad de ataques detectado es bastante grande. Veamos el resto de las medidas de rendimiento,}}
+```{r}
+Accuracy(attack.normal.confusion.matrix) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+Las mismas reflejan el desempeño de un modelo muy bueno. Por último veamos la curva ROC.
+
+```{r, fig.align="center"}
+#Extrayendo probabilidades
+probabilities = predict(list.results$best_model,
+                        list.results$best_testing_set[, 1:(ncol(list.results$best_testing_set)-1)])
+
+#Generating curve ROC
+roc.data = DataROC(list.results$best_testing_set, probabilities,
+                   list.results$best_predictions)
+generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
+             pred = roc.data$Prediction)
+```
+
+El rendimiento de la curva ROC es muy bueno que indica que el modelo toma las decisiones con una alta confianza y probabilidad de acierto sobre las mismas, de hecho, se puede observar ua mejor curva ROC que con el conjunto de datos entero.
+
+####Segundo nivel de clasificación (K-Medias)
+Ahora agregaremos el segundo nivel de clasificación. Empezaremos por tomar los regitros clasificados como normal para crear un nuevo conjunto d edatos.
+
+```{r}
+kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+Se reflejan los 16 falsos negativos presentados con anterioridad. A continuación se buscarán los mejores centroides.
+
+```{r}
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+```
+
+Al pre-calcular los centroides se maximiza la convergencia al mejor mínimo local. Ahora los centroides pre-calculados son pasados como parámetros para la clasificaicón definitiva.
+
+```{r}
+matrix.centers = matrix.centers/100
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+
+```
+
+Veamos la matriz de confusión.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+confusion.matrix.kmeans.model
+```
+
+De los 16 ataques solo se detectaron 6, y se agregaron 327 falsos positivos. La alta precisión del primer nivel hace que de nuevo el segudno nivel de K-Medias sea inútil. Ahora veamos la tasa de error y de aciertos alcanzada y la precisión por etiqueta.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)*100
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Se muestra una alta tasa de aciertos que pasa por la alta clasificación del tráfico normal. Pero un pobre desempeño a la hora de clasificar los ataques presentes. Veamos el resto de las medidas.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+Estas reflejan lo bueno del modelo para la clasificación del tráfico normal y lo malo que es el mismo a la hora de clasificar los ataques y lo poco confiable que son las respectivas predicciones de los ataques. Para terminar veamos las estadísticas totales.
+
+####Estadísticas totales
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix,
+                                          confusion.matrix.kmeans.model)
+
+confusion.matrix.two.labels
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+```
+
+Se observa que en conjunto las estadísticas son bastantes buenas, sin embargo, se pudo observar previamente que el segundo nivel de clasificación de K-Medias deteriora lo realizado por el primer modelo.
+
+####Conclusiones
+La reducción de carcaterísticas fue efectiva para NN, presentando una alta tasa de aciertos en todos las clases, y una curva ROC que respalda la buena toma de decisiones tomadas por el modelo. De nuevo, el segundo nivel de K-MEdias no fue d emucha ayuda debido al buen rendimiento del primer nivel. Se espera que el segundo nivel funcione mejor si el primer nivel presenta mayor cantidad de falsos negativos.
+
+###(IV) PCA - SVM - K-Medias
+En esta sección se utilizarán los parámetros seleccionados para el agoritmo de SVM.
+
+####Entrenamiento del modelo
+Se empezarán las labores eliminando variables parciales, cargando elpaquete a utilizar y el archivo de funciones correspondiente.
+
+```{r, eval=FALSE}
+rm(list = ls())
+
+#Cargando paquetes
+library("e1071")
+
+#Cargando funciones
+source("../source/functions/functions.R")
+```
+
+A continuación se carga el conjunto de entrenamiento y se eliminan las equitas innecesarias.
+
+```{r, eval=FALSE}
+dataset = dataset.training
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+dataset$Label_Normal_or_Attack = NULL
+```
+
+Las variables predictoras deben ser de tipo numérico y la variable objetivo debe ser de tipo *factor*, de igual manera, el conjunto de datos debe ser escalado para que la svariables predictoras tengan emdia cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+for (i in 1 : (ncol(dataset) -1) )
+  dataset[,i] = as.numeric(dataset[,i])
+
+dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
+
+#Escalando el conjunto de datos
+dataset = ScaleSet(dataset)
+```
+
+En este punto se puede aplicar PCA y seleccionar las 7 componentes principales.
+
+```{r, eval=FALSE}
+pca = prcomp(dataset[, -41], scale. = TRUE)
+dataset = cbind(as.data.frame(pca$x[,1:7]), Label = dataset$Label)
+```
+
+Ahora se puede empezar con la fase de validación cruzada de 10 conjuntos dividiendo el conjunto de datos en 10 sub-conjuntos.
+
+```{r, eval=FALSE}
+cv.sets = CVSet(dataset, k = 10, seed = 22)
+length(cv.sets)
+```
+
+Luego se inicializan algunas variables para llevar el control de los resultados obtenidos durante el proceso.
+
+```{r, eval=FALSE}
+results = vector(mode = "numeric", length = 10)
+list.results = list(0, 0, 0, 0)
+names(list.results) = c("results", "best_model", "best_testing_set", "best_predictions")
+best.accuracy = 0
+```
+
+Ahora se cargan los parámetros seleccionados. y se guardan en una variable para luego ser pasados al modelo.
+
+```{r}
+tuned.parameters = readRDS("../source/parameter_selection/SVM/PCA/tuned_model.rds")
+tuned.cost = tuned.parameters$best.parameters$cost
+tuned.gamma = tuned.parameters$best.parameters$gamma
+tuned.cost
+tuned.gamma
+```
+
+Se puede observar que el valor de *cost* = 6 y de *gamma* = 0.4, esta configuración sugiere un espectro de las regiones clasificadoras más amplio y permitiendo mayor error que con los parámetros por defecto. A continuación se inicia con la validación cruzada de 10 conjuntos.
+
+```{r, eval=FALSE}
+for (i in 1:10)
+{
+  #Extracting sets
+  testingset = as.data.frame(cv.sets[[i]])
+  trainingset = cv.sets
+  trainingset[[i]] = NULL
+  trainingset = do.call(rbind, trainingset)
+  
+  #SVM Model
+  model = svm(Label ~ .,
+              data = trainingset,
+              kernel = "radial",
+              cost = tuned.cost,
+              gamma = tuned.gamma,
+              scale = FALSE,
+              probability = TRUE)
+  
+  #Making predictions
+  predictions = predict(model, testingset[, 1:(ncol(testingset)-1)], type = "class")
+  
+  
+  #Calculating accuracy
+  accuracy = mean(testingset[, ncol(testingset)] == predictions)
+  #Storing results
+  results[i] = accuracy
+  
+  #Storing best results
+  if(best.accuracy < accuracy)
+  {
+    list.results$best_model = model
+    list.results$best_testing_set = testingset
+    list.results$best_predictions = predictions
+    best.accuracy = accuracy
+  }
+}
+```
+
+Este proceso es bastante duradero en tiempo, es por elloq ue lso resultaods se almacenarán en un a lista y posteriormente en un objeto para su posterior evaluación.
+
+```{r, eval=FALSE}
+list.results$results = results
+saveRDS(list.results, "source/tuned_model/PCA/SVM/training_set/list_results.rds")
+```
+
+####Evaluación del modelo
+Para la evaluación del modelo empezaremos por eliminar variables parciales, cargar el paquete a utilizar y el archivo de funciones correspondiente.
+
+```{r}
+rm(list = ls())
+
+#Cargando paquetes
+library("e1071")
+
+#Cargando funciones
+source("../source/functions/functions.R")
+```
+
+Se cargan los resulatdos obtenidos en la sección anterior.
+
+```{r}
+list.results = readRDS("../source/tuned_model/PCA/SVM/training_set/list_results.rds")
+```
+
+Veamos los resultados obtenidos y la media de aciertos.
+
+```{r}
+list.results$results
+#Calculando la media de los resultados
+mean(list.results$results) * 100
+```
+
+Se obtuvo una tasa de aciertos promedio de 99.4%. Esta tasa es bastante alta y buena cosideranod que se redujo a 7 el número de variables predictoras. Veamos la matriz de confusión obtenida del mejor modelo obtenido.
+
+```{r}
+confusion.matrix = table(Real = list.results$best_testing_set[,ncol(list.results$best_testing_set)],
+                         Prediction = list.results$best_predictions)
+confusion.matrix
+```
+
+La matriz de confusión está bastante ordenada, sin emabrgo presenta un peor desempeño que el modelo de NN. Ahora veamos las tasas de acierto y de error del modelo.
+
+```{r}
+accuracy = mean(list.results$best_testing_set[,ncol(list.results$best_testing_set)] == 
+                  list.results$best_predictions)
+
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+
+El mejor modelo obtuvo una tasa de aciertos de 99.53%. Ahora veamos el rendimiento por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix, list.results$best_testing_set)
+```
+
+Se observa un muy buen rendimeinto para todas las clases salvo para la clase U2R, cuyo rendimiento fue nulo. Hay que recordar que esta clase es la que menor cantidad de regitros presenta en el conjunto de datos. Ahora calculemos las menidas binarias de rendimiento, para ello empezaremos por crear una matriz de confusión binaria.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(list.results$best_testing_set,
+                                                             list.results$best_predictions)
+attack.normal.confusion.matrix
+```
+
+Se puede observar que solo hubo 41 fallos, donde 11 fueron falsos positivos y 30 falsos negativos. De resto, el resultado es excelente. Veamos el resto de estadísticas.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+Las estadísticas reflejan un modelo muy bueno a la hora de clasificar tráfico anómalo y normal. Por último veamos la curva ROC.
+
+```{r, fig.align="center"}
+probabilities = attr(predict(list.results$best_model,
+                             list.results$best_testing_set[, 1:(ncol(list.results$best_testing_set)-1)],
+                             probability = TRUE), "probabilities")
+
+roc.data = DataROC(list.results$best_testing_set, probabilities,
+                   list.results$best_predictions)
+generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
+             pred = roc.data$Prediction)
+```
+
+El desempño de la curva ROC no se ve nada bien, se ve que el modelo comete bastantes fallos con altos niveles de probabilidad. En contraste con la curva ROC generada por el modelo de redes neuronales que se veía mucho más estable.
+
+####Segundo nivel de clasificación (K-Medias)
+Llegó el momento de introducir el segundo nivel de clasificación correspondiente a K-Medias. Se empezará por extraer los registros clasificados como normal para crear el conjunto de datos a ser utilziado por K-Medias.
+
+```{r}
+kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+Se observa que los 30 falsos negativos estpan presentes, y son estos los que se tratarán de extraer. Para ello primero se pre-calcularán los centroides de K-Medias para posicionar los centroides incialmente de la mejor manera posible.
+
+```{r}
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+```
+
+Luego, la posición de los centroides es utilizada para el proceso de clasificación definitivo.
+
+```{r}
+matrix.centers = matrix.centers/100
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+```
+
+Veamos la matriz de confusión.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+confusion.matrix.kmeans.model
+```
+
+Se detectaron a penas 10 ataques, y se agregaron 591 nuevos falsos positivos. De nuevo, se espera que en un escenario donde el primer nivel falle más, se pueda obtener un mejor desempeño por parte de K-Medias. Veamos la tasa de acierto y de error.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)
+```
+
+Con 87% de eficacia al clasificar la mayoría del tráfico normal, sin embargo, no es tan efectivo a la hora de detectar ataques. Veamos la eficacia por etiquetas.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Solo el 33% de los ataques son detectados. Terminemos la evaluación de K-Medias viendo el resto de las estadísticas binarias.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+Estas estadísticas reflejan con la sensitiviidad y la precisión lo malo que es es el modelo para detectar los ataques.
+####Estadísticas totales
+Ahora combinemos los resultados obtenidos. EMpezando por combinar las matrices de confusión.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix,
+                                          confusion.matrix.kmeans.model)
+
+confusion.matrix.two.labels
+```
+
+Se puede observar que el desempeño comparado al obtenido únicamente por el primer nivel se deterioró. Ahora veamos el resto de las estadísticas.
+
+```{r}
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+```
+
+Se redujo la especificidad y la presición con respecto al desempeño obtenido en el primer nivel, ya que la inclusión de K-Medias deterioró considerablemente el desempeño.
+
+####Conclusiones
+La reducción de características funcionó de buena manera para SVM, donde se pudo observar hubo un muy buen rendimiento. Sin embargo, al haber menos información, el algoritmo de K-Medias ahora deteriora el desempeño del modelo más que lo que hacía usando las características orginales.
+
+###Conclusión
+La reducción de características de PCA funciona de buena manera para el primer nivel de clasificación. Sin embargo, para el segundo nivel correspondiente a K-Medias los resultados empeoraron con respecto a los obtenidos haciendo uso de los parámetros por defecto, esto debido a que ahora se introducen mayor cantidad de falsos positivos.
+
+##Conjunto Reducido GFR
+
+###K-Medias
+####Codo de Jambu
+####K-Medias (cinco grupos)
+####K-Medias (dos grupos)
+#### Conclusión
+
+###(V) GFR - NN -K-Medias
+####Entrenamiento del modelo
+####Evaluación del modelo
+####SEgundo nivel de clasificación (K-Medias)
+####Estadísticas totales
+####Conclusiones
+
+###(VI) GFR - SVM -K-Medias
+####Entrenamiento del modelo
+####Evaluación del modelo
+####SEgundo nivel de clasificación (K-Medias)
+####Estadísticas totales
+####Conclusiones
+
+###Conclusiones generales

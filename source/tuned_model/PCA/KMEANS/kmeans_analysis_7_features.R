@@ -1,7 +1,5 @@
 rm(list = ls())
 source("source/functions/functions.R")
-require(e1071)
-require(nnet)
 ###############################################################
 dataset = read.csv("dataset/NSLKDD_Training_New.csv")
 
@@ -39,7 +37,7 @@ legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
        col = c("blue","red", "green", "magenta"), pch = 19)
 
 #Selecting the best distance's algorithm
-measures.results = readRDS("source/tuned_model/SVM/KMEANS/measures_results_7_features.rds")
+measures.results = readRDS("source/tuned_model/PCA/KMEANS/measures_results_7_features.rds")
 measures.results$measure.two
 measures.results$measure.two[1]
 measures.results$measure.five
@@ -88,6 +86,7 @@ attack.normal.confusion.matrix.five
 AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
 
 #Binary measures
+Accuracy(attack.normal.confusion.matrix.five) * 100
 Sensitivity(attack.normal.confusion.matrix.five) * 100
 Especificity(attack.normal.confusion.matrix.five) * 100
 Precision(attack.normal.confusion.matrix.five) * 100
