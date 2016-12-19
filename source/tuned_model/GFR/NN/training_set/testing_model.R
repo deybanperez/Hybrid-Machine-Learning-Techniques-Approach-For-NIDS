@@ -11,7 +11,7 @@ source("source/functions/functions.R")
 list.results = readRDS("source/tuned_model/GFR/NN/training_set/list_results.rds")
 
 #Showing all results
-list.results$results
+list.results$results * 100
 #Calculating the mean of the results
 mean(list.results$results) * 100
 #Calculating the confusion matrix with the last model created

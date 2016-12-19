@@ -12,7 +12,7 @@ dataset = read.csv("dataset/NSLKDD_Training_New.csv",
 dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 
-#Extracting inforomation
+#Extracting information
 Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
 
 #Transforming predictors into numeric
@@ -88,6 +88,7 @@ attack.normal.confusion.matrix.five
 AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
 
 #Binary measures
+Accuracy(attack.normal.confusion.matrix.five) * 100
 Sensitivity(attack.normal.confusion.matrix.five) * 100
 Especificity(attack.normal.confusion.matrix.five) * 100
 Precision(attack.normal.confusion.matrix.five) * 100
