@@ -23,14 +23,15 @@ dataset = dataset[, nn.gfr]
 dataset = as.data.frame(apply(dataset, 2, as.numeric))
 dataset.five = cbind(dataset, Label = Labels[,1])
 dataset.two = cbind(dataset, Label = Labels[,2])
+dataset = cbind(dataset, Label = Labels[,1])
 
 #Removing parcial variables
 remove(list = c("Labels"))
 
 #Scaling sets
+dataset = ScaleSet(dataset)
 dataset.two = ScaleSet(dataset.two)
 dataset.five = ScaleSet(dataset.five)
-
 #Jambu's Elbow
 IIC.Hartigan = vector(mode = "numeric", length = 30)
 IIC.Lloyd = vector(mode = "numeric", length = 30)

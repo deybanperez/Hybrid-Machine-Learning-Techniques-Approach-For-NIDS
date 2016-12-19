@@ -4247,12 +4247,22 @@ La reducción de características funcionó de buena manera para SVM, donde se p
 La reducción de características de PCA funciona de buena manera para el primer nivel de clasificación. Sin embargo, para el segundo nivel correspondiente a K-Medias los resultados empeoraron con respecto a los obtenidos haciendo uso de los parámetros por defecto, esto debido a que ahora se introducen mayor cantidad de falsos positivos.
 
 ##Conjunto Reducido GFR
+En esta sección se hará el análisis sobre el conjunto de entrenamiento reducido luego de aplicar la selección de características GFR. En esta ocasión todas las actividades deben hacerse al doble, debido a que la selección de características por parte de NN fueron diferentes a las de SVM.
 
 ###K-Medias
-####Codo de Jambu
-####K-Medias (cinco grupos)
-####K-Medias (dos grupos)
-#### Conclusión
+Empezaremos por el entrenamiento y análisis de K-Medias para NN y para SVM de manera independiente.
+
+####NN
+#####Codo de Jambu
+#####K-Medias (cinco grupos)
+#####K-Medias (dos grupos)
+#####Conclusión
+
+####SVM
+#####Codo de Jambu
+#####K-Medias (cinco grupos)
+#####K-Medias (dos grupos)
+#####Conclusión
 
 ###(V) GFR - NN -K-Medias
 ####Entrenamiento del modelo
