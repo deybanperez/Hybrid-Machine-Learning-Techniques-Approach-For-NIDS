@@ -110,8 +110,14 @@ ErrorRate(accuracy.kmeans.model)*100
 #Printing accuracy per labbel
 AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
 
+#Binary measures
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+
 #Total statistics
 confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
 accuracy.total = Accuracy(confusion.matrix.two.labels)
 accuracy.total * 100
 ErrorRate(accuracy.total) * 100

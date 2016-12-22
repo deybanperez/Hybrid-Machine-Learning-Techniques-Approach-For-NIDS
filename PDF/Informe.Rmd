@@ -4863,7 +4863,7 @@ source("../source/functions/functions.R")
 Ahora, cargaremos el conjunto de entrenamiento y eliminaremos las etiquetas que no serán utilizadas.
 
 ```{r, eval=FALSE}
-dataset.training = read.csv("dataset/NSLKDD_Training_New.csv",
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
                             sep = ",", header = TRUE)
 
 #Eliminando etiquetas innecesarias
@@ -4927,7 +4927,7 @@ tuned.gamma
 
 Estos corresponden a *cost* = 6 y a *gamma* = 0.4, sugiriendo abrir el espectro del área de los vectores de soporte y permitiendo mayor cantidad de error. Ahora si se da inicio al proceso de validación cruzada de 10 conjuntos.
 
-```{r}
+```{r, eval=FALSE}
 for (i in 1:10)
 {
   #Extracting sets
@@ -5026,7 +5026,7 @@ attack.normal.confusion.matrix = AttackNormalConfusionMatrix(list.results$best_t
 attack.normal.confusion.matrix
 ```
 
-Se observan solo 37 errores en la clasificaicṕn son 15 falsos negativos y 22 falsos positivos. Veamos la nueva tasa de acierto y de error en conjunto con las nuevas medidas de rendimiento.
+Se observan solo 37 errores en la clasificación son 15 falsos negativos y 22 falsos positivos. Veamos la nueva tasa de acierto y de error en conjunto con las nuevas medidas de rendimiento.
 
 ```{r}
 Accuracy(attack.normal.confusion.matrix) * 100
@@ -5136,3 +5136,1729 @@ La reducción de características funcionó de manera positiva para el primer de
 
 ###Conclusiones generales
 La reducción de características GFR funciona de manera grata para el primer nivel, sin embargo, deteriora notablemente el desempeño del primer nivel. Se necesita de mayor cantidad de variables predictoras para que k-Medias no deteriore el desempeño del primer nivel de los modelos correspondientes a Nn y a SVM.
+
+##Análisis sobre el conjunto de prueba
+En esta sección se utilizará el conjunto de entrenamiento completo para entrenar los modelos y se evaluarán los diferentes modelos haciendo uso del conjunto de prueba. Los diferentes conjuntos serán adaptados a PCA y a GFR en en los esquemas II, IV, V y VI. Y solo se hará uso de los conjuntos de datos originales tanto para entrenamiento como para prueba en los esquemas I y II. Es importante resaltar el hecho de que usarán los parámetros seleccionados para cada esquema. En esta sección todos los pasos concernientes al entrenamiento y prueba del modleo serán cronometrados para poder comparar dichos tiempos entre los diferentes esquemas y modelos creados.
+
+### (I) NN - K-Medias
+En esta sección se hará el entrenamiento y el análisis del esquema híbrido NM - K-Medias (dos conjuntos).
+
+####Entrenamiento del modelo
+Se empezarán las tareas eliminando variables parciales, cargando el paquete a utilziar y el archivo de funciones correspondiente.
+
+```{r, eval=FALSE}
+rm(list = ls())
+
+#Cargando paquetes
+library("nnet")
+
+#Cargando archivo de funciones
+source("../source/functions/functions.R")
+```
+
+Se caragará el conjunto de datos de entrenamiento y se eliminarán las etiquetas que no se utilizarán.
+
+```{r, eval=FALSE}
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+
+#eliminando etiquetas innecesarias
+dataset.training$Label_Normal_TypeAttack = NULL
+dataset.training$Label_Num_Classifiers = NULL
+dataset.training$Label_Normal_or_Attack = NULL
+```
+
+Las variables predictoras deben ser de tipo numérico, la variable objetivo de tipo factor y adicionalmente las variables predictoras deben estar escaladas para que todas tengan media ceor y desviación estándar uno.
+
+```{r, eval=FALSE}
+for (i in 1 : (ncol(dataset.training) -1) )
+  dataset.training[,i] = as.numeric(dataset.training[,i])
+
+dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dataset.training)])
+
+#Escalando el conjunto de datos
+dataset.training = ScaleSet(dataset.training)
+```
+
+Se cargarán los mejores parámetros seleccionados durante la selección de parámetros.
+
+```{r}
+hidden.neurons = readRDS("../source/parameter_selection/NN/original_set/tuned_model.rds")
+hidden.neurons = hidden.neurons$best.parameters$size
+hidden.neurons
+```
+
+El número de neuronas seleccionado para el conjunto de entrenamiento completo fue de 21 neuronas, este número es el que será pasado como parámetro. A continuación se inicia con el entrenamiento del modelo
+
+```{r, eval=FALSE}
+#Tomando el tiempo de inicio
+start.time = Sys.time()
+
+#Entrenando el modelo
+set.seed(22)
+model = nnet(Label ~ .,
+             data = dataset.training,
+             size = hidden.neurons,
+             maxit = 100)
+
+#Guardando el tiempo total
+total.time = Sys.time() - start.time
+```
+
+Los resultados serán almacenados en una lista, y posteriormente en un objeto para su posterior análisis.
+
+```{r, eval=FALSE}
+list.results = list(total.time, model)
+saveRDS(list.results, file = "../source/tuned_model/original_set/NN/testing_set/list_results.rds")
+```
+
+####Análisis del modelo
+Empezaremos con el análisis del modelo creado en la sección anterior. Eliminaremos variables parciales, cargaremos el paquete a utilizar y el archivo de funciones correspondiente.
+
+```{r}
+rm(list = ls())
+
+#Cargando paquetes
+library("nnet")
+
+#Cargando funciones
+source("../source/functions/functions.R")
+```
+
+Seguidamente cargaremos el conjunto de prueba, eliminaremos variables parciales y lo escalaremos para que todas las variables predictoras tengan media cero y desviación estándar uno.
+
+```{r}
+#Cargando el conjunto de datos
+testing.set = read.csv("../dataset/NSLKDD_Testing_New.csv",
+                       sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+testing.set$Label_Normal_TypeAttack = NULL
+testing.set$Label_Num_Classifiers = NULL
+testing.set$Label_Normal_or_Attack = NULL
+
+#Escalando el conjunto de datos
+testing.set = ScaleSet(testing.set)
+```
+
+Se cargan los resultados y se almacenan en variables para ser utilizadas posteriormente.
+
+```{r}
+#Cargando resultados
+results = readRDS("../source/tuned_model/original_set/NN/testing_set/list_results.rds")
+
+#Extrayendo resultados
+training.time = results[[1]]
+model = results[[2]]
+```
+
+A continuación se harán las predicciones para NN, este tiempo como se mencionó previamente, será cronometrado.
+
+```{r}
+#Inicializando el contador
+start.time.predictions = Sys.time()
+
+#Realizando predicciones
+predictions = predict(model, testing.set[, 1:(ncol(testing.set)-1)], type = "class")
+
+#Capturando el tiempo total
+total.time.predictions = Sys.time() - start.time.predictions
+total.time.predictions
+```
+
+Ahora veamos los resultados, empecemos por ver la matriz de confusión.
+
+```{r}
+confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
+                         Prediction = predictions)
+
+confusion.matrix
+```
+
+La matriz de confusión está mucho más desordenada que en el análisis sobre el conjunto de entrenamiento, este comportamiento es natural considerando que se agregaron 14 nuevos tipos de ataques. Ahora veamos la tasa de error y de acierto.
+
+```{r}
+accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+
+Se alcanza una tasa de acierto de 64.13%. Este resultado bastante discreto y por debajo del análisis sobre el conjunto de prueba haciendo uso de los parámetros por defecto. Ahora veamos la tasa de aciertos por etiquetas.
+
+```{r}
+AccuracyPerLabel(confusion.matrix, testing.set)
+```
+
+Se obtiene un muy buen resultado a la hora de clasificar el tráfico normal. Se observa un bajón notable para la otra clase dominante que corresponde a DoS. Por otra parte Probing está bien representado, y las clases R2L y U2R tuvieron un pobre rendimiento. A continuación se creará una matriz de confusión binaria para calcular otro tipo de medidas de rendimiento más interesantes.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predictions)
+attack.normal.confusion.matrix
+```
+
+Se puede observar que el problema es la alta generación de falsos negativos por parte del modelo. Los falsos positivos presentes representan una baja proporción del total de los registros. Veamos las medidas de rendimiento.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+Para la tasa de aciertos, la tasa de aciertos fue de 76.20%. Por otra parte, se detectaron el 63% de los ataques y la certeza con que los ataques son detectados es de 92%. La especificidad de 91.72% indica que el modelo es bastante beuno identificando el tráfico normal. Ahora veamos la certeza de la toma de deicisiones del modelo haceindo uso de la curva ROC.
+
+```{r, fig.align="center"}
+#Calculando probabilidades
+probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)])
+
+#Generando la curva ROC
+roc.data = DataROC(testing.set, probabilities, predictions)
+generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction)
+```
+
+El desempeño es muy malo, mucho peor que el presentado haciendo uso de los parámetros por defecto. Esto queire decir que el problema es muy cambiante y que al ajustar lso parámetros para el conjunto de datos de entrenamiento se está perdiendo generalidad a la hora de detectar nuevos tipos de ataques.
+
+####Segundo nivel de clasificación (k-Medias)
+A continuación añadiremos el segundo nivel de clasificación correspondiente a k-Medias (dos conjuntos). Empezaremos por extraer las predicciones hechas como pertenecientes a la clase normal y crear un nuevo conjunto de datos para ser utilizado por el algoritmo.
+
+```{r}
+kmeans.set = testing.set[predictions == "normal", ]
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+Se puede apreciar que hay 4659 ataques presentes en este nuevo sub-conjunto. Ahora se precalcularán los centroides, estos se utilizarán para hacer el proceso de clasificación. Este proceso también será cronometrado y será agregado luego al tiempo total de evaluación.
+
+```{r}
+#Pre-calculando centroides
+start.time.kmeans.training = Sys.time()
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+matrix.centers = matrix.centers/100
+total.time.kmeans.training = Sys.time() - start.time.kmeans.training
+```
+
+A continuación se realiza la clasificación, también este proceso será cronometrado.
+
+```{r}
+start.time.kmeans.predictions = Sys.time()
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+
+total.time.kmeans.predictions = Sys.time() - start.time.kmeans.predictions
+```
+
+Ahora veamos los resultados obtenidos. Empezaremos por visualizar la matriz de confusión.
+
+```{r}
+#Ordenando predicciones
+predictions = OrderKmeans(kmeans.model)
+
+#Creando matriz de confusión
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+
+#Imprimiendo matriz de confusión
+confusion.matrix.kmeans.model
+```
+
+Se puede observar que el trabajo realizado pro K-Medias fue bastante bueno identificando 3108 nuevos ataques y reduciendo la cantidad de errores en las predicciones. Ahora veamos la atasa de acierto y de error obtenida.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)*100
+```
+
+Una tasa de aciertos bastante alta con 80.53% de acierto. Ahora veamos la tasa de aciertos por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Se detectó el 66.71% de los ataque spresentes y el 87.68% del tráfico normal. Veamos el resto de las medidas.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+Estas indican que el modelo tiene una alta certeza con la identificación de ataques y una alta tasa de aciertos en al clasificación del tráfico normal.
+
+####Estadísticas totales
+Se unificarán las matrices de confusión obtenidas.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
+```
+
+Como mejoras se observa un incremento en los ataques detectados y un decremento en los falsos negativos. Por otra parte, como puntos negativos se observa un decremento de acierto en el tráfico normal y un incremento de falsos positivos. Sin embargo, la mejora es mayor que el decremento. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+total.time.predictions + total.time.kmeans.predictions
+training.time + total.time.kmeans.training
+```
+
+Se observa uan tasa de aciertos bastante buena de 85%, mostrando que las predicciones tomadas sobre la detección de los ataques es alta. El punto débil está asociado al pobre rendimiento presentado por el primer nivel, la curva ROC indica que la certeza de las decisiones tomadas no fue alta, e incluso se podría pensar que fue al azar. Por último se pueden observar los tiempos finales de análisis y de entrenamiento.
+
+####Conclusiones
+Con la selección de paŕametros se perdió precisión por parte del primer nivel de NN. Al haber más falsos negativos, K-Medias realizó un mejor trabajo. Por otra parte, el rendimiento de la curva ROC de NN fue muy pobre.
+
+###(II) SVM - K-Medias
+En esta sección se hará el entrenamiento y análisis de esquema híbrido SVM - K-Medias (dos conjuntos).
+
+####Entrenamiento del modelo
+Empezaremos el entrenamiento del modelo eliminando variables parciales , cargando el paquete a utilizar y cargando el archivo de funciones correspondiente.
+
+```{r, eval=FALSE}
+rm(list = ls())
+
+#Cargando paquetes
+library("e1071")
+
+#Cargando funciones
+source("../source/functions/functions.R")
+```
+
+Se cargará el conjunto de entrenamiento y se eliminarán las etiquetas que no serán utilizadas.
+
+```{r, eval=FALSE}
+dataset.training = read.csv("dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+dataset.training$Label_Normal_TypeAttack = NULL
+dataset.training$Label_Num_Classifiers = NULL
+```
+
+Las variables predictoras deben ser transformadas a tipo numérico y la objetivo a tipo factor. Adicionalmente, las variables predictoras deben ser escaladas para que tengan media cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+for (i in 1 : (ncol(dataset.training) -1) )
+  dataset.training[,i] = as.numeric(dataset.training[,i])
+
+dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dataset.training)])
+
+#Escalando el conjunto de datos
+dataset.training = ScaleSet(dataset.training)
+```
+
+Se cargarán los parámetros seleccionados.
+
+```{r}
+tuned.parameters = readRDS("../source/parameter_selection/SVM/original_set/tuned_model.rds")
+tuned.cost = tuned.parameters$best.parameters$cost
+tuned.gamma = tuned.parameters$best.parameters$gamma
+tuned.cost
+tuned.gamma
+```
+
+Estos son *cost* = 6 y *gamma* = 0.08. Apuesta por mayor margen de error y mayor espectro de las zonas clasificadoras en comparación con los parámetros por defecto. Todos los pasos relacionados al entrenamiento y prueba del modelo serán cronometrados.
+
+```{r, eval=FALSE}
+#Inicio del tiempo de entrenamiento
+start.time = Sys.time()
+
+set.seed(22)
+model = svm(Label~.,
+            data = dataset.training,
+            kernel = "radial",
+            cost = tuned.cost,
+            gamma = tuned.gamma,
+            scale = FALSE,
+            probability = TRUE)
+
+#Tiempo total de entrenamiento
+total.time = Sys.time() - start.time
+```
+
+Los resultados serán almacenados en una lista y posteriormente en un objeto para su posterior análisis.
+
+```{r, eval=FALSE}
+list.results = list(total.time, model)
+saveRDS(list.results, file = "../source/tuned_model/original_set/SVM/testing_set/list_results.rds")
+```
+
+####Análisis del modelo
+Se iniciará con el análisis del modelo eliminando variables parciales, cargando el paquete a utilizar y cargando el archivo correspondiente de funciones.
+
+```{r}
+rm(list = ls())
+
+#Cargando paquetes
+library("e1071")
+
+#Cargando funciones
+source("../source/functions/functions.R")
+```
+
+A continuación se cargará el conjunto de datos de prueba y se eliminarán las etiquetas que no se utilizarán. Adicionalmente, serán escaladas las variables predictoras para que tengan media cero y desviación estándar uno.
+
+```{r}
+#Cargando conjunto de prueba
+testing.set = read.csv("../dataset/NSLKDD_Testing_New.csv",
+                       sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+testing.set$Label_Normal_TypeAttack = NULL
+testing.set$Label_Num_Classifiers = NULL
+testing.set$Label_Normal_or_Attack = NULL
+
+#Escalando el conjunto de datos
+testing.set = ScaleSet(testing.set)
+```
+
+Luego se cargan los resultados obtenidos en la sección anterior y se guardan en variables para su posterior uso.
+
+```{r}
+results = readRDS("../source/tuned_model/original_set/SVM/testing_set/list_results.rds")
+
+#Extrayendo resultados
+training.time = results[[1]]
+model = results[[2]]
+
+```
+
+El proceso de predicciones será cronometrado.
+
+```{r}
+#Inicializando el tiempo
+start.time.predictions = Sys.time()
+
+#Realizando las predicciones
+predictions = predict(model, testing.set[, 1:(ncol(testing.set)-1)], type = "class")
+
+#Capturando el tiempo total
+total.time.predictions = Sys.time() - start.time.predictions
+total.time.predictions
+```
+
+Una vez realizadas las predicciones se puede observar la matriz de confusión.
+
+```{r}
+confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
+                         Prediction = predictions)
+
+confusion.matrix
+```
+
+Se observa una matriz de confusión más desordenada que la presentada durante el análisis sobre el conjunto de entrenamiento. Esta situación es entendible considerando que hay 14 nuevos tipos de ataques presentes en el conjunto de prueba. Ahora veamos la tasa de acierto y de error.
+
+```{r}
+accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+
+Se muestra una tasa de acierto de 74%. Muy superior a la presentada por NN. Veamos la eficacia por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix, testing.set)
+```
+
+El modelo clasifica de muy buena manera las clases DoS y normal. Sin embargo, para Probing tiene un rendimiento muy discreto y para R2L y U2R nulo. Crearemos una matriz de consufión binaria que permita derivar nuevas medidas de rendimiento.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predictions)
+attack.normal.confusion.matrix
+```
+
+Se observa una alta generación de falsos negativos y una generación mínima de falsos negativos. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+Las medidas reflejan un modelo con alto acierto a la hora de clasificar el tráfico normal, y una alta precisión con respecto a los ataque identificados. Veamos la curva ROC para ver el comportamiento de la toma de decisiones.
+
+```{r, fig.align="center"}
+probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)], probability = TRUE)
+roc.data = DataROC(testing.set, attr(probabilities, "probabilities"), predictions)
+generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction)
+```
+
+Se observa una curva ROC que en comparación al análisis presentado haciendo uso de lso parámeros por defecto es peor, mucho más errático. Aparentemente, el ajuste de los parámetros quitaron generalización para los nuevos ataques.
+
+####Segundo nivel de clasificación (K-Medias)
+Se iniciará la adición del segundo nivel de clasificación creando el nuevo conjunto de datos para el algoritmo K-Medias, el cual correponde a los registros clasificados como normal.
+
+```{r}
+kmeans.set = testing.set[predictions == "normal", ]
+dim(kmeans.set)
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+Se puede apreciar que existen 5163 ataques en el sub-conjunto a utilizar. Se pre-calcularán los centroides para tratar de garantizar la convergencia al mejor mínimo local.
+
+```{r}
+start.time.kmeans.training = Sys.time()
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+
+matrix.centers = matrix.centers/100
+total.time.kmeans.training = Sys.time() - start.time.kmeans.training
+```
+
+Y posteriormente dichos centroides serán utilizados para el proceso definitivo de clasificación.
+
+```{r}
+start.time.kmeans.predictions = Sys.time()
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+
+total.time.kmeans.predictions = Sys.time() - start.time.kmeans.predictions
+```
+
+Luego, podemos ver los resultados. Empezaremos por visualizar la matriz de confusión.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+confusion.matrix.kmeans.model
+```
+
+Se observa un pobre complemento por parte de K-Medias para detectar ataques. Básicamente no hizo nada, a proporción de su aporte al problema fue nula. Veamos la tasa de acierto y tasa de error.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)*100
+```
+
+El 64% de acierto debido a que ese es el porcentaje de la clase normal. Veamos ahora la tasa de acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Se refleja el pobre rendimiento a la hora de detectar los ataques. Veamos el resto de las medidas binarias.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+Se refleja un pobre resultado a la hora de detectar los ataques y un gran desempeño para la correcta clasificación del tráfico normal.
+
+####Estadísticas totales
+Para las estadísticas totales, mezclaremos las matrices de confusión de ambos niveles.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
+```
+
+Se observa un nulo aporte por parte del segundo nivel de clasificación referente a K-Medias. Ahora veamos el resto de las estadísticas.
+
+```{r}
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+total.time.predictions + total.time.kmeans.predictions
+training.time + total.time.kmeans.training
+```
+
+Se pueden apreciar estadísticas similares a las obtenidas por el primer nivel de sVM. Estas sigieren un modelo que es certero a la hora de detectar ataques cuanod los identifica, sin embargo, solo detecta el 60% de estos. Por otra parte, clasifica muy bien el tráfico normal.
+
+####Conclusiones
+El ajuste de parámetros deterioró la certeza con la que trabaja el modelo de SVM. Adicionalmente, el segundo nivel de K-Medias no aportó absolutamente nada al complemento del primer nivel.
+
+###(III) PCA - NN - K-Medias
+En esta sección se realizará el entrenamiento y análisis del esquema PCA - NN - K-Medias (dos conjuntos).
+
+####Entrenamiento del modelo
+Se empezará el entrenamiento del modelo eliminando variables parciales, cargando el paquete a utilizar y el archivo de funciones correspondiente.
+
+```{r, eval=FALSE}
+rm(list = ls())
+
+#Cargando paquetes
+library("nnet")
+
+#Cargando funciones
+source("../source/functions/functions.R")
+```
+
+A continuación se cargará el conjunto de entrenamiento, se eliminarán las etiquetas innecesarias.
+
+```{r, eval=FALSE}
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+dataset.training$Label_Normal_TypeAttack = NULL
+dataset.training$Label_Num_Classifiers = NULL
+dataset.training$Label_Normal_or_Attack = NULL
+```
+
+Todas las variables predictoras deben ser de tipo numérico y la variable objetivo debe ser de tipo *factor*. Adicionalmente, las variables predictoras deben ser escaladas para tener media cero y desviación estándar uno.
+
+```{r, eval = FALSE}
+for (i in 1 : (ncol(dataset.training) -1) )
+  dataset.training[,i] = as.numeric(dataset.training[,i])
+
+dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dataset.training)])
+
+#Escalando el conjunto de datos
+dataset.training = ScaleSet(dataset.training)
+```
+
+En este punto se puede aplicar PCA y seleccionar las primeras 7 componentes principales.
+
+```{r, eval=FALSE}
+pca = prcomp(dataset.training[, -41], scale. = TRUE)
+dataset.training = cbind(as.data.frame(pca$x[,1:7]),
+                         Label = dataset.training$Label)
+```
+
+En este punto ya se tiene preparado el conjunto de datos a utilizar. Vamos a cargar los parámetros seleccionados para el conjunto de datos correspondiente.
+
+```{r}
+hidden.neurons = readRDS("../source/parameter_selection/NN/PCA/tuned_model.rds")
+hidden.neurons = hidden.neurons$best.parameters$size
+hidden.neurons
+```
+
+El número de neurona elegido para la capa intermedia es de 30 neuronas. El mismo será pasado como parámetro para el entrenamiento del modelo a continuación. Todas las actividades referentes al entrenamiento y análisis del modelo serán cronometradas.
+
+```{r, eval=FALSE}
+#Tomando tiempo de inicio
+start.time = Sys.time()
+
+#Entrenando el modelo
+set.seed(22)
+model = nnet(Label ~ .,
+             data = dataset.training,
+             size = hidden.neurons,
+             maxit = 100)
+
+#Calculating time of training#Calculando el tiempo total
+total.time = Sys.time() - start.time
+```
+
+Los resultados serán almacenados en una lista y posteriormente en un objeto para su posterior análisis.
+
+```{r, eval=FALSE}
+list.results = list(total.time, model)
+saveRDS(list.results, file = "s../source/tuned_model/PCA/NN/testing_set/list_results.rds")
+```
+
+####Evaluación del modelo
+Para la evaluación del modelo iniciaremos eliminando variables parciales, cargando el paquete a utilizar y cargando el archivo de funciones correspondiente.
+
+```{r}
+rm(list = ls())
+
+#Cargando paquetes
+library("nnet")
+
+#Cargando archivo de funciones
+source("../source/functions/functions.R")
+```
+
+A continuación el conjunto de datos de prueba es cargado, las etiquetas innecesarias son eliminadas, y el conjunto de datos es escalado para que las variables predictoras tengan media cero y desviación estándar uno.
+
+```{r}
+#Cargando conjunto de prueba
+testing.set = read.csv("../dataset/NSLKDD_Testing_New.csv",
+                       sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+testing.set$Label_Normal_TypeAttack = NULL
+testing.set$Label_Num_Classifiers = NULL
+testing.set$Label_Normal_or_Attack = NULL
+
+#Escalando conjunto de datos
+testing.set = ScaleSet(testing.set)
+```
+
+En este punto se puede aplicar PCA y seleccionar las primeras 7 componentes principales.
+
+```{r}
+pca = prcomp(testing.set[, -41], scale. = TRUE)
+testing.set = cbind(as.data.frame(pca$x[,1:7]),
+                         Label = testing.set$Label)
+```
+
+Ya se tiene el conjunto de prueba listo, ahora cargaremos los resultados obtenidos en la sección anterior y los extraeremos en variables para su posterior uso.
+
+```{r}
+#Cargando resultados
+results = readRDS("../source/tuned_model/PCA/NN/testing_set/list_results.rds")
+
+#Extrayendo resultados
+training.time = results[[1]]
+model = results[[2]]
+```
+
+En esta sección se realizará el entrenamiento y análisis del esquema PCA - NN - K-Medias (dos conjuntos). A continuacións e realizan las predicciones del modelo haciendo uso del conjutno de prueba. Este tiempo es cronometrado.
+
+```{r}
+#Inicializando el tiempo
+start.time.predictions = Sys.time()
+
+#Realizando las predicciones
+predictions = predict(model, testing.set[, 1:(ncol(testing.set)-1)], type = "class")
+
+#Capturando el tiempo total
+total.time.predictions = Sys.time() - start.time.predictions
+total.time.predictions
+```
+
+Ahora veamos los resultados, comenzando por la matriz de confusión.
+
+```{r}
+confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
+                         Prediction = predictions)
+
+confusion.matrix
+```
+
+Se observa una matriz de confusión bastante desordenada y con muy poco acierto para las clases R2L y U2R. Veamos la tasa de acierto y la tasa de error.
+
+```{r}
+accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+
+Solo se alcanza un acierto de 28% de los registros. Este númeor muy por debajo del alcanzado en el conjunto de entrenamiento y en comparación con el alcazado por el modleo (I). Ahora veamos la tasa de acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix, testing.set)
+```
+
+El modelo es regular para la clasificaicón de la clase normal, y muy pobre para el resto de las clases. Transformaremos la matriz de confusión en binaria para poder ver algunas otras estadísticas.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predictions)
+attack.normal.confusion.matrix
+```
+
+Se observa pla predominancia de los falsos positivos y falsos negativos por encima de los aciertos. Ahora veamos la tasa de aciertos y el resto de las medidas de rendimiento.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+Las medidas indican un pobre modelo para detectar ataques y clasificar el tráfico normal. Dicho esto, el modelo no sirve para nada en este primer nivel. Veamos el desempeño de la curva ROC.
+
+```{r, fig.align="center"}
+probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)])
+roc.data = DataROC(testing.set, probabilities, predictions)
+generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction)
+```
+
+La curva ROC demuestra que el rendimiento de la curva ROC es similar al d ela línea del azar.
+
+####Segundo nivel de clasificación (K-Medias)
+Se añadirá el segundo nivel de clasificación correspondiente a K-Medias. Se iniciará creando el el sub-conjunto a utilizar seleccionado los registros clasificados como normal por el primer nivel.
+
+```{r}
+kmeans.set = testing.set[predictions == "normal", ]
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+Se observa la gran cantidad de ataques presentes en este subconjunto. A continuación se precalcularán los centroides a ser pasados al algoritmo para la clasificación.
+
+```{r}
+start.time.kmeans.training = Sys.time()
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+
+matrix.centers = matrix.centers/100
+total.time.kmeans.training = Sys.time() - start.time.kmeans.training
+```
+
+Los centroides precalculados, ahora son pasados como parámetros para la clasificación.
+
+```{r}
+start.time.kmeans.predictions = Sys.time()
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+
+total.time.kmeans.predictions = Sys.time() - start.time.kmeans.predictions
+```
+
+Veamos ahora los resultados, comenzando por la matriz de confusión.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+
+confusion.matrix.kmeans.model
+```
+
+K-Medias hizo un gran trabajo, detectando 3762 nuevos ataques sin generar una gran cantidad de falsos positivos. Veamos la tasa de acierto y de error.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)*100
+```
+
+Una tasa acierto bastante buena de 62.07%. Veamos la tasa de acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Sólo se detectó el 42% de los ataques. Sin embargo se logró identificarlos sin la generación excesiva de falsos positivos. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+Las medidas ilustran un modelo que es muy bueno para clasificar el tráfico normal y muy certero cuándo detecta un ataque. 
+
+####Estadísticas totales
+Uniremos las matrices de confusión de los dos modelos para calcular las estadísticas totales.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
+```
+
+Se puede ver la mejora en la matriz de confusión con respecto a la generada en el primer nivel. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+total.time.predictions + total.time.kmeans.predictions
+training.time + total.time.kmeans.training
+```
+
+Todas las medidas de rendimiento incrementaron con respecto a las presentadas en el primer nivel. En esta ocasión, la inclusión de K-Medias fue bastante positiva, esto debido al pobre rendimiento del primer nivel.
+
+####Conclusiones
+La reducción de características PCA con 7 componentes principales no aporta la suficiente información al modelo para poder generalizar con el conjunto de prueba. Depende de los resultados que arroe el modelo (IV), es posible que se necesite de un número mayor de componentes principales que aporten mayor información para la generalización.
+
+###(IV) PCA - SVM - K-Medias
+En esta sección se realizará el entrenamiento y análisis del esquema PCA - SVM - K-Medias (dos conjuntos).
+
+####Entrenamiento del modelo
+Se empezará el entrenamiento del modelo eliminando variables parciales, cargando el paquete a utilizar y el archivo de funciones correspondiente.
+
+```{r, eval=FALSE}
+rm(list = ls())
+
+#Cargando paquetes
+library("e1071")
+
+#Cargando archivo de funciones
+source("../source/functions/functions.R")
+```
+
+A continuación se carga el conjunto de datos de entrenamiento y se eliminan las etiquetas innecesarias.
+
+```{r, eval=FALSE}
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+dataset.training$Label_Normal_TypeAttack = NULL
+dataset.training$Label_Num_Classifiers = NULL
+dataset.training$Label_Normal_or_Attack = NULL
+```
+
+Todas las variables predictoras deben ser de tipo numérico y la variable objetivo de tipo *factor*. Adicionalmente las variables debens er escaladas para que estas tengan media cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+for (i in 1 : (ncol(dataset.training) -1) )
+  dataset.training[,i] = as.numeric(dataset.training[,i])
+
+dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dataset.training)])
+
+#Escalando el conjunto de datos
+dataset.training = ScaleSet(dataset.training)
+```
+
+Luego, se puede aplicar PCA y seleccionar las primeras 7 componentes principales.
+
+```{r, eval=FALSE}
+pca = prcomp(dataset.training[, -41], scale. = TRUE)
+dataset.training = cbind(as.data.frame(pca$x[,1:7]),
+                         Label = dataset.training$Label)
+```
+
+Se cargarán los parámetros seleccionados durante el procesos de selección de parámetros.
+
+```{r}
+tuned.parameters = readRDS("../source/parameter_selection/SVM/PCA/tuned_model.rds")
+tuned.cost = tuned.parameters$best.parameters$cost
+tuned.gamma = tuned.parameters$best.parameters$gamma
+tuned.cost
+tuned.gamma
+```
+
+Estos parámetros son *cost* = 6 y *gamma* = 0.4. Esta configuración propone un radio espectral más rande y un rango de error mayor que el de los parámetros por defecto. Las actividades referentes a entrenamiento y predicción por parte del modleo serán cronometrados.
+
+```{r, eval=FALSE}
+#Iniciando cronómetro
+start.time = Sys.time()
+
+set.seed(22)
+model = svm(Label~.,
+            data = dataset.training,
+            kernel = "radial",
+            cost = tuned.cost,
+            gamma = tuned.gamma,
+            scale = FALSE,
+            probability = TRUE)
+
+#Tiempo total de entrenamiento
+total.time = Sys.time() - start.time
+```
+
+Los resultados obtenidos son guardados en una lista y posteriormente en un objeto para su posterior análisis.
+
+```{r, eval=FALSE}
+list.results = list(total.time, model)
+saveRDS(list.results, file = "../source/tuned_model/PCA/SVM/testing_set/list_results.rds")
+```
+
+####Evaluación del modelo
+Se iniciará con el análisis del modelo eliminando variables parciales, cargando el paquete a utilizar y el archivo de funciones correspondiente.
+
+```{r}
+rm(list = ls())
+
+#Cargando paquetes
+library("e1071")
+
+#Cargandoa rchivo de funciones
+source("../source/functions/functions.R")
+```
+
+Luego, se carga el conjunto de datos de prueba, se eiliminan las etiquetas que no se utilizarán y se escala el conjunto de datos para que las variabels predictoras tengan media cero y desviación estándar uno.
+
+```{r}
+testing.set = read.csv("../dataset/NSLKDD_Testing_New.csv",
+                       sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+testing.set$Label_Normal_TypeAttack = NULL
+testing.set$Label_Num_Classifiers = NULL
+testing.set$Label_Normal_or_Attack = NULL
+
+#Escalando el conjunto de datos
+testing.set = ScaleSet(testing.set)
+```
+
+En este punto se puede aplicar PCA al conjunto de datos y seleccionar las primeras 7 componentes principales.
+
+```{r}
+pca = prcomp(testing.set[, -41], scale. = TRUE)
+testing.set = cbind(as.data.frame(pca$x[,1:7]),
+                    Label = testing.set$Label)
+```
+
+Luego, los resultados obtenidos en la sección anterior son cargados y almacenados en variables para su posterior uso.
+
+```{r}
+results = readRDS("../source/tuned_model/PCA/SVM/testing_set/list_results.rds")
+
+#Extrayendo resultados
+training.time = results[[1]]
+model = results[[2]]
+```
+
+Se realizarán las predicciones, como se mecionó previamente, este tiempo será cronometrado.
+
+```{r}
+#Inicializando 
+start.time.predictions = Sys.time()
+
+#Realizando las predicciones
+predictions = predict(model, testing.set[, 1:(ncol(testing.set)-1)], type = "class")
+
+#Calculando el tiempo total
+total.time.predictions = Sys.time() - start.time.predictions
+total.time.predictions
+```
+
+Veamos los resultados obtenidos, empezando por calcular la matriz de ocnfusión.
+
+```{r}
+confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
+                         Prediction = predictions)
+
+confusion.matrix
+```
+
+Se observa una matriz de confusión bastante desordenada la mayoría de los elementos fuera de la diagonal. Veamos las tasas de acierto y de error.
+
+```{r}
+accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+
+Se ibserva un desempeño terrible con solo 13.34% de aciertos. Veamos la eficacia por etiquetas.
+
+```{r}
+AccuracyPerLabel(confusion.matrix, testing.set)
+```
+
+Todas las clases tuvieron una tasa de acierto muy muy mala. Ahora crearemos una matriz binaria para calcular otras medidas de rendimiento.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predictions)
+attack.normal.confusion.matrix
+```
+
+Se observa claramente la predominancia de los falsos positivos y falsos negativos. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+Todas las medidas sugieren que este modelo no se ajusta para nada al problema. Veamos el comportamiento de la curva ROC.
+
+```{r, fig.align="center"}
+probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)], probability = TRUE)
+roc.data = DataROC(testing.set, attr(probabilities, "probabilities"), predictions)
+generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction)
+```
+
+Claramente el desempeño es por que la línea del azar. Reflejando el pobre rendimiento del modelo.
+
+####Segundo nivel de clasificación
+Para añadir el segundo nivel de clasificación, se tomarán aquellos registros clasificados como normal y se tomará ese sub-conjunto para aplicar K-Medias.
+
+```{r}
+kmeans.set = testing.set[predictions == "normal", ]
+dim(kmeans.set)
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+Se observa que hay 11266 ataques presentes en el sub-conjunto que se refieren a los falsos negativos generados por el primer nivel. Se precalcularán los centroides para garantizar la convergencia a un buen mínimo local.
+
+```{r}
+start.time.kmeans.training = Sys.time()
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+
+matrix.centers = matrix.centers/100
+total.time.kmeans.training = Sys.time() - start.time.kmeans.training
+```
+
+Los centroides obtenidos ahora son pasados como parámetros para clasificar de manera definitiva.
+
+```{r}
+start.time.kmeans.predictions = Sys.time()
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+
+total.time.kmeans.predictions = Sys.time() - start.time.kmeans.predictions
+```
+
+Veamos los resultados obtenidos, empezando por ver la matriz de confusión.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+confusion.matrix.kmeans.model
+```
+
+Se puede observar que se detectaron 2188 ataques sin apenas falsos positivos. Por esta parte, se puede apreciar una mejora en el desempeño por parte de este segundo nivel. Veamos la tasa de acierto y de error.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)*100
+```
+
+Se logró una tasa de acierto de 35%. Estpa está muy por debajo de lo que es un buen rendimiento. Veamos la tasa de aciertpo por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Solo un 19% de acierto para los ataques y una alta tasa para el tráfico normal que está sesgada ocnsiderando que apun existen una gran cantidad de falsos negativos. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+Se observa un modelo que clasifica muy pocos ataques, sin embargo, al hacerlo es muy certero. Por otra parte, identifica la mayorpia del tráfico normal presente.
+
+####Estadísticas totales
+Para las estadísticas totales combinaremos las matrices de confusión generadas en ambos niveles.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
+```
+
+Se puede apreciar una leve mejora con respecto a los resultados obtenidos en el primer nivel, sin embargo, siguen predominando los falsos negativos y positivos. Veamos la tasa de acierto y la tasa de error.
+
+```{r}
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+```
+
+Solo 28% de acierto. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+total.time.predictions + total.time.kmeans.predictions
+training.time + total.time.kmeans.training
+```
+
+Se observan medidas muy pobres, parecidas a las obtenidas en el primer nivel. K-Medias mejoró un poco el rendimiento global.
+
+####Conclusiones
+La reducción de características haciendo uso de PCA y als primeras 7 componentes principales no fue nada bueno, el modleo comete más errores que acierto. El segundo nivel de K-Medias logró aportar un poco de mejora detectando algunos ataques sin generar en exceso falsos positivos.
+
+###(V) GFR - NN - K-Medias
+En esta sección se hará el entrenamiento y análisis del modelo GFR - NN - K-Medias (dos conjuntos).
+
+####Entrenamiento del modelo
+Se empezará por el entrenamiento del modelo eliminando variables parciales, cargando el paquete a utilizar, y cargando el archivo de funciones corresondiente.
+
+```{r, eval=FALSE}
+rm(list = ls())
+
+#Cargando paquetes
+library("nnet")
+
+#Cargando archivo de funciones
+source("../source/functions/functions.R")
+```
+
+Luego, se cargará el conjunto de entrenamiento y se eliminarán las etiquetas que no se utilizarán.
+
+```{r, eval=FALSE}
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+dataset.training$Label_Normal_TypeAttack = NULL
+dataset.training$Label_Num_Classifiers = NULL
+dataset.training$Label_Normal_or_Attack = NULL
+```
+
+Todas las variables predictoras deben ser de tipo numérico y la variabl objetivo de tipo *factor*. Adicinalmente las variables predictoras serán escaladas para que tengan media cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+for (i in 1 : (ncol(dataset.training) -1) )
+  dataset.training[,i] = as.numeric(dataset.training[,i])
+
+dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dataset.training)])
+
+#Scaling dataset
+dataset.training = ScaleSet(dataset.training)
+```
+
+A continuación se pueden cargar las características seleccionar por GFR para NN, y seleccionar las primeras 9. Adicionalmente, dichas características serán seleccionadas para generar el nuevo conjunto de datos
+
+```{r, eval=FALSE}
+#Extrayendo características
+nn.gfr = readRDS("../source/feature_selection/NN/results_GFR.rds")
+nn.gfr = rownames(nn.gfr)[1:9]
+
+#Extrayendo información
+Label = dataset.training$Label
+
+#Creando el nuevo conjunto de datos
+dataset.training = dataset.training[, nn.gfr]
+dataset.training = cbind(dataset.training, Label = Label)
+```
+
+Luego se pueden cargar los parámetros seleccionados para el modelo.
+
+```{r}
+hidden.neurons = readRDS("../source/parameter_selection/NN/GFR/tuned_model.rds")
+hidden.neurons = hidden.neurons$best.parameters$size
+hidden.neurons
+```
+
+Se seleccionaron 28 neuronas para ser pasadas como parámetro para la capa intermedia. Dicho parámetro será pasado para el entrenamiento de la red neuronal. El tiempo será cronometraod para su posterior análisis.
+
+```{r, eval=FALSE}
+#Inicio del cronómetro
+start.time = Sys.time()
+
+#Entrenamiento del modelo
+set.seed(22)
+model = nnet(Label ~ .,
+             data = dataset.training,
+             size = hidden.neurons,
+             maxit = 100)
+
+#Calculando el tiempo total
+total.time = Sys.time() - start.time
+```
+
+Los resultados serán guardados en una lista y posteriormente en un objeto para su posterior análisis.
+
+```{r, eval=FALSE}
+list.results = list(total.time, model)
+saveRDS(list.results, file = "../source/tuned_model/GFR/NN/testing_set/list_results.rds")
+```
+
+####Evaluación del modelo
+Para la evaluación del modelo se iniciará con la eliminación de variables parciales, la craga del paquete a utilizar y del archivo de funciones correspondiente.
+
+```{r}
+rm(list = ls())
+
+#Cargando paquete
+library("nnet")
+
+#Cargando archivo de funciones
+source("../source/functions/functions.R")
+```
+
+A continuación, se cargará el conjunto de prueba, se eliminarás las etiquetas innecesarias y se escalara el mismo para que todas las variables predictoras tengan media 0 y desviación estándar uno.
+
+```{r}
+#Cargando el conjunto de datos
+testing.set = read.csv("../dataset/NSLKDD_Testing_New.csv",
+                       sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+testing.set$Label_Normal_TypeAttack = NULL
+testing.set$Label_Num_Classifiers = NULL
+testing.set$Label_Normal_or_Attack = NULL
+
+#Escalando el conjunto de datos
+testing.set = ScaleSet(testing.set)
+```
+
+Ahora se pueden cargar las características selecciondas por GFR para NN, y luego usar las primeras 9 características para crear el nuevo conjunto de datos.
+
+```{r}
+#Seleccionando las características de GFR
+nn.gfr = readRDS("../source/feature_selection/NN/results_GFR.rds")
+nn.gfr = rownames(nn.gfr)[1:9]
+
+#Extracting info
+Label = testing.set$Label
+
+#Creando el nuevo conjunto de datos
+testing.set = testing.set[, nn.gfr]
+testing.set = cbind(testing.set, Label = Label)
+```
+
+Luegom los resultados obtenidos en la fase de entrenamiento son extraídos a variables para su posterior uso.
+
+```{r}
+#Cargando los resultados
+results = readRDS("../source/tuned_model/GFR/NN/testing_set/list_results.rds")
+
+#Extrayendo los resultados
+training.time = results[[1]]
+model = results[[2]]
+```
+
+Se harán las predicciones. Las mismas serán cronometradas para su posterior análisis.
+
+```{r}
+#Iniciando cronómetro
+start.time.predictions = Sys.time()
+
+#Realizando las prediciiones
+predictions = predict(model, testing.set[, 1:(ncol(testing.set)-1)], type = "class")
+
+#Calculando el tiempo total
+total.time.predictions = Sys.time() - start.time.predictions
+total.time.predictions
+```
+
+Veamos los resultado, comenzando por ver la matriz de confusión.
+
+```{r}
+confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
+                         Prediction = predictions)
+
+confusion.matrix
+```
+
+Se observa un desempeño al menos muy preciso a la hora de detectar tráfico normal. Al menos superior al presentado por PCA para los modelos (III) y (IV). 
+
+```{r}
+accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+
+La tasa de acierto refleja lo comoentado en el párrafo anterior, donde se nota una tasa de acierto de 66%. Ahora veamos la tasa de acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix, testing.set)
+```
+
+Para las clases normal y Probing el rendimeinto es muy bueno, mpara DoS bastante regular, y para el resto de las etiquetas bastante malo. Creemos la matriz de ocnfusión binaria para ver los resultados obtenidos.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predictions)
+attack.normal.confusion.matrix
+```
+
+Se crea una alta cantidad de falsos negativos, sin embargo, los ataques y el tráfico normal estpan bien distribuidos. Adicionalmente, no hay una presencia muy grande de falsos positivos. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+S epresenta una tasa de acierto de 77%. A pesar de que el modelo clasifica bien los tipos de ataque, si lo hace para separar los ataques del tráfico normal. Veamos la curva ROC.
+
+```{r, fig.align="center"}
+probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)])
+roc.data = DataROC(testing.set, probabilities, predictions)
+generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction)
+```
+
+La curva ROC es mucho mejor a la presentada por el modelo haciendo uso del conjunto de datos de entrenamiento original.
+
+####Segundo nivel de clasificación
+Añadiremos el segundo nivel de K-Medias empezando por crear un sub-conjunto correspondiente a los registros que fueron clasificados como normal.
+
+```{r}
+kmeans.set = testing.set[predictions == "normal", ]
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+Se puede apreciar que en dicho sub-conjunto hay 4532 ataques. Ahora precalcularemos los centroides.
+
+```{r}
+start.time.kmeans.training = Sys.time()
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+matrix.centers = matrix.centers/100
+total.time.kmeans.training = Sys.time() - start.time.kmeans.training
+```
+
+Y utilizaremos los centroides pre-calculados para la clasificación definitiva.
+
+```{r}
+start.time.kmeans.predictions = Sys.time()
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+
+total.time.kmeans.predictions = Sys.time() - start.time.kmeans.predictions
+```
+
+Veamos los resultados obtenidos, empezando por visualizar la matriz de confusión.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+
+confusion.matrix.kmeans.model
+```
+
+La inclusión de K-Medias no fue positiva debido a la alta generación de falsos positivos que se generó y la escaza cantidad de ataques detectados. Veamos la tasa de aciertos, y la tasa de error.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)*100
+```
+
+Se observa que hay más errores que aciertos por parte de este segundo nivel. Ahora veamos la tasa de acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Se puede observar el pobre desempeño alcanzado, en particular que solo el 20% de los ataques fueron detectados. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+Estas sugieren un modelo que no es bueo para clasificar ataques ni tráfico normal.
+
+####Estadísticas totales
+Unificaremos las matrices de confusión de los dos niveles.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
+```
+
+Si se compara con la matriz de confusión obtenida en el primer nivel, se puede observar el deterioro ocasionado por K-Medias con la alta generación de falsos positivos. Ahora veamos el resto de las medidas de rendimiento.
+
+```{r}
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+total.time.predictions + total.time.kmeans.predictions
+training.time + total.time.kmeans.training
+```
+
+Disminuyó considerablemente la tasa de aciertos en comparación con la tasa de aciertos presentada por el primer nivel de clasificación, así mismo, el resto de las medidas de rendimiento se vieron afectadas notablemente.
+
+####Conclusiones
+La reducción de características funcionó de una mejor manera para el primer nivel. Sin embargo, a la hora de unificar las matrices de confusión el incremento de acierto fue muy grande, hay que procurar que la tasa de acierto de cinco clases y dos clases sea lo más parecida posible para tener un modelo que sea consecuente. De nuevo, K-Medias rindió por debajo de los esparado, es claro que la reducción de información para K-Medias deteriora mucho su desempeño tanto para el análisis para el conjunto de entrenamiento como para el análisis para el conjunto de prueba.
+
+###(VI) GFR - SVM - K-Medias
+en esta sección se realizará el entrenamiento y análisis del modelo GFR - SVM - K-Medias (dos grupos).
+
+####Entrenamiento del modelo
+Se iniciará con el entrenamiento del modelo eliminando variables parciales, cargando el paquete a utilizar y el correspondiente archivo de funciones.
+
+```{r, eval=FALSE}
+rm(list = ls())
+
+#Cargando paquetes
+library("e1071")
+
+#Cargando archivo de funciones
+source("../source/functions/functions.R")
+```
+
+A continuación se carga el conjunto de datos de entrenamietno y se eliminan las etiquetas que no serán utilizadas.
+
+```{r, eval=FALSE}
+dataset.training = read.csv("../dataset/NSLKDD_Training_New.csv",
+                            sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+dataset.training$Label_Normal_TypeAttack = NULL
+dataset.training$Label_Num_Classifiers = NULL
+dataset.training$Label_Normal_or_Attack = NULL
+```
+
+Todas las variables predictoras deben ser de tipo numérico, y la variable objetivo de tipo factir. Adicionalmente, el conjunto de datos será escalado para que todas las variables predictoras tengan media cero y desviación estándar uno.
+
+```{r, eval=FALSE}
+for (i in 1 : (ncol(dataset.training) -1) )
+  dataset.training[,i] = as.numeric(dataset.training[,i])
+
+dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dataset.training)])
+
+#Escalando el conjunto de datos
+dataset.training = ScaleSet(dataset.training)
+```
+
+A continuación se extraerán las etiquetas seleccionadad por GFR para SVM y se creará el nuevo conjunto de datos reducido.
+
+```{r, eval=FALSE}
+#Seleccionando características
+svm.gfr = readRDS("../source/feature_selection/SVM/results_GFR.rds")
+svm.gfr = rownames(svm.gfr)[1:9]
+
+#Extrayendo información
+Label = dataset.training$Label
+
+#Creando nuevo conjunto de datos
+dataset.training = dataset.training[, svm.gfr]
+dataset.training = cbind(dataset.training, Label = Label)
+```
+
+Luego, se cargarán los parámetros seleccionados.
+
+```{r}
+tuned.parameters = readRDS("../source/parameter_selection/SVM/GFR/tuned_model.rds")
+tuned.cost = tuned.parameters$best.parameters$cost
+tuned.gamma = tuned.parameters$best.parameters$gamma
+tuned.cost
+tuned.gamma
+```
+
+Se puede observar que *cost* = 6 y *gamma* = 0.4. De esta manera se aumentó el espectro de las sircunferencias y el error permitido en comparación con los parámetros por defecto. Dichos parámetros serán pasado a continuación al modelo. Los timepos de entrenamiento y de predicciones serán cronometrados.
+
+```{r, eval=FALSE}
+#Iniciando cronómetro
+start.time = Sys.time()
+
+set.seed(22)
+model = svm(Label~.,
+            data = dataset.training,
+            kernel = "radial",
+            cost = tuned.cost,
+            gamma = tuned.gamma,
+            scale = FALSE,
+            probability = TRUE)
+
+#Calculando el tiempo total de entrenamiento
+total.time = Sys.time() - start.time
+```
+
+Los resultados serán almacenados en una lista y seguidamente en un objeto para su posterior análisis.
+
+```{r, eval=FALSE}
+list.results = list(total.time, model)
+saveRDS(list.results, file = "../source/tuned_model/GFR/SVM/testing_set/list_results.rds")
+```
+
+####Evaluación del modelo
+La evaluaciónd el modelo dará inicio eliminando variables parciales, cargando el archivo de funciones a utilizar y cargando el archivo de funciones correspondiente.
+
+```{r}
+rm(list = ls())
+
+#Cargando paquetes
+library("e1071")
+
+#Cargando archivo de funciones
+source("../source/functions/functions.R")
+```
+
+A continuación se cargará el conjunto de datos de prueba, se eliminarán las etiquetas que no se utilizarán y se escalará eñ conjunto de datos para que todas estas tengan media cero y desviación estándar uno.
+
+```{r}
+testing.set = read.csv("../dataset/NSLKDD_Testing_New.csv",
+                       sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+testing.set$Label_Normal_TypeAttack = NULL
+testing.set$Label_Num_Classifiers = NULL
+testing.set$Label_Normal_or_Attack = NULL
+
+#Escalando el conjunto de datos
+testing.set = ScaleSet(testing.set)
+```
+
+En este punto se pueden seleccionar las características para SVM seleccionadas por GFR y de esta manera crear el conjunto de datos definitivo a ser utilizado.
+
+```{r}
+#Seleccionando características
+svm.gfr = readRDS("../source/feature_selection/SVM/results_GFR.rds")
+svm.gfr = rownames(svm.gfr)[1:9]
+
+#Extrayendo información
+Label = testing.set$Label
+
+#Creando el nuevo conjunto de datos
+testing.set = testing.set[, svm.gfr]
+testing.set = cbind(testing.set, Label = Label)
+```
+
+Se cargarán los resultados obtenidos en la sección anterior y se pasarán a variabels para posteriormente ser utilizadas.
+
+```{r}
+#Cargando resultados
+results = readRDS("../source/tuned_model/GFR/SVM/testing_set/list_results.rds")
+
+#Extrayendo resultados
+training.time = results[[1]]
+model = results[[2]]
+```
+
+A continuación se realizarán las predicciones. Los tiempos para las predicciones serán cronometrados.
+
+```{r}
+#Inicializando el contador
+start.time.predictions = Sys.time()
+
+#Realizando las predicciones
+predictions = predict(model, testing.set[, 1:(ncol(testing.set)-1)], type = "class")
+
+#Capturando el tiempo total
+total.time.predictions = Sys.time() - start.time.predictions
+total.time.predictions
+```
+
+Veamos los resultados obtenidos, empezando por la matriz de confusión.
+
+```{r}
+confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
+                         Prediction = predictions)
+
+confusion.matrix
+```
+
+Se puede observar que la mayoría de los registros se concentran en la diagonal. Adicionalmente, se observa que hay una alta presencia de falsos negativos. Veamos la tasa de acierto y de fallos.
+
+```{r}
+accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
+accuracy * 100
+ErrorRate(accuracy) * 100
+```
+
+Una muy buena tasa de acierto con 72% de acierto. Ahora veamos la tasa de acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix, testing.set)
+```
+
+Se observa que el modelo muestra muy malos resultados para las clases R2L y U2R. Luego para Probing, el rendimeinto es regular y más destacado para el resto de las clases. Ahora veamos la matriz de confusión binaria.
+
+```{r}
+attack.normal.confusion.matrix = AttackNormalConfusionMatrix(testing.set, predictions)
+attack.normal.confusion.matrix
+```
+
+Se observa una poca generación de falsos positivos y una alta tasa de falsos negativos. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix) * 100
+Sensitivity(attack.normal.confusion.matrix) * 100
+Especificity(attack.normal.confusion.matrix) * 100
+Precision(attack.normal.confusion.matrix) * 100
+```
+
+Se observa un modelo bastante bueno para detectar tráfico normal, y certero cuando clasifica un ataque como tal. Sin embargo, solo detecta el 55% de los ataques presentes. Veamos la curva ROC.
+
+```{r, fig.align="center"}
+probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)], probability = TRUE)
+roc.data = DataROC(testing.set, attr(probabilities, "probabilities"), predictions)
+generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction)
+```
+
+La curva se ve bastante errática y algunos puntos hasta se piensa que acierta por azar. En comparación al conjunto de datos por defecto se ve que el desempeño no es nada bueno.
+
+####Segundo nivel de clasificación (K-Medias)
+Para añadir el segundo nivel de K-Medias empezaremos por extraer el subconjunto de registros que fueron clasificados como normal.
+
+```{r}
+kmeans.set = testing.set[predictions == "normal", ]
+dim(kmeans.set)
+kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
+kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
+SumLabels(kmeans.set, ncol(kmeans.set))
+```
+
+Se precalcularán los centroides para garantizar la convergencia al mejor mínimo local.
+
+```{r}
+start.time.kmeans.training = Sys.time()
+matrix.centers = FindCentersKmeans(set = kmeans.set, clusters = 2,
+                                   iterations = 100, iter.max = 100)
+
+matrix.centers = matrix.centers/100
+total.time.kmeans.training = Sys.time() - start.time.kmeans.training
+```
+
+Los centroides obtenidos serán pasados como parámetro para la clasificación final.
+
+```{r}
+start.time.kmeans.predictions = Sys.time()
+kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.centers,
+                      iter.max = 100)
+
+total.time.kmeans.predictions = Sys.time() - start.time.kmeans.predictions
+```
+
+Veamos la matriz de confusión empezando por visualizar la matroz de confusión.
+
+```{r}
+predictions = OrderKmeans(kmeans.model)
+confusion.matrix.kmeans.model = table(Real = kmeans.set[,ncol(kmeans.set)],
+                                      Prediction = predictions)
+confusion.matrix.kmeans.model
+```
+
+Se identifican 1230 nuevos ataques. Sin embargo se generan mayor cantidad de falsos positivos. Veamos la tasa de acierto y de error.
+
+```{r}
+accuracy.kmeans.model = mean(predictions == kmeans.set[,ncol(kmeans.set)])
+accuracy.kmeans.model*100
+ErrorRate(accuracy.kmeans.model)*100
+```
+
+Se logra apenas 41% de acierto, esto debido a la excesiva generación de falsos positivos. Ahora veamos la tasa de acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.kmeans.model, kmeans.set)
+```
+
+Solo se detectan 21.7% de los nuevos ataques. Y la tasa de acierto sobre el tráfico normal decrementa de forma notable. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+Sensitivity(confusion.matrix.kmeans.model) * 100
+Especificity(confusion.matrix.kmeans.model) * 100
+Precision(confusion.matrix.kmeans.model) * 100
+```
+
+Estas sugieren un pobre desempeño por parte del segundo nivel de clasificación.
+
+####Estadísticas totales
+Veamos las estadísticas totales unificando las matrices de confusión.
+
+```{r}
+confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
+```
+
+Se observa que se detectan más ataques correctamente, que lo que clasifica correntamente el tráfico normal. Si se compara con la matriz de confusión del primer nivel hay más falsos positivos y menor cantidad de acierto sobre el tráfico normal. Veamos el resto de las estadísticas.
+
+```{r}
+accuracy.total = Accuracy(confusion.matrix.two.labels)
+accuracy.total * 100
+ErrorRate(accuracy.total) * 100
+Sensitivity(confusion.matrix.two.labels) * 100
+Especificity(confusion.matrix.two.labels) * 100
+Precision(confusion.matrix.two.labels) * 100
+total.time.predictions + total.time.kmeans.predictions
+training.time + total.time.kmeans.training
+```
+
+Se disminuyó la tasa de acierto y la precisión a ala hora de detectar los ataques. De esta manera el segundo nivel de K-MEdias no aportó mejora.
+
+####Conclusiones
+La reducción de GFR presenta un desempeño aceptable. Mucho mejor que el obtenido para su homólogo usando PCA. La curva ROC es el verdadero problema. El comportamiento del modelo es bastante errático. Para el segundo nivel, de nuevo se bserva que la reducción de características no va de la mano con K-Medias.
+
+###Conclusiones generales
+Para los modelos (I) y (II), la selección de parámetros disminuyó acierto con respecto a lso parámetros por defecto usados anteriormente. Dicho esto, la selección de parámetros será buena si el problema no es tan cambiante, situación que no es la presentada en este probelma donde se agregan 14 nuevos tipos de ataques. Dicho esto, se sugiere la utilización de los parámetros por defecto, al menos hasta que se tenga una base de conocimeinto lo bastante amplia que pueda abarcar todos los ataques disponibles. La situación presentada anteriormente es utópica, ya que constantemente lso ataques evolucionan.
+
+Para os modelos (III) y (IV) se observa que la reducción de PCA no funciona para nada para la generalización del primer nivel. K-Medias en estos modelos aporta mayor cantidad de información.
+
+Para los modelos (V) y (VI), se observa que la reducción de características fue más fructífera que lso resultados obtenidos por PCA. Sin emabrgo, K-Medias presenta un pobre rendimiento. Se puede observar un patrón en la evaluación sobre el conjunto de datos de entrenamiento que sugiere que K-Medias deteriora su desempeño utilizando conjunto de datos reducidos en contraste con el uso del conjunto de datos completo.
+
+Por otra parte, se observa que SVM en algunas ocasiones tiene ma
+
+Dicho esto, se sugiere que para el primer de clasificación se utilicen mayor cantidad de características. Para PCA existe otro criterio que consiste en utilizar el número de componentes principales que hacen que se alcance el 95% de la varianza acumulada. Por otra parte, para GFR, se sugiere que se haga uso de mayor cantidad de variables predictoras ¿Cuántas? Bueno, Li Yinhui y colaboradores expone en su trabajo *An Efficient Intrusion Detection system Based on Support Vector Machines and Gradually Feature Removal Method* que con 19 características puede ser un buen número de características a seleccionar. 
+Para el segundo nivel de clasificación se observa que lo mejor sería dejar el conjunto de características original y solo usar la reducción de características para el primer nivel. De esta manera se ppodría sacar lo mejor de ambos escenarios.
+
+##Conclusiones Generales
+
+La selección de parámetros no es una buena opción para este tipo de problemas ocnsiderando lo cambiante que es. La reducción de características debe hacerse con mayor número de características tanto para PCA (95% de varianza acumulada) como para GFR (al menos 19 características). Por otra parte, los reusltados indican que para el segundo nivel de clasificación es recomendable utilizar todas las características originales para k-Medias.
