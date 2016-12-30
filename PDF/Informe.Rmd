@@ -4381,25 +4381,36 @@ dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 ```
 
-Se deben transformar las variables predictoras a tipo numérico y escalar el conjunto de datos para que las mismas tengan media cero y desviación estándar uno.
+Posteriormente, se cargan las características seleccionadas por GFR.
+
+```{r}
+nn.gfr = readRDS("../source/feature_selection/NN/results_GFR.rds")
+nn.gfr = rownames(nn.gfr)[1:9]
+```
+
+Se debe crear el nuevo conjunto de datos. Para ello se extrae información importante, se transforman las variables predictoras a tipo numérico y se eliminan variables parciales.
 
 ```{r}
 #Extrayendo información
 Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
+dataset = dataset[, nn.gfr]
 
 #Transformando variables predictoras a tipo numérico
-dataset = as.data.frame(apply(dataset[, c(-41, -42)], 2, as.numeric))
+dataset = as.data.frame(apply(dataset, 2, as.numeric))
+dataset.five = cbind(dataset, Label = Labels[,1])
+dataset.two = cbind(dataset, Label = Labels[,2])
 dataset = cbind(dataset, Label = Labels[,1])
-
-#Escalando el conjunto de datos
-dataset = ScaleSet(dataset)
-
-#Creando los conjuntos de datos a utilizar
-dataset.five = cbind(dataset[, -ncol(dataset)], Label = Labels[,1])
-dataset.two = cbind(dataset[, -ncol(dataset)], Label = Labels[,2])
 
 #Eliminando variables parciales
 remove(list = c("Labels"))
+```
+
+Posteriormente se escalan los conjuntos de datos generados para que tengan media cero y desviación estándar uno.
+
+```{r}
+dataset = ScaleSet(dataset)
+dataset.two = ScaleSet(dataset.two)
+dataset.five = ScaleSet(dataset.five)
 ```
 
 Ahora que tenemos los conjuntos de datos listos, podemos anaizar los resulatdos del codo de Jambu. Iniciaremos por cargar los resultados obtenidos en la sección anterior y graficarlos.
@@ -4427,7 +4438,7 @@ measures.results$measure.five[1]
 
 Tanto para el uso de dos centroides y de 5 centroides el mejor desempeño lo presenta el algoritmo Hartigan. Ahora comenzaremos con el análisis para K-Medias usando cinco grupos y dos grupos respectivamente.
 
-#####K-Medias (cinco grupos)
+##### K-Medias (cinco grupos)
 Se empezará por ejecutar el algorimo 10 veces y ver cuales son los resulatdos obtenidos en cada iteración.
 
 ```{r}
@@ -4454,7 +4465,7 @@ results.five * 100
 mean(results.five) * 100
 ```
 
-Se puede observar que la media es de 71% de acierto, y que la mayor tasa de aciertos estuvo alrededor del 78.6%. Estos resultados son bastante buenos. Veamos como queda la matriz de confusión del mejor modelo obtenido.
+Se puede observar que la media es de 40% de acierto, y que la mayor tasa de aciertos estuvo alrededor del 77%. Estos resultados se ven deteriorados en comparación con el conjunto de datis completo
 
 ```{r}
 confusion.matrix.five = table(Real = dataset.five$Label,
@@ -4462,20 +4473,20 @@ confusion.matrix.five = table(Real = dataset.five$Label,
 confusion.matrix.five
 ```
 
-Esta queda muy desordenada, e incluso no presenta ningún acierto para las clases R2L y U2R. Adicionalmente se pueden observar muchos fallos en la clasificación entre los diferentes tipos de ataque. Veamos la tasa de acierto y de error.
+Esta queda muy desordenada, e incluso no presenta ningún acierto para la clase U2R. Adicionalmente se pueden observar muchos fallos en la clasificación entre los diferentes tipos de ataque. Veamos la tasa de acierto y de error.
 
 ```{r}
 best.accuracy.five*100
 ErrorRate(best.accuracy.five)*100
 ```
 
-La tasa de acierto alcanzada es de 78.61%, sin embargo, esto se debe a que el tráfico normal que corresponde a la mayoría de los ataques fue clasificado de buena manera. Es decir, es un resultado engañoso debido a que el conjunto no está bien balanceado. Veamos la eficacia por etiqueta.
+La tasa de acierto alcanzada es de 77.63%. Ahora veamos la tasa de acierto por etiqueta
 
 ```{r}
 AccuracyPerLabel(confusion.matrix.five, dataset.five)
 ```
 
-El tráfico normal es muy bien clasificado, y se presenta un desempeño bastante bueno para la clase DoS. Por otra parte, el resto de las clases tienen un desempeño nulo. A continuación se combinarán los resultados en una matriz de confusión binaria para poder calcular algunas otras medidas de rendimiento.
+El rendimiento para las clases DoS y normal es bastane bueno. Para las clases Probing y R2L es regular y para U2R es nulo. Ahora veamos la matriz de confusión binaria
 
 ```{r}
 attack.normal.confusion.matrix.five = AttackNormalConfusionMatrix(dataset.five,
@@ -4483,13 +4494,13 @@ attack.normal.confusion.matrix.five = AttackNormalConfusionMatrix(dataset.five,
 attack.normal.confusion.matrix.five
 ```
 
-Se ve la generación de muchos falsos negativos y no tantos falsos positivos. Veamos la eficacia por etiqueta.
+Se ve la generación de muchos falsos positivos y poca generación de falsos negativos. Ahora veamos la tasa de acierto por etiqueta.
 
 ```{r}
 AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
 ```
 
-Se ven muy ueno número, para la correcta clasificación del gráfico normal y también para los ataques. Terminemos de evaluar el desempeño calculando el resto de las medidas de rendimiento.
+Se detecta del 96% de los ataques. Esto respaldado por la alta genración de falsos positivos, deteriorando la clasificación del tráfico normal. Veamos el resto de las medidas de rendimiento.
 
 ```{r}
 Accuracy(attack.normal.confusion.matrix.five) * 100
@@ -4498,9 +4509,10 @@ Especificity(attack.normal.confusion.matrix.five) * 100
 Precision(attack.normal.confusion.matrix.five) * 100
 ```
 
-Se observa una tasa de acierto de 88% y el resto de las medidas sugieren que el modelo no es tan eficaz a la hora de detectar ataques como si lo es para la correcta clasificación del tráfico normal.
 
-#####K-Medias (dos grupos)
+Con una tasa de 90.15% el modelo presenta muy buen acierto y unas medidas que indican un muy desempeño para la correcta clasificación de las diferentes clases presentes.
+
+##### K-Medias (dos grupos)
 Ahora hagamos el análisis para dos grupos. De igual manera ejecutaremos el algoritmo 10 veces para evaluar los resultados obtenidos en cada iteración.
 
 ```{r}
@@ -4528,7 +4540,7 @@ results.two * 100
 mean(results.two) * 100
 ```
 
-Se observa una tasa promedio de 76.55% De igual manera se puede observar claramente como hay resulatdos que se repiten en varias ocasiones, es decir, que se alcanza el mismo mínimo local varias veces, situación que nos indica que con dos grupos se pueden alcanzar resultados sin mucha varianza. Veamos como queda la matriz de confusión para el mejor modelo obtenido. 
+Se observa una tasa promedio de 71.84% De igual manera se puede observar claramente como hay resultados que se repiten en varias ocasiones, es decir, que se alcanza el mismo mínimo local varias veces, situación que nos indica que con dos grupos se pueden alcanzar resultados sin mucha varianza. Veamos como queda la matriz de confusión para el mejor modelo obtenido. 
 
 ```{r}
 confusion.matrix.two = table(Real = dataset.two$Label,
@@ -4543,7 +4555,7 @@ best.accuracy.two*100
 ErrorRate(best.accuracy.two)*100
 ```
 
-La mejor tasa de aciertos es de 90.5%, mejora ampliamente a la obtenida con cinco conjuntos. Veamos la eficacia por etiqueta.
+La mejor tasa de aciertos es de 88.57%, mejora ampliamente a la obtenida con cinco conjuntos. Veamos la eficacia por etiqueta.
 
 ```{r}
 AccuracyPerLabel(confusion.matrix.two, dataset.two)
@@ -4560,7 +4572,325 @@ Precision(confusion.matrix.two) * 100
 Se observa un modelo con una alta tasa de aciertos sobre el tráfico normal, y con una lata confianza con respecto a los ataques detectados.
 
 #####Conclusión
-El codo de Jambu sigue siendo errático, sin embargo, se puede apreciar como de nuevo con dos centroides se logra la major tasa de aciertos. A su vez, Hartigan fue de nuevo el algoritmo seleccionado para el cálculo de las distancias.
+El codo de Jambu sigue siendo errático, sin embargo, se puede apreciar como de nuevo con dos centroides se logra la mayor tasa de aciertos. A su vez, Hartigan fue de nuevo el algoritmo seleccionado para el cálculo de las distancias.
+
+#### SVM
+En esta sección se hará uso de las 9 características seleccionadad por GFR para SVM. Empezaremos por preparar el ambiente de trabajo eliminando variables parciales y cargando el archivo de funciones correspondiente.
+
+```{r, eval=FALSE}
+rm(list = ls())
+source("../source/functions/functions.R")
+```
+
+Ahora cargaremos el conjunto de datos de entrenamiento y eliminaremos las etiquetas que no se utilizarán.
+
+```{r, eval=FALSE}
+dataset = read.csv("dataset/NSLKDD_Training_New.csv", sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+```
+
+A continuación se cargan las características seleccionadas por GFR para SVM y s ecrean los conjuntos de datos a utilizar.
+
+```{r, eval=FALSE}
+#Cargando características
+svm.gfr = readRDS("source/feature_selection/SVM/results_GFR.rds")
+svm.gfr = rownames(svm.gfr)[1:9]
+
+#Extrayendo información
+Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
+dataset = dataset[, svm.gfr]
+
+#Tranformando variables predictoras a tipo numérico
+dataset = as.data.frame(apply(dataset, 2, as.numeric))
+dataset.five = cbind(dataset, Label = Labels[,1])
+dataset.two = cbind(dataset, Label = Labels[,2])
+dataset = cbind(dataset, Label = Labels[,1])
+
+#Eliminando variables parciales
+remove(list = c("Labels"))
+```
+
+Por último, las variables predictoras son escaladas para que tengan media cero y desviación estándar uno.
+
+```{r,eval=FALSE}
+dataset = ScaleSet(dataset)
+dataset.two = ScaleSet(dataset.two)
+dataset.five = ScaleSet(dataset.five)
+```
+
+##### Codo de Jambu
+Con el codo de Jambu se calcula la distancia intra-grupos para seleccionar la configuraicón de centroides que tenga mejor desempeño.
+
+```{r, eval=FALSE}
+IIC.Hartigan = vector(mode = "numeric", length = 30)
+IIC.Lloyd = vector(mode = "numeric", length = 30)
+IIC.Forgy = vector(mode = "numeric", length = 30)
+IIC.MacQueen = vector(mode = "numeric", length = 30)
+
+for (k in 1:30)
+{
+  set.seed(k)
+  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Hartigan-Wong")
+  IIC.Hartigan[k] = groups$tot.withinss
+  set.seed(k)
+  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Lloyd")
+  IIC.Lloyd[k] = groups$tot.withinss
+  set.seed(k)
+  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "Forgy")
+  IIC.Forgy[k] = groups$tot.withinss
+  set.seed(k)
+  groups = kmeans(dataset[,-ncol(dataset)], k, iter.max = 100, algorithm = "MacQueen")
+  IIC.MacQueen[k] = groups$tot.withinss
+}
+```
+
+Los resultados serán almacenados en una lista y posteriormente en un objeto para su posterior evaluación.
+
+```{r, eval=FALSE}
+jambu.results = list(IIC.Hartigan = IIC.Hartigan, IIC.Lloyd = IIC.Lloyd,
+                     IIC.Forgy = IIC.Forgy, IIC.MacQueen = IIC.MacQueen)
+saveRDS(object = jambu.results, file = "../source/tuned_model/GFR/SVM/KMEANS/jambu_results_9_features.rds")
+```
+
+Adicionalmente, se selecciona el mejor algoritmo de distancias para dos grupos y cinco grupos.
+
+```{r, eval=FALSE}
+measure.two = lapply(MeasuareKMeans(dataset, 2), max)
+measure.five = lapply(MeasuareKMeans(dataset, 5), max)
+```
+
+Los resultados serán almacenados en una lista y posteriormente en un objeto para su análisis.
+
+```{r, eval= FALSE}
+measures.results = list(measure.two = measure.two, measure.five = measure.five)
+saveRDS(object = measures.results, file = "../source/tuned_model/GFR/SVM/KMEANS/measures_results_9_features.rds")
+```
+
+##### Análisis codo de Jambu
+
+Empezaremos con el análisis del codo de Jambu preparando el ambiente de trabajo eliminando variables parciales y cargando el archivo de funciones.
+
+```{r}
+rm(list = ls())
+
+#Cargando archivo de funciones
+source("source/functions/functions.R")
+```
+
+A continuación se cargará el conjunto de datos de entrenamiento y se eliminan las etiquetas inncesarias.
+
+```{r}
+dataset = read.csv("../dataset/NSLKDD_Training_New.csv",
+                   sep = ",", header = TRUE)
+
+#Eliminando etiquetas innecesarias
+dataset$Label_Normal_TypeAttack = NULL
+dataset$Label_Num_Classifiers = NULL
+```
+
+Ahora se cargaran las características seleccionadas por GFR para SVM y se crearán los respectivos conjuntos de datos.
+
+```{r}
+#Cargando características
+svm.gfr = readRDS("../source/feature_selection/SVM/results_GFR.rds")
+svm.gfr = rownames(svm.gfr)[1:9]
+
+#Extrayendo información
+Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
+dataset = dataset[, svm.gfr]
+
+#Creando conjuntos de datos
+dataset = as.data.frame(apply(dataset, 2, as.numeric))
+dataset.five = cbind(dataset, Label = Labels[,1])
+dataset.two = cbind(dataset, Label = Labels[,2])
+dataset = cbind(dataset, Label = Labels[,1])
+
+#Eliminando variables parciales
+remove(list = c("Labels"))
+```
+
+Las variables predictoras de los diferentes conjuntos de datos serán escalados para que tengan media cero y desviación estándar uno.
+
+```{r}
+dataset = ScaleSet(dataset)
+dataset.two = ScaleSet(dataset.two)
+dataset.five = ScaleSet(dataset.five)
+```
+
+En este punto se tiene todo listo para empezar con el análisis del codo de Jambu.
+
+```{r, fig.align="center"}
+jambu.results = readRDS("../source/tuned_model/GFR/SVM/KMEANS/jambu_results_9_features.rds")
+plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
+     xlab = "Número de Centroides", ylab = "Varianza")
+points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
+points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
+points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
+legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
+       col = c("blue","red", "green", "magenta"), pch = 19)
+```
+
+El codo de Jambu no aporta mucha información ya que sigue mostrando un comportamiento bastante errático. Sin embargo, con cuatro grupos pareciera que se alcanza la mejor medida, quizás por los pocos registros presentes de U2R.
+
+Ahora veamos la mejor medida de rendimiento para dos y conco grupos.
+
+```{r}
+measures.results = readRDS("../source/tuned_model/GFR/SVM/KMEANS/measures_results_9_features.rds")
+measures.results$measure.two
+measures.results$measure.two[1]
+measures.results$measure.five
+measures.results$measure.five[1]
+```
+
+De nuevo Hartigan fue el seleccionado para ambos casos.
+
+##### K-Medias (cinco grupos)
+Para la evaluación con cinco grupos se correrá el algoritmos 10 veces.
+
+```{r}
+results.five = vector(mode = "numeric", length = 10)
+best.accuracy.five = 0
+for (i in 1:length(results.five))
+{
+  set.seed(i)
+  model.kmeans.five = kmeans(dataset.five[,-ncol(dataset.five)],
+                             5, iter.max = 100)
+  
+  prediction.five = OrderKmeans(model.kmeans.five)
+  accuracy.five = mean(prediction.five == dataset.five$Label)
+  
+  results.five[i] = accuracy.five
+  
+  if(best.accuracy.five < accuracy.five)
+  {
+    best.prediction.five = prediction.five
+    best.accuracy.five = accuracy.five
+  }
+}
+```
+
+Veamos los resultados y la media de la tasa de aciertos.
+
+```{r}
+results.five * 100
+mean(results.five) * 100
+```
+
+Se observa un resultado bastante mediocre con una media de aciertos de apenas 29.84%. Veamos la matriz de confusión del mejor modelo obtenido.
+
+```{r}
+confusion.matrix.five = table(Real = dataset.five$Label,
+                              Prediction = best.prediction.five)
+confusion.matrix.five
+```
+
+Se observa una matriz de confusión bastante desordenada. Veamos la tasa de aciertos y la tasa de error.
+
+```{r}
+best.accuracy.five*100
+ErrorRate(best.accuracy.five)*100
+```
+
+La mejor tasa de aciertos fue de 74.29%. Este resultado solo fue alcanzado en una iteración. Ahora veamos la tasa de acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.five, dataset.five)
+```
+
+Se observan buenas tasas de aciertos para las clases DoS, normal y R2L. Por otra parte, las otras clases tienen un desempeño bastante pobre. Ahora crearemos la matriz de confusión binaria para calcular otras medidas de rendimiento más interesantes.
+
+```{r}
+attack.normal.confusion.matrix.five = AttackNormalConfusionMatrix(dataset.five,
+                                                                  best.prediction.five)
+attack.normal.confusion.matrix.five
+```
+
+Se observa una alta generación de falsos positivos y una pequeña generación de falsos negativos. Veamos la tasa de acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
+```
+
+97.86% de acierto para los ataques y 74.94% para la clase normal. De esta manera se justifica la alta generación de falsos positivos. Veamos ahora el resto de las medidas binarias.
+
+```{r}
+Accuracy(attack.normal.confusion.matrix.five) * 100
+Sensitivity(attack.normal.confusion.matrix.five) * 100
+Especificity(attack.normal.confusion.matrix.five) * 100
+Precision(attack.normal.confusion.matrix.five) * 100
+```
+
+Con dos grupos se observa un desempeño bastante mayor donde la mayoría de los ataques son generados con una alta tasa de falsos positivos que deterioran el desempeño a la hora de clasificar el tráfico normal.
+
+##### K-Medias (dos grupos)
+El algoritmo se correrá 10 veces y se analizarán los resultados obtenidos.
+
+```{r}
+results.two = vector(mode = "numeric", length = 10)
+best.accuracy.two = 0
+
+for (i in 1:length(results.two))
+{
+  set.seed(i)
+  model.kmeans.two = kmeans(dataset.two[,-ncol(dataset.two)],
+                            2, iter.max = 100)
+  
+  prediction.two = OrderKmeans(model.kmeans.two)
+  accuracy.two = mean(prediction.two == dataset.two$Label)
+  
+  results.two[i] = accuracy.two
+  
+  if(best.accuracy.two < accuracy.two)
+  {
+    best.prediction.two = prediction.two
+    best.accuracy.two = accuracy.two
+  }
+}
+```
+
+Veamos los resultados y la media de la tasa de aciertos.
+
+```{r}
+results.two * 100
+mean(results.two) * 100
+```
+
+Se observa una media bastante superior a la presentada con 5 clases. Adicionalmente, se observa que el resultado de 89.20% se repite en varias ocasiones. Es decir, el algoritmo converge a ese míinimo local multiples veces, lo que da una pista de que con dos grupos se pueden obtener resulatdos más constantes y mejores. Ahroa veamos la matriz de confusión.
+
+```{r}
+confusion.matrix.two = table(Real = dataset.two$Label,
+                             Prediction = best.prediction.two)
+confusion.matrix.two
+```
+
+Se observa un mejor desempeño con respecto a la correcta clasificación del tráfico normal. Sin emabrgo, se generan mayor cantidad de falsos negativos. Veamos la mejor tasa de aciertos y la tasa de error respectiva.
+
+```{r}
+best.accuracy.two*100
+ErrorRate(best.accuracy.two)*100
+```
+
+La mejor tasa de aciertos supera claramente a la de 5 grupos. Ahora veamos la tasa de acierto por etiqueta.
+
+```{r}
+AccuracyPerLabel(confusion.matrix.two, dataset.two)
+```
+
+Se observa un muy buen desempeño para la correcta clasificación de los ataques y del tráfico normal. Veamos el resto de las medidas de rendimiento.
+
+```{r}
+Sensitivity(confusion.matrix.two) * 100
+Especificity(confusion.matrix.two) * 100
+Precision(confusion.matrix.two) * 100
+```
+
+Estas sugieren un modelo con muy buena eficacia a la hora de detectar ataques y tráfico normal.
+
+##### Conclusión
+La reducción de características afectó de manera drástica al algoritmo de K-Medias para 5 grupos. De esta manera se puede observar como dos conjuntos es de nuevo el número óptimo de centroides para el conjunto de datos reducido.
 
 ###(V) GFR - NN -K-Medias
 En esta sección se hará uso del conjunto de datos reducido GFR para NN.

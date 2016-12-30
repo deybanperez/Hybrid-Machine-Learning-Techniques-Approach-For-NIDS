@@ -12,12 +12,12 @@ dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 
 #Loading features
-nn.gfr = readRDS("source/feature_selection/SVM/results_GFR.rds")
-nn.gfr = rownames(nn.gfr)[1:9]
+svm.gfr = readRDS("source/feature_selection/SVM/results_GFR.rds")
+svm.gfr = rownames(svm.gfr)[1:9]
 
 #Extracting information
 Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
-dataset = dataset[, nn.gfr]
+dataset = dataset[, svm.gfr]
 
 #Transforming predictors into numeric
 dataset = as.data.frame(apply(dataset, 2, as.numeric))
