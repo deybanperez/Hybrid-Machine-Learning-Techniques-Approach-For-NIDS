@@ -1745,8 +1745,8 @@ De esta manera podemos ver por lo menos en la primera fila que la componente nú
 
 ```{r, fig.align="center"}
 plot(summary.pca$cum_variance,
-     ylab = "Cumulative Proportion",
-     xlab = "Number of Principal Components",
+     ylab = "Proporción Acumulada",
+     xlab = "Número de Componentes Principales",
      type = "b", col = "blue")
 ```
 
@@ -1874,8 +1874,9 @@ par(mfrow = c(1,2))
 
 #Graficando Desviación Estándar vs Número de Componentes
 plot(sd.results, col = "blue", type = "b",
-     main = "Desviación Estándar vs # Componentes",
-     xlab = "Número de Componentes", ylab = "Desviación Estándar")
+     main = "D. Estándar vs # Componentes",
+     xlab = "Número de Componentes", ylab = "Desviación Estándar",
+     log = "y")
 
 #Graficando Media de Eficacia vs Número de Componentes
 plot(mean.results, col = "blue", type = "b",
@@ -1972,8 +1973,9 @@ Para seleccionar el número de componentes se usará un criterio similar al del 
 par(mfrow = c(1,2))
 #Graficando Desviación Estándar vs Número de Componentes
 plot(sd.results, col = "blue", type = "b",
-main = "Desviación Estándar vs # Componentes",
-xlab = "Número de Componentes", ylab = "Desviación Estándar")
+main = "D. Estándar vs # Componentes",
+xlab = "Número de Componentes", ylab = "Desviación Estándar",
+log = "y")
 #Graficando Media de Eficacia vs Número de Componentes
 plot(mean.results, col = "blue", type = "b",
 main = "Media vs # Componentes",
@@ -2119,8 +2121,9 @@ Y se grafican las medidas calculadas previamente.
 par(mfrow = c(1,2))
 plot(sdeviation.values[2:length(mean.values)],
      type = "b", col = "blue",
-     main = "Desviación Estándar vs # Componentes",
-     xlab = "Número de Componentes", ylab = "Desviación Estándar")
+     main = "D. Estándar vs # Componentes",
+     xlab = "Número de Componentes", ylab = "Desviación Estándar",
+     log = "y")
 plot(mean.values[2:length(mean.values)],
      type = "b", col = "blue",
      main = "Medias vs # Componentes",
@@ -2262,8 +2265,9 @@ Y se grafican las medidas calculadas previamente.
 par(mfrow = c(1,2))
 plot(sdeviation.values[2:length(mean.values)],
      type = "b", col = "blue",
-     main = "Desviación Estándar vs # Componentes",
-     xlab = "Número de Componentes", ylab = "Desviación Estándar")
+     main = "D. Estándar vs # Componentes",
+     xlab = "Número de Componentes", ylab = "Desviación Estándar",
+     log = "y")
 plot(mean.values[2:length(mean.values)],
      type = "b", col = "blue",
      main = "Media vs # Componentes",
@@ -2393,10 +2397,10 @@ tuned.model$performances
 tuned.model$best.parameters
 ```
 
-Se puede observar que los mejores parámetros fueron *cost* = 6 y *gamma* = 0.08. Estos resultados dieron una tasa de aciertos de 99.9962%.
+Se puede observar que los mejores parámetros fueron *cost* = 6 y *gamma* = 0.08. Estos resultados dieron una tasa de aciertos de 99.61975%.
 
 ```{r}
-100 - 0.003802480
+100 - (0.003802480 * 100)
 ```
 
 Adicionalmente con estos parámetros se obtuvieron medidas de dispersión de resultados durante el proceso de validación cruzada de 10 conjuntos bastante bajas, lo que es señal de que ese resultado está bastante bien aproximado. Por último, se puede observar como Thaseen tenía razón al decir que los parámetros por defecto no eran los idóneos.
@@ -2466,10 +2470,10 @@ tuned.model$performances
 tuned.model$best.parameters
 ```
 
-Se puede observar que los mejores resultados se obtuvieron con 21 neuronas con un rendimiento de 99.99546% de acierto.
+Se puede observar que los mejores resultados se obtuvieron con 21 neuronas con un rendimiento de 99.54562% de acierto.
 
 ```{r}
-100 - 0.004543848
+100 - (0.004543848 * 100)
 ```
 
 Adicionalmente, se puedo obserar que la dispersión de los resultados mediante el proceso de validación cruzada de 10 conjuntos es bastante baja. Este aspecto refleja que los resultados obtenidos no están sesgados.
@@ -2559,10 +2563,10 @@ tuned.model$performances
 tuned.model$best.parameters
 ```
 
-Se observa el resultado con el mejor rendimiento es haciendo uso de los parámetros *cost* = 6 y *gamma* = 0.4. Adicionalmente, se puede apreciar como la dispersión de los resultados es bastante baja. El mejor desempeño obtenido fue de 99.99452% de acierto.
+Se observa el resultado con el mejor rendimiento es haciendo uso de los parámetros *cost* = 6 y *gamma* = 0.4. Adicionalmente, se puede apreciar como la dispersión de los resultados es bastante baja. El mejor desempeño obtenido fue de 99.45239% de acierto.
 
 ```{r}
-100 - 0.005476092
+100 - (0.005476092 * 100)
 ```
 
 De esta manera, se espera que con dichos parámetros se pueda alcanzar un mejor desempeño que el alcanzado por el modelo de SVM con parámetros por defecto.
@@ -2640,10 +2644,10 @@ tuned.model$performances
 tuned.model$best.parameters
 ```
 
-Se observa que con 30 neuronas el desempeño es de 99.99%.
+Se observa que con 30 neuronas el desempeño es de 99.00276%.
 
 ```{r}
-100 - 0.009972417
+100 - (0.009972417 * 100)
 ```
 
 Adicionalmente, este resultado está respaldado con una dispersión bastante baja en los resultados. De tal manera, se espera que con una mayor cantidad de neuronas que las presentadas en el conjunto de datos por defecto se pueda alcanzar un mejor desempeño a la hora de clasificar las anomalías.
@@ -2725,10 +2729,10 @@ tuned.model$performances
 tuned.model$best.parameters
 ```
 
-Se observa que los mejores parámetros fueron *cost* = 6 y *gamma* = 0.4. Estos resultados respaldados por la poca dispersión obtenida con dicho resultado. El mejor resultado fue de 99.99354%.
+Se observa que los mejores parámetros fueron *cost* = 6 y *gamma* = 0.4. Estos resultados respaldados por la poca dispersión obtenida con dicho resultado. El mejor resultado fue de 99.35383%.
 
 ```{r}
-100 - 0.006461745
+100 - (0.006461745 * 100)
 ```
 
 ####NN
@@ -2799,10 +2803,10 @@ tuned.model$performances
 tuned.model$best.parameters
 ```
 
-Se puede observar que con 28 neuronas el modelo alcanza el mejor rendimiento. El mismo correspondiente a 99.99027% de acierto.
+Se puede observar que con 28 neuronas el modelo alcanza el mejor rendimiento. El mismo correspondiente a 99.02691% de acierto.
 
 ```{r}
-100 - 0.009730928
+100 - (0.009730928 * 100)
 ```
 
 Este resultado respaldado por la baja dispersión en los resultados en la validación cruzada de 10 conjuntos.
