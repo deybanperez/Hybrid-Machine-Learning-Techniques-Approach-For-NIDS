@@ -4677,7 +4677,7 @@ Empezaremos con el análisis del codo de Jambu preparando el ambiente de trabajo
 rm(list = ls())
 
 #Cargando archivo de funciones
-source("source/functions/functions.R")
+source("../source/functions/functions.R")
 ```
 
 A continuación se cargará el conjunto de datos de entrenamiento y se eliminan las etiquetas inncesarias.
