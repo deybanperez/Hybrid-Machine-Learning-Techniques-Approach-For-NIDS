@@ -375,7 +375,7 @@ Para poder observar los resultados se creará una gráfica que permita ver la va
 ```{r, fig.align="center"}
 jambu.results = readRDS("../source/default_parameters/original_set/KMEANS/jambu_results.rds")
 plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza")
+     xlab = "Número de Centroides", ylab = "Varianza", "y")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
@@ -3541,7 +3541,7 @@ Una vez realizado este procedimiento se puden cargar los resultados obtenidos de
 ```{r, fig.align="center"}
 jambu.results = readRDS("../source/tuned_model/PCA/KMEANS/jambu_results_7_features.rds")
 plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza")
+     xlab = "Número de Centroides", ylab = "Varianza", log = "y")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
@@ -4418,7 +4418,7 @@ Ahora que tenemos los conjuntos de datos listos, podemos anaizar los resulatdos 
 ```{r, fig.align="center"}
 jambu.results = readRDS("../source/tuned_model/GFR/NN/KMEANS/jambu_results_9_features.rds")
 plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza")
+     xlab = "Número de Centroides", ylab = "Varianza", log = "y")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
@@ -4725,7 +4725,7 @@ En este punto se tiene todo listo para empezar con el análisis del codo de Jamb
 ```{r, fig.align="center"}
 jambu.results = readRDS("../source/tuned_model/GFR/SVM/KMEANS/jambu_results_9_features.rds")
 plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza")
+     xlab = "Número de Centroides", ylab = "Varianza", log = "y")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
