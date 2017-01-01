@@ -375,7 +375,7 @@ Para poder observar los resultados se creará una gráfica que permita ver la va
 ```{r, fig.align="center"}
 jambu.results = readRDS("../source/default_parameters/original_set/KMEANS/jambu_results.rds")
 plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza", "y")
+     xlab = "Número de Centroides", ylab = "Varianza", log = "y")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
