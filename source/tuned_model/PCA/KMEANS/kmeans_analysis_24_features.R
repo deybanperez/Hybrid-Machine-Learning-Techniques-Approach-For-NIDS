@@ -31,7 +31,7 @@ remove(list = c("pca", "Labels"))
 #Analyzing Jambu's elbow results
 jambu.results = readRDS("source/tuned_model/PCA/KMEANS/jambu_results_24_features.rds")
 plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza")
+     xlab = "Número de Centroides", ylab = "Varianza", log = "y")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
@@ -39,7 +39,7 @@ legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
        col = c("blue","red", "green", "magenta"), pch = 19)
 
 #Selecting the best distance's algorithm
-measures.results = readRDS("source/tuned_model/SVM/KMEANS/measures_results_24_features.rds")
+measures.results = readRDS("source/tuned_model/PCA/KMEANS/measures_results_24_features.rds")
 measures.results$measure.two
 measures.results$measure.two[1]
 measures.results$measure.five
@@ -88,6 +88,7 @@ attack.normal.confusion.matrix.five
 AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
 
 #Binary measures
+Accuracy(attack.normal.confusion.matrix.five) * 100
 Sensitivity(attack.normal.confusion.matrix.five) * 100
 Especificity(attack.normal.confusion.matrix.five) * 100
 Precision(attack.normal.confusion.matrix.five) * 100

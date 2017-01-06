@@ -2,7 +2,7 @@
 rm(list = ls())
 
 #Loading packages
-library("e1071")
+library("nnet")
 
 #Loading functions
 source("source/functions/functions.R")
@@ -10,6 +10,8 @@ source("source/functions/functions.R")
 #Loading Testing set
 testing.set = read.csv("dataset/NSLKDD_Testing_New.csv",
                        sep = ",", header = TRUE)
+
+type.attack = testing.set$Label_Normal_TypeAttack
 
 #Removing unncessary features from testing set
 testing.set$Label_Normal_TypeAttack = NULL
@@ -19,13 +21,19 @@ testing.set$Label_Normal_or_Attack = NULL
 #Scaling the set
 testing.set = ScaleSet(testing.set)
 
-#Aplying PCA
-pca = prcomp(testing.set[, -41], scale. = TRUE)
-testing.set = cbind(as.data.frame(pca$x[,1:24]),
-                    Label = testing.set$Label)
+#Selecting GFR features
+nn.gfr = readRDS("source/feature_selection/NN/results_GFR.rds")
+nn.gfr = rownames(nn.gfr)[1:19]
+
+#Extracting info
+Label = testing.set$Label
+
+#Creating new DF
+testing.set = testing.set[, nn.gfr]
+testing.set = cbind(testing.set, Label = Label)
 
 #loading results from training
-results = readRDS("source/default_parameters/PCA/SVM/testing_set/list_results_24_features.rds")
+results = readRDS("source/default_parameters/GFR/NN/testing_set/list_results_19_features.rds")
 
 #Extracting results
 training.time = results[[1]]
@@ -40,12 +48,40 @@ predictions = predict(model, testing.set[, 1:(ncol(testing.set)-1)], type = "cla
 #Capturing the total time
 total.time.predictions = Sys.time() - start.time.predictions
 total.time.predictions
+################################################################################
+################################################################################
+########################## New region ##########################################
+################################################################################
 
+#Calculating the proportinon of new attacks and knew attacks detected
+#Finding true positives
+true.positive.vector = predictions == testing.set$Label
+#Loading names of new attacks
+diff.attacks = readRDS(file = "source/Temporal/diff_attacks.rds")
+#Locating positions of new attacks inside testing set 
+new.attacks.vector = which(type.attack %in% diff.attacks)
+#Calculating true positive proportion predictions on new attacks
+true.positive.vector.new = true.positive.vector[new.attacks.vector]
+length(true.positive.vector.new)
+new.attacks.detected = sum(true.positive.vector.new)
+new.attacks.detected
+new.attacks.detected / length(new.attacks.vector) * 100
+
+#Calculating true positive proportion on knew attacks
+knew.attacks.detected = sum(true.positive.vector[testing.set$Label != "normal"]) - new.attacks.detected
+knew.attacks.detected
+total.attacks = sum(testing.set$Label != "normal")
+total.knew.attacks = total.attacks - length(new.attacks.vector)
+total.knew.attacks
+knew.attacks.detected / total.knew.attacks * 100
+  
+################################################################################
+################################################################################
+########################## End new region ######################################
+################################################################################  
 #Confusion Matrix
 confusion.matrix = table(Real = testing.set[,ncol(testing.set)],
                          Prediction = predictions)
-
-confusion.matrix
 
 #Accuracy
 accuracy = mean(testing.set[,ncol(testing.set)] == predictions)
@@ -66,15 +102,15 @@ Especificity(attack.normal.confusion.matrix) * 100
 Precision(attack.normal.confusion.matrix) * 100
 
 #Calculating probabilities
-probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)], probability = TRUE)
+probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)])
 
 #Generating ROC Curve
-roc.data = DataROC(testing.set, attr(probabilities, "probabilities"), predictions)
+roc.data = DataROC(testing.set, probabilities, predictions)
 generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction)
 
 #Adding the second level with k-means
+type.attack.kmeans = type.attack[predictions == "normal"]
 kmeans.set = testing.set[predictions == "normal", ]
-dim(kmeans.set)
 kmeans.set[,ncol(kmeans.set)] = as.character(kmeans.set[,ncol(kmeans.set)])
 kmeans.set[kmeans.set[,ncol(kmeans.set)] != "normal",ncol(kmeans.set)] = "Attack"
 SumLabels(kmeans.set, ncol(kmeans.set))
@@ -93,6 +129,7 @@ kmeans.model = kmeans(kmeans.set[,1:(ncol(kmeans.set)-1)], centers = matrix.cent
                       iter.max = 100)
 
 total.time.kmeans.predictions = Sys.time() - start.time.kmeans.predictions
+
 #Ordering prediction
 predictions = OrderKmeans(kmeans.model)
 
@@ -120,8 +157,34 @@ Sensitivity(confusion.matrix.kmeans.model) * 100
 Especificity(confusion.matrix.kmeans.model) * 100
 Precision(confusion.matrix.kmeans.model) * 100
 
+#######################################################################
+#######################################################################
+######################### New region ##################################
+#######################################################################
+#######################################################################
+true.positive.kmeans = predictions == kmeans.set$Label
+length(true.positive.kmeans)
+
+new.attacks.vector.kmeans = which(type.attack.kmeans %in% diff.attacks)
+length(new.attacks.vector.kmeans) 
+#Calculating true positive proportion predictions on new attacks
+true.positive.new.kmeans = true.positive.kmeans[new.attacks.vector.kmeans]
+new.attacks.detected.kmeans = sum(true.positive.new.kmeans)
+new.attacks.detected.kmeans
+new.attacks.detected.kmeans / length(new.attacks.vector.kmeans) * 100
+
+#Calculating true positive proportion on knew attacks
+knew.attacks.detected.kmeans = sum(true.positive.kmeans[kmeans.set$Label != "normal"]) - new.attacks.detected.kmeans
+knew.attacks.detected.kmeans
+total.attacks.kmeans = sum(kmeans.set$Label != "normal")
+total.knew.attacks.kmeans = total.attacks.kmeans - length(new.attacks.vector.kmeans)
+total.knew.attacks.kmeans
+knew.attacks.detected.kmeans / total.knew.attacks.kmeans * 100
+
+
 #Total statistics
 confusion.matrix.two.labels = TwoLevelsCM(attack.normal.confusion.matrix, confusion.matrix.kmeans.model)
+confusion.matrix.two.labels
 accuracy.total = Accuracy(confusion.matrix.two.labels)
 accuracy.total * 100
 ErrorRate(accuracy.total) * 100

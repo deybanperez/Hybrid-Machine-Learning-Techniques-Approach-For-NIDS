@@ -5,33 +5,38 @@ rm(list = ls())
 source("source/functions/functions.R")
 
 #Loading dataset
-dataset = read.csv("dataset/NSLKDD_Training_New.csv",
-                   sep = ",", header = TRUE)
+dataset = read.csv("dataset/NSLKDD_Training_New.csv", sep = ",", header = TRUE)
 
 #Removing unnecesary labels
 dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 
-#Extracting inforomation
+#Loading features
+svm.gfr = readRDS("source/feature_selection/SVM/results_GFR.rds")
+svm.gfr = rownames(svm.gfr)[1:19]
+
+#Extracting information
 Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
+dataset = dataset[, svm.gfr]
 
 #Transforming predictors into numeric
-dataset = as.data.frame(apply(dataset[, c(-41, -42)], 2, as.numeric))
+dataset = as.data.frame(apply(dataset, 2, as.numeric))
+dataset.five = cbind(dataset, Label = Labels[,1])
+dataset.two = cbind(dataset, Label = Labels[,2])
 dataset = cbind(dataset, Label = Labels[,1])
 
-#Scaling set
-dataset = ScaleSet(dataset)
-
-dataset.five = cbind(dataset[, -ncol(dataset)], Label = Labels[,1])
-dataset.two = cbind(dataset[, -ncol(dataset)], Label = Labels[,2])
-
-#removing parcial variables
+#Removing parcial variables
 remove(list = c("Labels"))
+
+#Scaling sets
+dataset = ScaleSet(dataset)
+dataset.two = ScaleSet(dataset.two)
+dataset.five = ScaleSet(dataset.five)
 
 #Analyzing Jambu's elbow results
 jambu.results = readRDS("source/tuned_model/GFR/SVM/KMEANS/jambu_results_19_features.rds")
 plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza")
+     xlab = "Número de Centroides", ylab = "Varianza", log = "y")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
@@ -88,6 +93,7 @@ attack.normal.confusion.matrix.five
 AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
 
 #Binary measures
+Accuracy(attack.normal.confusion.matrix.five) * 100
 Sensitivity(attack.normal.confusion.matrix.five) * 100
 Especificity(attack.normal.confusion.matrix.five) * 100
 Precision(attack.normal.confusion.matrix.five) * 100
