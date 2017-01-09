@@ -388,11 +388,12 @@ FindCentersKmeans = function(set, clusters, iterations,iter.max)
 CVSet = function(set, k, seed)
 {
   cv.data = set
+  total.rows = nrow(cv.data)
   
   for (i in 1:k)
   {
     set.seed(22)
-    index.cv = sample(nrow(cv.data), nrow(cv.data) %/% k, replace = FALSE)
+    index.cv = sample(nrow(cv.data), total.rows %/% k, replace = FALSE)
     
     if(i == 1)
       cv.return = list(cv.data[index.cv,])
