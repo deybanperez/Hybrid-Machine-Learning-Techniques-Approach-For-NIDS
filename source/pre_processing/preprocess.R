@@ -76,7 +76,7 @@ nrow(training.Probing)
 nrow(training.R2L)
 nrow(training.U2R)
 barplot(table(dataset.training$V44), main = "Frecuencia De Las Clases En El Conjunto
-        De Entrenamiento")
+        De Entrenamiento", ylim = c(0, 70000))
 
 #Assigning testing to a variable
 testing.DOS = testing.split$DoS
@@ -92,7 +92,7 @@ nrow(testing.Probing)
 nrow(testing.R2L)
 nrow(testing.U2R)
 barplot(table(dataset.testing$V44), main = "Frecuencia De Las Clases En El Conjunto
-        De Prueba")
+        De Prueba", ylim = c(0, 10000))
 
 #Naming columns
 dataset.training = ColumnNames(dataset.training)
