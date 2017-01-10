@@ -74,4 +74,4 @@ for (i in 1:10)
 list.results$results = results
 
 #Saving list of objects
-saveRDS(list.results, "source/normal_model/SVM/Tests/list_results.rds")
+saveRDS(list.results, "source/default_parameters/original_set/SVM/Tests/list_results.rds")
