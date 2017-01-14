@@ -25,7 +25,7 @@ dataset.training[,ncol(dataset.training)] = as.factor(dataset.training[,ncol(dat
 dataset.training = ScaleSet(dataset.training)
 
 #Aplying PCA
-pca = prcomp(dataset.training[, -41], scale. = TRUE)
+pca = prcomp(dataset.training[, -41], scale. = FALSE)
 dataset.training = cbind(as.data.frame(pca$x[,1:7]),
                          Label = dataset.training$Label)
 

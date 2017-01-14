@@ -27,7 +27,7 @@ dataset[,ncol(dataset)] = as.factor(dataset[,ncol(dataset)])
 dataset = ScaleSet(dataset)
 
 #Aplying PCA
-pca = prcomp(dataset[, -41], scale. = TRUE)
+pca = prcomp(dataset[, -41], scale. = FALSE)
 dataset = cbind(as.data.frame(pca$x[,1:24]), Label = dataset$Label)
 
 #Starting 10-fold cross validation

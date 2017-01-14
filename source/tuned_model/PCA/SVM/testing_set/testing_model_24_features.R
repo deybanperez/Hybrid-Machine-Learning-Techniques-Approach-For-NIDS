@@ -20,7 +20,7 @@ testing.set$Label_Normal_or_Attack = NULL
 testing.set = ScaleSet(testing.set)
 
 #Aplying PCA
-pca = prcomp(testing.set[, -41], scale. = TRUE)
+pca = prcomp(testing.set[, -41], scale. = FALSE)
 testing.set = cbind(as.data.frame(pca$x[,1:24]),
                     Label = testing.set$Label)
 

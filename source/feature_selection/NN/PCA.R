@@ -30,7 +30,7 @@ dataset = ScaleSet(dataset)
 ################################################################################
 #Beggining PCA
 ################################################################################
-pca = prcomp(dataset[,-41], scale. = TRUE)
+pca = prcomp(dataset[,-41], scale. = FALSE)
 summary(pca)
 std.deviation = pca$sdev
 PC.variance = std.deviation^2
