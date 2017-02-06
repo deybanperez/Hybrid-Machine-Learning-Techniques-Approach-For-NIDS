@@ -6,7 +6,7 @@ source("source/functions/functions.R")
 
 #Loading packages
 require("e1071")
-require("factoextra")
+#require("factoextra")
 
 #Loading datasets
 dataset.training = read.csv("dataset/NSLKDD_Training_New.csv",
@@ -46,7 +46,7 @@ plot(summary.pca$cum_variance,
      xlab = "Number of Principal Components",
      type = "b", col = "blue")
 
-fviz_pca_var(pca, col.var= "contrib")
+#fviz_pca_var(pca, col.var= "contrib")
 
 dataset.pca = as.data.frame(pca$x)
 dataset.pca = data.frame(dataset.pca,
