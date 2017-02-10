@@ -342,7 +342,7 @@ generate_ROC = function(scores, real, pred)
   returnTP[length(returnTP)+1] = TP/P
   returnFP[length(returnFP)+1] = FP/N
   
-  plot(returnFP, returnTP, type = "l", main = "Curva ROC",
+  plot(returnFP, returnTP, type = "l",
        ylab = "Porcentaje Aciertos", xlab = "Porcentaje Errores",
        xlim = c(0,1), ylim = c(0,1))
   abline(0,1, col = "blue")
