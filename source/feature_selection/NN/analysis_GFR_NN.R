@@ -10,12 +10,12 @@ sdeviation.values = apply(nn.gfr, 1, sd)
 par(mfrow = c(1,2))
 plot(sdeviation.values[2:length(mean.values)],
      type = "b", col = "blue",
-     main = "Standard Deviation vs Number of Components",
-     xlab = "Number of Components", ylab = "Standard Deviation")
+     main = "Dev. Estpandar vs # Componentes",
+     xlab = "Número de Componentes", ylab = "Desviación Estándar")
 plot(mean.values[2:length(mean.values)],
      type = "b", col = "blue",
      main = "Standard Deviation vs Number of Components",
-     xlab = "Number of Components", ylab = "Standard Deviation")
+     xlab = "Número de Componentes", ylab = "Desviación Estándar")
 
 rownames(nn.gfr)[1:9]
 

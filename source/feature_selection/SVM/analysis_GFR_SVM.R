@@ -48,5 +48,5 @@ par(mfrow = c(1,1))
 
 plot(dataset[, rownames(svm.gfr)[1]], dataset[, rownames(svm.gfr)[2]],
      col = dataset$Label, pch = 19,
-     xlab = "Flag", ylab = "Count",
+     xlab = "Flag", ylab = "Service",
      main = "Características Principales GFR - SVM")

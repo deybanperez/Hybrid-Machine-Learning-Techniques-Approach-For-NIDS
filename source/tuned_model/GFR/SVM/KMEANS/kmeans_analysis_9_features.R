@@ -58,7 +58,7 @@ for (i in 1:length(results.five))
 {
   set.seed(i)
   model.kmeans.five = kmeans(dataset.five[,-ncol(dataset.five)],
-                             5, iter.max = 100)
+                             5, iter.max = 100, algorithm = "Lloyd")
   
   prediction.five = OrderKmeans(model.kmeans.five)
   accuracy.five = mean(prediction.five == dataset.five$Label)

@@ -42,8 +42,8 @@ summary.pca = data.frame(std_deviation = std.deviation,
                          cum_variance = cum.variance)
 summary.pca
 plot(summary.pca$cum_variance,
-     ylab = "Cumulative Proportion",
-     xlab = "Number of Principal Components",
+     ylab = "Proporción Acumulada",
+     xlab = "Número de Componentes Principales",
      type = "b", col = "blue")
 
 #Plotting the two first main components
