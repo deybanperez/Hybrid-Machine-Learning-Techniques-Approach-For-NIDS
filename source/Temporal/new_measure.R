@@ -33,7 +33,7 @@ testing.set = testing.set[, nn.gfr]
 testing.set = cbind(testing.set, Label = Label)
 
 #loading results from training
-results = readRDS("source/default_parameters/GFR/NN/testing_set/list_results_19_features.rds")
+results = readRDS("source/final_model/testing_set/list_results_19_features_30_neurons.rds")
 
 #Extracting results
 training.time = results[[1]]
