@@ -47,7 +47,7 @@ probabilities = attr(predict(list.results$best_model,
 roc.data = DataROC(list.results$best_testing_set, probabilities,
                    list.results$best_predictions)
 generate_ROC(scores = roc.data$Prob, real = roc.data$Label,
-             pred = roc.data$Prediction)
+             pred = roc.data$Prediction, tittle = "(6) GFR - SVM (Radial) - K-Medias")
 
 #Adding the second level with K-Means
 kmeans.set = list.results$best_testing_set[list.results$best_predictions == "normal",]

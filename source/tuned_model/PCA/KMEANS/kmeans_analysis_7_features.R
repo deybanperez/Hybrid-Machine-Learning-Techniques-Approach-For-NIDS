@@ -28,8 +28,8 @@ remove(list = c("pca", "Labels"))
 
 #Analyzing Jambu's elbow results
 jambu.results = readRDS("source/tuned_model/PCA/KMEANS/jambu_results_7_features.rds")
-plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza")
+plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "PCA (7 Componentes)",
+     xlab = "Número de Centroides", ylab = "Inercia Intra-Grupos")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)

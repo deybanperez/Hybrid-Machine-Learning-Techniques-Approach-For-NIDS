@@ -307,7 +307,7 @@ ExtractProbabilities = function(matrix)
 }
 
 #Generate ROC
-generate_ROC = function(scores, real, pred)
+generate_ROC = function(scores, real, pred, tittle = NULL)
 {
   scores = as.numeric(scores)
   newOrder = order(scores, real, decreasing = TRUE)
@@ -342,9 +342,16 @@ generate_ROC = function(scores, real, pred)
   returnTP[length(returnTP)+1] = TP/P
   returnFP[length(returnFP)+1] = FP/N
   
-  plot(returnFP, returnTP, type = "l",
-       ylab = "Tasa de Aciertos", xlab = "Tasa de Errores",
-       xlim = c(0,1), ylim = c(0,1))
+  if(is.null(tittle))
+    plot(returnFP, returnTP, type = "l",
+         ylab = "Tasa de Aciertos", xlab = "Tasa de Errores",
+         xlim = c(0,1), ylim = c(0,1))
+  else
+    plot(returnFP, returnTP, type = "l",
+         ylab = "Tasa de Aciertos", xlab = "Tasa de Errores",
+         xlim = c(0,1), ylim = c(0,1),
+         main = tittle)
+  
   abline(0,1, col = "blue")
 }
 

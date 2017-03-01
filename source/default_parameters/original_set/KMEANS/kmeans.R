@@ -31,7 +31,7 @@ remove(list = c("Labels"))
 #Analyzing Jambu's elbow results
 jambu.results = readRDS("source/default_parameters/original_set/KMEANS/jambu_results.rds")
 plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19,
-     xlab = "Número de Grupos", ylab = "Inercia Inter-Grupos")
+     xlab = "Número de Grupos", ylab = "Inercia Intra-Grupos")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
