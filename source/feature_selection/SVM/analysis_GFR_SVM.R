@@ -11,12 +11,10 @@ sdeviation.values = apply(svm.gfr, 1, sd)
 par(mfrow = c(1,2))
 plot(sdeviation.values[2:length(mean.values)],
      type = "b", col = "blue",
-     main = "Desviación Estándar vs # Componentes",
-     xlab = "Número de Componentes", ylab = "Desviación Estándar")
+     xlab = "Número de Características", ylab = "Desviación Estándar")
 plot(mean.values[2:length(mean.values)],
      type = "b", col = "blue",
-     main = "Media vs # Componentes",
-     xlab = "# Componentes", ylab = "Media")
+     xlab = "Número de Características", ylab = "Media de Acierto")
 
 rownames(svm.gfr)[1:9]
 
@@ -48,5 +46,4 @@ par(mfrow = c(1,1))
 
 plot(dataset[, rownames(svm.gfr)[1]], dataset[, rownames(svm.gfr)[2]],
      col = dataset$Label, pch = 19,
-     xlab = "Flag", ylab = "Service",
-     main = "Características Principales GFR - SVM")
+     xlab = "Flag", ylab = "Service")

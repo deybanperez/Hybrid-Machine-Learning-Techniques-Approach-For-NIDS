@@ -1,42 +1,37 @@
-#Setting work directory
 rm(list = ls())
-
-#Loading functions
 source("source/functions/functions.R")
-
-#Loading Dataset
-dataset = read.csv("dataset/NSLKDD_Training_New.csv", sep = ",", header = TRUE)
+require(e1071)
+require(nnet)
+###############################################################
+dataset = read.csv("dataset/NSLKDD_Training_New.csv")
 
 #Removing unnecesary labels
 dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 
-#Loading features
-nn.gfr = readRDS("source/feature_selection/NN/results_GFR.rds")
-nn.gfr = rownames(nn.gfr)[1:19]
-
-#Extracting information
+#Extracting inforomation
 Labels = dataset[, (ncol(dataset)-1):ncol(dataset)]
-dataset = dataset[, nn.gfr]
 
 #Transforming predictors into numeric
-dataset = as.data.frame(apply(dataset, 2, as.numeric))
-dataset.five = cbind(dataset, Label = Labels[,1])
-dataset.two = cbind(dataset, Label = Labels[,2])
+dataset = as.data.frame(apply(dataset[, c(-41, -42)], 2, as.numeric))
 dataset = cbind(dataset, Label = Labels[,1])
 
-#Removing parcial variables
-remove(list = c("Labels"))
-
-#Scaling sets
+#Scaling set
 dataset = ScaleSet(dataset)
-dataset.two = ScaleSet(dataset.two)
-dataset.five = ScaleSet(dataset.five)
+
+#Aplying PCA
+pca = prcomp(dataset[, -41], scale. = FALSE)
+dataset = cbind(as.data.frame(pca$x[,1:24]), Label = Labels[,1])
+dataset.five = cbind(as.data.frame(pca$x[,1:24]), Label = Labels[,1])
+dataset.two = cbind(as.data.frame(pca$x[,1:24]), Label = Labels[,2])
+
+#removing parcial variables
+remove(list = c("pca", "Labels"))
 
 #Analyzing Jambu's elbow results
-jambu.results = readRDS("source/tuned_model/GFR/NN/KMEANS/jambu_results_19_features.rds")
-plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza", log = "y")
+jambu.results = readRDS("source/default_parameters/PCA/KMEANS/jambu_results_24_features.rds")
+plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19,
+     xlab = "Numero Centroides", ylab = "Inercia Inter-Grupos")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
@@ -44,7 +39,7 @@ legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
        col = c("blue","red", "green", "magenta"), pch = 19)
 
 #Selecting the best distance's algorithm
-measures.results = readRDS("source/tuned_model/GFR/NN/KMEANS/measures_results_19_features.rds")
+measures.results = readRDS("source/default_parameters/PCA/KMEANS/measures_results_24_features.rds")
 measures.results$measure.two
 measures.results$measure.two[1]
 measures.results$measure.five
@@ -93,6 +88,7 @@ attack.normal.confusion.matrix.five
 AccuracyPerLabel(attack.normal.confusion.matrix.five, dataset.two)
 
 #Binary measures
+Accuracy(attack.normal.confusion.matrix.five) * 100
 Sensitivity(attack.normal.confusion.matrix.five) * 100
 Especificity(attack.normal.confusion.matrix.five) * 100
 Precision(attack.normal.confusion.matrix.five) * 100

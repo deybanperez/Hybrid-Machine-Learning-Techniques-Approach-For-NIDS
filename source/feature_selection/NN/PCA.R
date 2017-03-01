@@ -42,24 +42,23 @@ summary.pca = data.frame(std_deviation = std.deviation,
                          cum_variance = cum.variance)
 summary.pca
 plot(summary.pca$cum_variance,
-     ylab = "Proporción Acumulada",
-     xlab = "Número de Componentes Principales",
+     ylab = "Proporción de Varianza Acumulada",
+     xlab = "Número de Componentes",
      type = "b", col = "blue")
 
 #Plotting the two first main components
-colors = as.character(dataset.pca[,ncol(dataset.pca)])
+colors = as.character(dataset[,ncol(dataset)])
 colors[colors == "normal"] = "black"
 colors[colors == "DoS"] = "red"
 colors[colors == "Probing"] = "green"
 colors[colors == "R2L"] = "blue"
-colors[colors == "U2R"] = "cyan"
+colors[colors == "U2R"] = "magenta"
 
-plot(x = dataset.pca[,1],  y = dataset.pca[,2], col = colors,
-     main = "Gráfico de las Dos Componentes Principales",
+plot(x = pca$x[,1],  y = pca$x[,2], col = colors,
      xlab = "Componente 1", ylab = "Componente 2", pch = 19)
 
 legend("bottomleft", legend = c("Normal", "DoS", "Probing", "R2L", "U2R"),
-       col = c("black","red", "green", "blue", "cyan"), pch = 19)
+       col = c("black","red", "green", "blue", "magenta"), pch = 19)
 
 dataset.pca = as.data.frame(pca$x)
 dataset.pca = data.frame(dataset.pca,

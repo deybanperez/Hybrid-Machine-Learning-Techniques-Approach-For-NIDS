@@ -17,10 +17,9 @@ par(mfrow = c(1,2))
 
 #Plotting standard deviation vs number of components
 plot(sd.results, col = "blue", type = "b",
-     main = "Desviación Estándar vs Número de Componentes",
      xlab = "Número de Componentes", ylab = "Desviación Estándar")
 
 #Plotting mean accuracy vs number of components
 plot(mean.results, col = "blue", type = "b",
-     main = "MEdia Acierto vs # Componentes",
-     xlab = "Número de Componentes", ylab = "Media Acierto")
+     xlab = "Número de Componentes", ylab = "Media de Acierto",
+     ylim = c(0.90, 1))

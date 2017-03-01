@@ -29,9 +29,9 @@ dataset.two = cbind(dataset[, -ncol(dataset)], Label = Labels[,2])
 remove(list = c("Labels"))
 
 #Analyzing Jambu's elbow results
-jambu.results = readRDS("source/normal_model/KMEANS/jambu_results.rds")
-plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza")
+jambu.results = readRDS("source/default_parameters/original_set/KMEANS/jambu_results.rds")
+plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19,
+     xlab = "Número de Grupos", ylab = "Inercia Inter-Grupos")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
@@ -39,7 +39,7 @@ legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
        col = c("blue","red", "green", "magenta"), pch = 19)
 
 #Selecting the best distance's algorithm
-measures.results = readRDS("source/normal_model/KMEANS/measures_results.rds")
+measures.results = readRDS("source/default_parameters/original_set/KMEANS/measures_results.rds")
 measures.results$measure.two
 measures.results$measure.two[1]
 measures.results$measure.five

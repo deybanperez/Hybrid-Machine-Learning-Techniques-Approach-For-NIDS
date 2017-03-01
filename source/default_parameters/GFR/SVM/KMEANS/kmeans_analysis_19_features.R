@@ -34,9 +34,9 @@ dataset.two = ScaleSet(dataset.two)
 dataset.five = ScaleSet(dataset.five)
 
 #Analyzing Jambu's elbow results
-jambu.results = readRDS("source/tuned_model/GFR/SVM/KMEANS/jambu_results_19_features.rds")
-plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19, main = "Codo de Jambu",
-     xlab = "Número de Centroides", ylab = "Varianza", log = "y")
+jambu.results = readRDS("source/default_parameters/GFR/SVM/KMEANS/jambu_results_19_features.rds")
+plot(jambu.results$IIC.Hartigan, col = "blue", type = "b", pch = 19,
+     xlab = "Numero Grupos", ylab = "Inercia Inter-Grupos", log = "y")
 points(jambu.results$IIC.Lloyd, col = "red", type = "b", pch = 19)
 points(jambu.results$IIC.Forgy, col = "green", type = "b", pch = 19)
 points(jambu.results$IIC.MacQueen, col = "magenta", type = "b", pch= 19)
@@ -44,7 +44,7 @@ legend("topright", legend = c("Hartigan", "Lloyd", "Forgy", "MacQueen"),
        col = c("blue","red", "green", "magenta"), pch = 19)
 
 #Selecting the best distance's algorithm
-measures.results = readRDS("source/tuned_model/GFR/SVM/KMEANS/measures_results_19_features.rds")
+measures.results = readRDS("source/default_parameters/GFR/SVM/KMEANS/measures_results_19_features.rds")
 measures.results$measure.two
 measures.results$measure.two[1]
 measures.results$measure.five
@@ -58,7 +58,7 @@ for (i in 1:length(results.five))
 {
   set.seed(i)
   model.kmeans.five = kmeans(dataset.five[,-ncol(dataset.five)],
-                             5, iter.max = 100)
+                             5, iter.max = 100, algorithm = "Lloyd")
   
   prediction.five = OrderKmeans(model.kmeans.five)
   accuracy.five = mean(prediction.five == dataset.five$Label)

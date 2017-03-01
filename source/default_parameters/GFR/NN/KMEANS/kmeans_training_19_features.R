@@ -12,7 +12,7 @@ dataset$Label_Normal_TypeAttack = NULL
 dataset$Label_Num_Classifiers = NULL
 
 #Loading features
-nn.gfr = readRDS("source/feature_selection/SVM/results_GFR.rds")
+nn.gfr = readRDS("source/feature_selection/NN/results_GFR.rds")
 nn.gfr = rownames(nn.gfr)[1:19]
 
 #Extracting information
@@ -59,7 +59,7 @@ for (k in 1:30)
 jambu.results = list(IIC.Hartigan = IIC.Hartigan, IIC.Lloyd = IIC.Lloyd,
                      IIC.Forgy = IIC.Forgy, IIC.MacQueen = IIC.MacQueen)
 #Saving jambu's elbow results
-saveRDS(object = jambu.results, file = "source/tuned_model/GFR/SVM/KMEANS/jambu_results_19_features.rds")
+saveRDS(object = jambu.results, file = "source/default_parameters/GFR/NN/KMEANS/jambu_results_19_features.rds")
 
 #Selecting best distance measure
 measure.two = lapply(MeasuareKMeans(dataset, 2), max)
@@ -67,4 +67,4 @@ measure.five = lapply(MeasuareKMeans(dataset, 5), max)
 #Creating a list to store results
 measures.results = list(measure.two = measure.two, measure.five = measure.five)
 #Saving best measures results
-saveRDS(object = measures.results, file = "source/tuned_model/GFR/SVM/KMEANS/measures_results_19_features.rds")
+saveRDS(object = measures.results, file = "source/default_parameters/GFR/NN/KMEANS/measures_results_19_features.rds")

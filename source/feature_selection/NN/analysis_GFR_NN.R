@@ -10,12 +10,10 @@ sdeviation.values = apply(nn.gfr, 1, sd)
 par(mfrow = c(1,2))
 plot(sdeviation.values[2:length(mean.values)],
      type = "b", col = "blue",
-     main = "Dev. Estpandar vs # Componentes",
-     xlab = "Número de Componentes", ylab = "Desviación Estándar")
+     xlab = "Número de Características", ylab = "Desviación Estándar")
 plot(mean.values[2:length(mean.values)],
      type = "b", col = "blue",
-     main = "Standard Deviation vs Number of Components",
-     xlab = "Número de Componentes", ylab = "Desviación Estándar")
+     xlab = "Número de Características", ylab = "Media de Acierto")
 
 rownames(nn.gfr)[1:9]
 
@@ -50,5 +48,4 @@ par(mfrow = c(1,1))
 
 plot(dataset[, rownames(nn.gfr)[1]], dataset[, rownames(nn.gfr)[2]],
      col = dataset$Label, pch = 19,
-     xlab = "Count", ylab = "Protocol Type",
-     main = "Características Principales GFR - NN")
+     xlab = "Count", ylab = "Protocol Type")

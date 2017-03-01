@@ -20,7 +20,7 @@ dataset = cbind(dataset, Label = Labels[,1])
 dataset = ScaleSet(dataset)
 
 #Aplying PCA
-pca = prcomp(dataset[, -41], scale. = TRUE)
+pca = prcomp(dataset[, -41], scale. = FALSE)
 dataset = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,1])
 dataset.five = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,1])
 dataset.two = cbind(as.data.frame(pca$x[,1:7]), Label = Labels[,2])

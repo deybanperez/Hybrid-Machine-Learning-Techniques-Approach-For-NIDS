@@ -343,7 +343,7 @@ generate_ROC = function(scores, real, pred)
   returnFP[length(returnFP)+1] = FP/N
   
   plot(returnFP, returnTP, type = "l",
-       ylab = "Porcentaje Aciertos", xlab = "Porcentaje Errores",
+       ylab = "Tasa de Aciertos", xlab = "Tasa de Errores",
        xlim = c(0,1), ylim = c(0,1))
   abline(0,1, col = "blue")
 }
