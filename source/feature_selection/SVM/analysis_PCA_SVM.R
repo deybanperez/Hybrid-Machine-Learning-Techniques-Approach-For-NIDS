@@ -20,4 +20,5 @@ plot(sd.results, col = "blue", type = "b",
 
 #Plotting mean accuracy vs number of components
 plot(mean.results, col = "blue", type = "b",
-     xlab = "Número de Componentes", ylab = "Media de Acierto")
+     xlab = "Número de Componentes", ylab = "Media de Acierto",
+     ylim = c(0.89,1))

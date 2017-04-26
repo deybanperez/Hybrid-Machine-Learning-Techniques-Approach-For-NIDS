@@ -14,7 +14,8 @@ plot(sdeviation.values[2:length(mean.values)],
      xlab = "Número de Características", ylab = "Desviación Estándar")
 plot(mean.values[2:length(mean.values)],
      type = "b", col = "blue",
-     xlab = "Número de Características", ylab = "Media de Acierto")
+     xlab = "Número de Características", ylab = "Media de Acierto",
+     ylim = c(0.85,1))
 
 rownames(svm.gfr)[1:9]
 
