@@ -344,11 +344,11 @@ generate_ROC = function(scores, real, pred, tittle = NULL)
   
   if(is.null(tittle))
     plot(returnFP, returnTP, type = "l",
-         ylab = "Tasa de Aciertos", xlab = "Tasa de Errores",
+         ylab = "Accuracy", xlab = "Error Rate",
          xlim = c(0,1), ylim = c(0,1))
   else
     plot(returnFP, returnTP, type = "l",
-         ylab = "Tasa de Aciertos", xlab = "Tasa de Errores",
+         ylab = "Accuracy", xlab = "Error Rate",
          xlim = c(0,1), ylim = c(0,1),
          main = tittle)
   

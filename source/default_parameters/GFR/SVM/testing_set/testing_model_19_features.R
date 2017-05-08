@@ -76,7 +76,7 @@ probabilities = predict(model, testing.set[, 1:(ncol(testing.set)-1)], probabili
 
 #Generating ROC Curve
 roc.data = DataROC(testing.set, attr(probabilities, "probabilities"), predictions)
-generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction, tittle = '(6) GFR - SVM - K-Medias')
+generate_ROC(roc.data$Prob, roc.data$Label, roc.data$Prediction, tittle = 'f) Test')
 
 #Adding the second level with k-means
 kmeans.set = testing.set[predictions == "normal", ]
