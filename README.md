@@ -29,19 +29,19 @@ Analizar, dise\~nar e implementar modelos h\'ibridos basados en t\'ecnicas de ap
 
 + `source`: contiene los directorios de los scripts crudos implementados para cada una de las fases del Trabajo Especial de Grado:
 
-++ `default\_parameters`: modelos entrenados con los parametros por defecto.
+  + `default\_parameters`: modelos entrenados con los parametros por defecto.
 
-++ `feature\_selection`: scripts para la selección de parámetros.
+  + `feature\_selection`: scripts para la selección de parámetros.
 
-++ `final\_model`: modelo que mejor se ajusta a a la tarea de detecci\'on de intrusos en redes de computadoras.
+  + `final\_model`: modelo que mejor se ajusta a a la tarea de detecci\'on de intrusos en redes de computadoras.
 
-++ `functions`: funciones utilizadas durante la implementaci\'on.
+  + `functions`: funciones utilizadas durante la implementaci\'on.
 
-++ `parameter\_selection`: scripts para la selecci\'on de par\'ametros.
+  + `parameter\_selection`: scripts para la selecci\'on de par\'ametros.
 
-++ `pre\_processing`: scripts para el pre-procesamiento del conjunto de datos.
+  + `pre\_processing`: scripts para el pre-procesamiento del conjunto de datos.
 
-++ `tuned_models`: scripts de los modelos que que tuvieron par\'ametros seleccionados.
+  + `tuned_models`: scripts de los modelos que que tuvieron par\'ametros seleccionados.
 
 ## Consideraciones de implementación
 
