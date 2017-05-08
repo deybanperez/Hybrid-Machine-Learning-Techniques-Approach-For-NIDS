@@ -4,7 +4,7 @@ Este repositorio corresponde al Trabajo Especial de Grado de mi persona, Deyban 
 Este trabajo busca responder la siguiente pregunta: ¿Es posible obtener un modelo eficaz al aplicar técnicas de aprendizaje automático en el aŕea de detección de intrusos en redes de computadoras? Para ello se plantearon los siguientes objetivos:
 
 ## Objetivo general
-Analizar, dise\~nar e implementar modelos h\'ibridos basados en t\'ecnicas de aprendizaje autom\'atico mediante la evaluaci\'on de su desempe\~no en la tarea de detecci\'on de intrusos en redes de computadoras.
+Analizar, diseñar e implementar modelos híbridos basados en técnicas de aprendizaje automático mediante la evaluación de su desempeño en la tarea de detección de intrusos en redes de computadoras.
 
 ## Objetivos específicos
 + Indagar en el estado actual de la investigación del uso de técnicas de aprendizaje automático en la detección de intrusos en redes de computadoras.
@@ -17,7 +17,7 @@ Analizar, dise\~nar e implementar modelos h\'ibridos basados en t\'ecnicas de ap
 
 + Evaluar la poibilidad de crear un modelo conjunto que combine los modelos creados e incremente el desempeño contra determinados grupos de ataques.
 
-+ Registrar los resultados y consideraciones encontradas durante la implementaci\'on de la soluci\'on.
++ Registrar los resultados y consideraciones encontradas durante la implementación de la solución.
 
 ## Organización del repositorio
 
@@ -29,19 +29,19 @@ Analizar, dise\~nar e implementar modelos h\'ibridos basados en t\'ecnicas de ap
 
 + `source`: contiene los directorios de los scripts crudos implementados para cada una de las fases del Trabajo Especial de Grado:
 
-  + `default\_parameters`: modelos entrenados con los parametros por defecto.
+  + `default_parameters`: modelos entrenados con los parametros por defecto.
 
-  + `feature\_selection`: scripts para la selección de parámetros.
+  + `feature_selection`: scripts para la selección de parámetros.
 
-  + `final\_model`: modelo que mejor se ajusta a a la tarea de detecci\'on de intrusos en redes de computadoras.
+  + `final_model`: modelo que mejor se ajusta a a la tarea de detección de intrusos en redes de computadoras.
 
-  + `functions`: funciones utilizadas durante la implementaci\'on.
+  + `functions`: funciones utilizadas durante la implementación.
 
-  + `parameter\_selection`: scripts para la selecci\'on de par\'ametros.
+  + `parameter_selection`: scripts para la selección de parámetros.
 
-  + `pre\_processing`: scripts para el pre-procesamiento del conjunto de datos.
+  + `pre_processing`: scripts para el pre-procesamiento del conjunto de datos.
 
-  + `tuned_models`: scripts de los modelos que que tuvieron par\'ametros seleccionados.
+  + `tuned_models`: scripts de los modelos que que tuvieron parámetros seleccionados.
 
 ## Consideraciones de implementación
 
